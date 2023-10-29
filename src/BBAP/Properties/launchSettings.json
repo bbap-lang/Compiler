@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "BBAP": {
+      "commandName": "Project",
+      "commandLineArgs": "../../../../../examples/primes/primes.bbap ../../../../../examples/primes/compiled/primes.abap"
+    }
+  }
+}

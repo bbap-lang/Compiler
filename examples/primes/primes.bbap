@@ -1,0 +1,18 @@
+let helloWorld = "Hello World!";
+let num = 0;
+let test = helloWorld + num * 5; 
+
+let test2 = num == 0;
+
+for(let i = 0; i < 100; i++;){
+    let test2 = "test";
+    printLine("Hello Word 2!");
+}
+
+func test(param1: int){
+    let test2 = param1;
+}
+
+func test2(param1: int): (long){
+    let hi = "Hi!";
+}
