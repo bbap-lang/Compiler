@@ -3,6 +3,6 @@ using BBAP.Types;
 
 namespace BBAP.PreTranspiler.Expressions; 
 
-public interface ISecondStageValues: IExpression {
+public interface ISecondStageValue: IExpression {
     public IType Type { get; }
 }

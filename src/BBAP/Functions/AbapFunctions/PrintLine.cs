@@ -7,6 +7,9 @@ using BBAP.Types;
 namespace BBAP.Functions.AbapFunctions; 
 
 public class PrintLine: IFunction {
+    public IType SingleType => new UnknownType();
+    public bool IsSingleType => false;
+    
     public bool Matches(IType[] inputs, IType[] outputs) {
         return outputs.Length == 0;
     }

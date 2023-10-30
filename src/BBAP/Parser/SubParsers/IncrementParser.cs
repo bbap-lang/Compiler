@@ -6,6 +6,7 @@ using BBAP.Parser.Expressions;
 using BBAP.Parser.Expressions.Calculations;
 using BBAP.Parser.Expressions.Values;
 using BBAP.Results;
+using BBAP.Types;
 
 namespace BBAP.Parser.SubParsers; 
 
@@ -16,7 +17,7 @@ public static class IncrementParser {
             return Error(variableToken.Line, "Inline Incrementor are currently not supported.");
         }
 
-        var variable = new VariableExpression(variableToken.Line, variableToken.Value);
+        var variable = new VariableExpression(variableToken.Line, variableToken.Value, new UnknownType());
         var incrementExpression = new IncrementExpression(variable.Line, variable, incrementType);
         
         return Ok<IExpression>(incrementExpression);

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using BBAP.Parser.Expressions;
 using BBAP.Parser.Expressions.Values;
 using BBAP.PreTranspiler.Expressions;
@@ -9,7 +10,6 @@ namespace BBAP.PreTranspiler.SubPreTranspiler;
 
 public static class DeclarePreTranspiler {
     public static Result<IExpression[]> Run(DeclareExpression declareExpression, PreTranspilerState state) {
-        ISecondStageValues? value = null;
         IType type;
         IExpression[] additionalExpressions = Array.Empty<IExpression>();
         Result<string> newVarResult;
@@ -31,28 +31,50 @@ public static class DeclarePreTranspiler {
             }
 
 
-            variableExpression = new VariableExpression(declareExpression.Line, newVar);
+            variableExpression = new VariableExpression(declareExpression.Line, newVar, type);
             DeclareExpression newDeclareExpressionWithoutSet = declareExpression with {
                  Variable = variableExpression
             };
 
             return Ok(new IExpression[]{newDeclareExpressionWithoutSet});
-        } else {
-            Result<IExpression[]> splittedValueResult = ValueSplitter.Run(state, declareExpression.SetExpression.Value);
-            if (!splittedValueResult.TryGetValue(out IExpression[]? splittedValue)) {
-                return splittedValueResult;
-            }
-
-            IExpression lastValue = splittedValue.Last();
-
-            if (lastValue is not ISecondStageValues tmpValue) {
-                throw new UnreachableException();
-            }
-
-            value = tmpValue;
-            type = value.Type;
-            additionalExpressions = splittedValue;
         }
+
+        Result<IExpression[]> splittedValueResult = SetPreTranspiler.Run(declareExpression.SetExpression, state);
+        if (!splittedValueResult.TryGetValue(out IExpression[]? splittedValue)) {
+            return splittedValueResult;
+        }
+
+        IExpression newSetExpressionUnknown = splittedValue.Last();
+
+        if (newSetExpressionUnknown is SecondStageFunctionCallExpression funcCall) {
+            newVarResult = state.CreateVar(declareExpression.Variable.Name, funcCall.Type, declareExpression.Line);
+
+            if (!newVarResult.TryGetValue(out newVar)) {
+                return newVarResult.ToErrorResult();
+            }
+
+            variableExpression = new VariableExpression(declareExpression.Line, newVar, funcCall.Type);
+
+            var emptyDeclare = new DeclareExpression(declareExpression.Line, variableExpression, new TypeExpression(funcCall.Line, funcCall.Type), null);
+
+            var newFuncCall = funcCall with { Outputs = ImmutableArray.Create(variableExpression) };
+            
+            IExpression[] addExpressions = additionalExpressions.Remove(newSetExpressionUnknown).Append(emptyDeclare).Append(newFuncCall).ToArray();
+
+            return Ok(addExpressions);
+        }
+        
+        if (newSetExpressionUnknown is not SetExpression setExpression) {
+            throw new UnreachableException();
+        }
+
+        if (setExpression.Value is not ISecondStageValue value) {
+            throw new UnreachableException();
+        }
+
+        type = value.Type;
+        
+        additionalExpressions = splittedValue;
 
         newVarResult = state.CreateVar(declareExpression.Variable.Name, type, declareExpression.Line);
 
@@ -60,18 +82,17 @@ public static class DeclarePreTranspiler {
             return newVarResult.ToErrorResult();
         }
 
-
-        variableExpression = new VariableExpression(declareExpression.Line, newVar);
+        variableExpression = new VariableExpression(declareExpression.Line, newVar, type);
         
-        SetExpression setExpression = declareExpression.SetExpression with {
-            Value = value, Variable = variableExpression
-        };
         var typeExpression = new TypeExpression(value.Line, type);
+
+        SetExpression newSetExpression = setExpression with { Variable = variableExpression };
+        
         DeclareExpression newDeclareExpression = declareExpression with {
-            SetExpression = setExpression, Type = typeExpression, Variable = variableExpression
+            SetExpression = newSetExpression, Type = typeExpression, Variable = variableExpression
         };
 
-        IExpression[] newExpressions = additionalExpressions.Remove(value).Append(newDeclareExpression).ToArray();
+        IExpression[] newExpressions = additionalExpressions.Remove(setExpression).Append(newDeclareExpression).ToArray();
 
         return Ok(newExpressions);
     }

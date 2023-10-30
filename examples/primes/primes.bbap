@@ -9,10 +9,23 @@ for(let i = 0; i < 100; i++;){
     printLine("Hello Word 2!");
 }
 
+while num < 10{
+    printLine("While loop!");
+}
+
+if num < 1 {
+    printLine("Hello Word 2!");
+}
+
+let testResult = test2(5);
+
+
 func test(param1: int){
     let test2 = param1;
 }
 
-func test2(param1: int): (long){
+func test2(param1: int): (int){
     let hi = "Hi!";
+    
+    return 0;
 }

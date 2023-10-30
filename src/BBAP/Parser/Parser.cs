@@ -38,7 +38,7 @@ public class Parser {
     public static Result<IExpression> ParseNextStatement(ParserState state) {
         Result<IToken> tokenResult = state.Next(typeof(UnknownWordToken), typeof(IfToken), typeof(ForToken),
             typeof(WhileToken),
-            typeof(DoToken), typeof(LetToken), typeof(FunctionToken));
+            typeof(DoToken), typeof(LetToken), typeof(FunctionToken), typeof(ReturnToken));
 
         if (!tokenResult.TryGetValue(out IToken? token)) {
             return tokenResult.ToErrorResult();
@@ -52,6 +52,7 @@ public class Parser {
             DoToken => DoParser.Run(state),
             LetToken => LetParser.Run(state),
             FunctionToken => FunctionParser.Run(state, token.Line),
+            ReturnToken => ReturnParser.Run(state, token.Line),
             _ => throw new UnreachableException()
         };
 

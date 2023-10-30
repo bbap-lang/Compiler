@@ -1,3 +1,5 @@
-﻿namespace BBAP.Parser.Expressions.Values; 
+﻿using BBAP.Types;
 
-public record VariableExpression(int Line, string Name): IExpression;
+namespace BBAP.Parser.Expressions.Values; 
+
+public record VariableExpression(int Line, string Name, IType Type): IExpression;

@@ -42,7 +42,10 @@ public class Transpiler {
                 case SetExpression setExpression:
                     SetTranspiler.Run(setExpression, state);
                     break;
-                case DeclareExpression { SetExpression: not null } declareExpression:
+                case DeclareExpression declareExpression:
+                    if (declareExpression.SetExpression is null) {
+                        break;
+                    }
                     SetTranspiler.Run(declareExpression.SetExpression, state);
                     break;
                 case WhileExpression whileExpression:

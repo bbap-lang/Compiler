@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics;
+using BBAP.Lexer.Tokens.Keywords;
 using BBAP.Parser.Expressions;
 using BBAP.Parser.Expressions.Blocks;
 using BBAP.Parser.Expressions.Calculations;
@@ -73,6 +74,7 @@ public class PreTranspiler {
             WhileExpression whileExpression => WhilePreTranspiler.Run(whileExpression, state),
             
             FunctionCallExpression fc => FunctionCallPreTranspiler.Run(state, fc),
+            ReturnExpression re => ReturnPreTranspiler.Run(re, state),
 
             _ => Ok(new[]{expression})
         };

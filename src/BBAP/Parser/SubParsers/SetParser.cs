@@ -3,6 +3,7 @@ using BBAP.Lexer.Tokens.Values;
 using BBAP.Parser.Expressions;
 using BBAP.Parser.Expressions.Values;
 using BBAP.Results;
+using BBAP.Types;
 
 namespace BBAP.Parser.SubParsers; 
 
@@ -13,10 +14,9 @@ public static class SetParser {
         if (!valueResult.TryGetValue(out IExpression value)) {
             return valueResult;
         }
-
-        var variable = new VariableExpression(variableToken.Line, variableToken.Value);
+        
+        var variable = new VariableExpression(variableToken.Line, variableToken.Value, new UnknownType());
         
         return Ok<IExpression>(new SetExpression(variable.Line, variable, setType, value));
     }
-
 }

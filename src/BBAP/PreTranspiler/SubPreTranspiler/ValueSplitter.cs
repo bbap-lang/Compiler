@@ -47,13 +47,13 @@ public static class ValueSplitter {
 
     private static Result<IExpression> CreateVarExpression(PreTranspilerState state, VariableExpression expression) {
         string varName = expression.Name;
-        Result<Variable> typeResult = state.GetVariable(varName, expression.Line);
+        Result<Variable> variableResult = state.GetVariable(varName, expression.Line);
 
-        if (!typeResult.TryGetValue(out Variable variable)) {
-            return typeResult.ToErrorResult();
+        if (!variableResult.TryGetValue(out Variable variable)) {
+            return variableResult.ToErrorResult();
         }
 
-        var newVariableExpression = new VariableExpression(expression.Line, variable.Name);
+        var newVariableExpression = new VariableExpression(expression.Line, variable.Name, variable.Type);
         return CreateExpression(state, expression.Line, variable.Type.Name, newVariableExpression);
     }
 
@@ -94,6 +94,30 @@ public static class ValueSplitter {
 
             IExpression leftValue = lastLeft;
             IExpression rightValue = lastRight;
+
+            if (leftValue is SecondStageFunctionCallExpression leftFunc) {
+                if (!leftFunc.Function.IsSingleType) {
+                    return Error(leftFunc.Line, "Calculations with functions that return more then one value are not supported.");
+                }
+
+                VariableExpression returnVarEx = leftFunc.Outputs.First();
+                Result<Variable> returnVarResult = state.GetVariable(returnVarEx.Name, returnVarEx.Line);
+                if(!returnVarResult.TryGetValue(out Variable returnVar)) {
+                    throw new UnreachableException();
+                }
+
+                VariableExpression internalVar = state.CreateRandomNewVar(leftFunc.Line, leftFunc.Type);
+                
+                SecondStageFunctionCallExpression functionCall = leftFunc with { Outputs = ImmutableArray.Create(internalVar) };
+                combined = combined.Append(functionCall);
+                leftValue = new SecondStageValueExpression(leftFunc.Line, returnVar.Type, internalVar);
+            }
+            
+            if (rightValue is SecondStageFunctionCallExpression rightFunc) {
+                if (rightFunc.Outputs.Length != 1) {
+                    return Error(rightFunc.Line, "Calculations with functions that return more then one value are not supported.");
+                }
+            }
             
             if (lastLeft is SecondStageCalculationExpression leftCalc) {
                 (DeclareExpression leftDeclare, SecondStageValueExpression leftVar) = ExtractVariable(state, expression, leftCalc.Type, lastLeft);
@@ -145,8 +169,18 @@ public static class ValueSplitter {
     private static (bool NeedsSplit, IType NewType) NeedsSplit(IExpression left,
         IExpression right,
         PreTranspilerState state) {
+        
         IType leftType = GetExpressionType(left);
         IType rightType = GetExpressionType(right);
+        
+        if(left is SecondStageFunctionExpression || right is SecondStageFunctionExpression) {
+            if (AnyType(Keywords.String, state, leftType, rightType) >= 1) {
+                return (true, ForceGetType(Keywords.String, state));
+            }
+
+            IType type = GetHighestNumType(state, leftType, rightType);
+            return (true, type);
+        }
 
         if (AnyType(Keywords.String, state, leftType, rightType) >= 2) {
             return (false, ForceGetType(Keywords.String, state));

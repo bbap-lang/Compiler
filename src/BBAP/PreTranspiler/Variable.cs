@@ -2,4 +2,4 @@
 
 namespace BBAP.PreTranspiler; 
 
-public record struct Variable(IType Type, string Name);
+public record class Variable(IType Type, string Name);

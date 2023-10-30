@@ -1,4 +1,5 @@
 ﻿using BBAP.Parser.Expressions.Values;
+using BBAP.PreTranspiler;
 using BBAP.PreTranspiler.Expressions;
 using BBAP.Types;
 
@@ -14,13 +15,24 @@ public static class FunctionTranspiler {
 
         if (functionExpression.Parameters.Length > 0) {
             builder.Append(" USING ");
-            foreach ((_, VariableExpression? variable, IType? type) in functionExpression.Parameters) {
-                builder.Append(variable.Name);
+            foreach ((IType type, string name) in functionExpression.Parameters) {
+                builder.Append(name);
                 builder.Append(" TYPE ");
                 builder.Append(type.AbapName);
                 builder.Append(' ');
             }
         }
+        
+        if(functionExpression.ReturnVariables.Length > 0){
+            builder.Append(" CHANGING ");
+            foreach (Variable returnVariable in functionExpression.ReturnVariables) {
+                builder.Append(returnVariable.Name);
+                builder.Append(" TYPE ");
+                builder.Append(returnVariable.Type.AbapName);
+                builder.Append(' ');
+            }
+        }
+        
         builder.AppendLine('.');
         
         builder.AddIntend();

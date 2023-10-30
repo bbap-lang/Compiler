@@ -9,6 +9,7 @@ using BBAP.Parser.Expressions.Calculations;
 using BBAP.Parser.Expressions.Values;
 using BBAP.Parser.ExtensionMethods;
 using BBAP.Results;
+using BBAP.Types;
 
 namespace BBAP.Parser.SubParsers;
 
@@ -60,7 +61,7 @@ public static class UnknownWordParser {
         Result<IExpression> result = nextToken switch {
             OpeningGenericBracketToken openingGenericBracket => FunctionCallParser.Run(state, unknownWordToken),
             
-            _ => Ok<IExpression>(new VariableExpression(unknownWordToken.Line, unknownWordToken.Value))
+            _ => Ok<IExpression>(new VariableExpression(unknownWordToken.Line, unknownWordToken.Value, new UnknownType()))
         };
 
         return result;

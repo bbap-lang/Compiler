@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Text;
 using BBAP.Functions;
 using BBAP.Functions.AbapFunctions;
+using BBAP.Parser.Expressions;
 using BBAP.Parser.Expressions.Values;
 using BBAP.PreTranspiler.Expressions;
 using BBAP.Results;
@@ -16,6 +17,8 @@ public class PreTranspilerState {
 
     private readonly HashSet<string> _stackNames = new();
     private readonly DefaultClasses.Stack<string> _stack = new();
+    
+    private readonly DefaultClasses.Stack<Variable[]> _returnVariables = new();
 
     private readonly Dictionary<string, IFunction> _functions = new() {
         { "PRINT", new Print() },
@@ -38,6 +41,11 @@ public class PreTranspilerState {
                 return Ok(new Variable(type, variableName));
             }
         }
+
+        if (_internalVariables.TryGetValue(name, out IType? varType)) {
+            return Ok(new Variable(varType, name));
+        }
+        
         return Error(line, $"Variable '{name}' was not defined");
     }
 
@@ -72,7 +80,7 @@ public class PreTranspilerState {
         return Ok(variableName);
     }
     
-    public VariableExpression CreateRandomNewVar(int line, IType type) => new(line, GenerateInternalVariableName(type));
+    public VariableExpression CreateRandomNewVar(int line, IType type) => new(line, GenerateInternalVariableName(type), type);
 
     
     private string GenerateInternalVariableName(IType type) {
@@ -87,7 +95,7 @@ public class PreTranspilerState {
     }
     
     private const string Chars = "ABDEFGHIJKLMNOPQRSTUVWXYZ";
-    private string GenerateRandomString(int length){
+    private static string GenerateRandomString(int length){
         var builder = new StringBuilder();
         for (int i = 0; i < length; i++) {
             builder.Append(Chars[Random.Shared.Next(Chars.Length)]);
@@ -97,10 +105,8 @@ public class PreTranspilerState {
     }
 
     public Result<IFunction> AddFunction(SecondStageFunctionExpression functionExpression) {
-        ImmutableArray<IType> parameterTypes = functionExpression.Parameters.Select(x => x.Type).ToImmutableArray();
-        ImmutableArray<IType> returnTypes = functionExpression.ReturnTypes.Select(x => x.Type).ToImmutableArray();
         
-        Result<IFunction> functionResult = AddFunction(functionExpression.Line, functionExpression.Name, parameterTypes, returnTypes);
+        Result<IFunction> functionResult = AddFunction(functionExpression.Line, functionExpression.Name, functionExpression.Parameters, functionExpression.ReturnVariables);
 
         if (!functionResult.TryGetValue(out IFunction? function)) {
             return functionResult.ToErrorResult();
@@ -111,7 +117,7 @@ public class PreTranspilerState {
         return Ok(function);
     }
 
-    private Result<IFunction> AddFunction(int line, string name, ImmutableArray<IType> parameters, ImmutableArray<IType> returnType) {
+    private Result<IFunction> AddFunction(int line, string name, ImmutableArray<Variable> parameters, ImmutableArray<Variable> returnType) {
         if (_functions.ContainsKey(name)) {
             return Error(line, $"The function {name} was already defined.");
         }
@@ -130,7 +136,7 @@ public class PreTranspilerState {
         return Ok(function);
     }
 
-    public SecondStageFunctionExpression GetDeclaredFunction(int line, string functionName) {
+    public SecondStageFunctionExpression GetDeclaredFunction(string functionName) {
         if (!_declaredFunctions.TryGetValue(functionName, out var declaredFunction)) {
             throw new UnreachableException();
         }
@@ -138,4 +144,15 @@ public class PreTranspilerState {
         return declaredFunction;
     }
 
+    public void GoIntoFunction(Variable[] returnVariables) {
+        _returnVariables.Push(returnVariables);
+    }
+
+    public Variable[] GetCurrentReturnVariables() {
+        return _returnVariables.Peek();
+    }
+    
+    public void GoOutOfFunction() {
+        _returnVariables.Pop();
+    }
 }

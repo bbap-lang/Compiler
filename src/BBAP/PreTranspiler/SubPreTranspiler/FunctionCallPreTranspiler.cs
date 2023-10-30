@@ -26,7 +26,7 @@ public static class FunctionCallPreTranspiler {
             }
 
             IExpression lastGeneral = expressions.Last();
-            if (lastGeneral is not ISecondStageValues last) {
+            if (lastGeneral is not ISecondStageValue last) {
                 throw new UnreachableException();
             }
 

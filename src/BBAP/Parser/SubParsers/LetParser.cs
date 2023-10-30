@@ -50,7 +50,7 @@ public class LetParser {
 
             if (token is SemicolonToken) {
                 typeExpression = new TypeExpression( typeLine, type);
-                variableExpression = new VariableExpression(variableName.Line, variableName.Value);
+                variableExpression = new VariableExpression(variableName.Line, variableName.Value, new UnknownType());
                 declareExpression = new DeclareExpression(variableName.Line, variableExpression, typeExpression, null);
                 return Ok<IExpression>(declareExpression);
             }
@@ -64,7 +64,7 @@ public class LetParser {
         }
         
         typeExpression = new TypeExpression( typeLine , type);
-        variableExpression = new VariableExpression(variableName.Line, variableName.Value);
+        variableExpression = new VariableExpression(variableName.Line, variableName.Value, new UnknownType());
         var setExpression = new SetExpression(value.Line, variableExpression, SetType.Generic, value);
         declareExpression = new DeclareExpression(variableName.Line, variableExpression, typeExpression, setExpression);
         return Ok<IExpression>(declareExpression);

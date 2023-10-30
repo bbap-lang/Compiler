@@ -1,4 +1,6 @@
-﻿using BBAP.Parser.Expressions;
+﻿using System.Collections.Immutable;
+using BBAP.Parser.Expressions;
+using BBAP.PreTranspiler.Expressions;
 using BBAP.Results;
 
 namespace BBAP.PreTranspiler.SubPreTranspiler; 
@@ -12,9 +14,15 @@ public static class SetPreTranspiler {
 
         IExpression lastValue = splittedValue.Last();
 
-        SetExpression newSetExpression = setExpression with { Value = lastValue };
+        IExpression newExpression;
+        if (lastValue is SecondStageFunctionCallExpression funcCall) {
+            newExpression = funcCall with { Outputs = ImmutableArray.Create(setExpression.Variable) };
+        } else {
+            newExpression = setExpression with { Value = lastValue };
+        }
+
         
-        IExpression[] newExpressions = splittedValue.Remove(lastValue).Append(newSetExpression).ToArray();
+        IExpression[] newExpressions = splittedValue.Remove(lastValue).Append(newExpression).ToArray();
         
         return Ok(newExpressions);
     }
