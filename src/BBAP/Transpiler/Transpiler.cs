@@ -48,6 +48,9 @@ public class Transpiler {
                 case WhileExpression whileExpression:
                     WhileTranspiler.Run(whileExpression, state);
                     break;
+                case IfExpression ifExpression:
+                    IfTranspiler.Run(ifExpression, state);
+                    break;
                 case SecondStageFunctionCallExpression functionCallExpression:
                     FunctionCallTranspiler.Run(functionCallExpression, state);
                     break;

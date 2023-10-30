@@ -27,7 +27,7 @@ public class ValueParser {
         }
 
         Result<IExpression> result = nextToken switch {
-            OpeningGenericBracketToken => FullExpression(state, out _, typeof(ClosingCurlyBracketToken)),
+            OpeningGenericBracketToken => FullExpression(state, out _, typeof(ClosingGenericBracketToken)),
             UnknownWordToken unknownWordToken => UnknownWordParser.RunValue(state, unknownWordToken),
             IntValueToken intToken => Ok<IExpression>(new IntExpression(nextToken.Line, intToken.Value)),
             FloatValueToken floatToken => Ok<IExpression>(new FloatExpression(nextToken.Line, floatToken.Value)),

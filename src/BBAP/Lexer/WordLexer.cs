@@ -27,15 +27,17 @@ public static class WordLexer {
         string word = wordBuilder.ToString();
 
         IToken token = word switch {
-            DoToken.Name => new DoToken(state.Line),
-            ForToken.Name => new ForToken(state.Line),
-            IfToken.Name => new IfToken(state.Line),
-            LetToken.Name => new LetToken(state.Line),
-            WhileToken.Name => new WhileToken(state.Line),
-            FunctionToken.Name => new FunctionToken(state.Line),
+            Keywords.Do => new DoToken(state.Line),
+            Keywords.For => new ForToken(state.Line),
+            Keywords.If => new IfToken(state.Line),
+            Keywords.Let => new LetToken(state.Line),
+            Keywords.While => new WhileToken(state.Line),
+            Keywords.Function => new FunctionToken(state.Line),
+            
+            Keywords.Return => new ReturnToken(state.Line),
 
-            BooleanValueToken.NameTrue => new BooleanValueToken(state.Line, true),
-            BooleanValueToken.NameFalse => new BooleanValueToken(state.Line, false),
+            Keywords.True => new BooleanValueToken(state.Line, true),
+            Keywords.False => new BooleanValueToken(state.Line, false),
 
             _ => new UnknownWordToken(word, state.Line)
         };

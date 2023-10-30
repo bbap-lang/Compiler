@@ -14,11 +14,11 @@ namespace BBAP.PreTranspiler.SubPreTranspiler;
 public static class ValueSplitter {
     public static Result<IExpression[]> Run(PreTranspilerState state, IExpression expression) {
         Result<IExpression> newExpressionResult = expression switch {
-            FloatExpression => CreateExpression(state, expression.Line, KeyWords.Float, expression),
-            IntExpression => CreateExpression(state, expression.Line, KeyWords.Int, expression),
+            FloatExpression => CreateExpression(state, expression.Line, Keywords.Float, expression),
+            IntExpression => CreateExpression(state, expression.Line, Keywords.Int, expression),
             NegativeExpression => throw new NotImplementedException(), // needs to be splitted up
             NotExpression => throw new NotImplementedException(),
-            StringExpression => CreateExpression(state, expression.Line, KeyWords.String, expression),
+            StringExpression => CreateExpression(state, expression.Line, Keywords.String, expression),
 
             VariableExpression ve => CreateVarExpression(state, ve),
 
@@ -148,17 +148,17 @@ public static class ValueSplitter {
         IType leftType = GetExpressionType(left);
         IType rightType = GetExpressionType(right);
 
-        if (AnyType(KeyWords.String, state, leftType, rightType) >= 2) {
-            return (false, ForceGetType(KeyWords.String, state));
+        if (AnyType(Keywords.String, state, leftType, rightType) >= 2) {
+            return (false, ForceGetType(Keywords.String, state));
         }
 
         if (NumTypes(state, leftType, rightType) >= 2) {
             return (false, GetHighestNumType(state, leftType, rightType));
         }
 
-        if (AnyType(KeyWords.String, state, leftType, rightType) >= 1) {
+        if (AnyType(Keywords.String, state, leftType, rightType) >= 1) {
             return (left is SecondStageCalculationExpression || right is SecondStageCalculationExpression,
-                ForceGetType(KeyWords.String, state));
+                ForceGetType(Keywords.String, state));
         }
 
         throw new UnreachableException();
@@ -174,26 +174,26 @@ public static class ValueSplitter {
     }
 
     private static IType GetHighestNumType(PreTranspilerState state, params IType[] types) {
-        if (AnyType(KeyWords.Double, state, types) >= 1) {
-            return ForceGetType(KeyWords.Double, state);
+        if (AnyType(Keywords.Double, state, types) >= 1) {
+            return ForceGetType(Keywords.Double, state);
         }
 
-        if (AnyType(KeyWords.Float, state, types) >= 1) {
-            return ForceGetType(KeyWords.Float, state);
+        if (AnyType(Keywords.Float, state, types) >= 1) {
+            return ForceGetType(Keywords.Float, state);
         }
 
-        if (AnyType(KeyWords.Long, state, types) >= 1) {
-            return ForceGetType(KeyWords.Long, state);
+        if (AnyType(Keywords.Long, state, types) >= 1) {
+            return ForceGetType(Keywords.Long, state);
         }
 
-        return ForceGetType(KeyWords.Int, state);
+        return ForceGetType(Keywords.Int, state);
     }
 
     private static int NumTypes(PreTranspilerState state, params IType[] types) {
-        IType intType = ForceGetType(KeyWords.Int, state);
-        IType floatType = ForceGetType(KeyWords.Float, state);
-        IType doubleType = ForceGetType(KeyWords.Double, state);
-        IType longType = ForceGetType(KeyWords.Long, state);
+        IType intType = ForceGetType(Keywords.Int, state);
+        IType floatType = ForceGetType(Keywords.Float, state);
+        IType doubleType = ForceGetType(Keywords.Double, state);
+        IType longType = ForceGetType(Keywords.Long, state);
 
         int typesMatch = types.Count(t => t == intType || t == floatType || t == doubleType || t == longType);
 

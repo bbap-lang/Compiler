@@ -31,7 +31,7 @@ public static class IfPreTranspiler {
         IExpression condition = splittedCondition.Last();
         IfExpression newExpression = ifExpression with { Condition = condition, BlockContent = block };
 
-        IExpression[] combined = splittedCondition.Append(newExpression).ToArray();
+        IExpression[] combined = splittedCondition.Remove(condition).Append(newExpression).ToArray();
         
         state.StackOut();
         return Ok(combined);

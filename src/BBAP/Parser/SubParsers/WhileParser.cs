@@ -13,7 +13,7 @@ public class WhileParser {
             return conditionResult;
         }
         
-        Result<ImmutableArray<IExpression>> blockContentResult = Parser.ParseBlock(state, true);
+        Result<ImmutableArray<IExpression>> blockContentResult = Parser.ParseBlock(state, false);
         if (!blockContentResult.TryGetValue(out ImmutableArray<IExpression> blockContent)) {
             return blockContentResult.ToErrorResult();
         }
