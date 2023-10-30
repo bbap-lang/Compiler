@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.InteropServices.JavaScript;
 using System.Text;
 using BBAP.Lexer.Tokens.Values;
 using BBAP.Parser.Expressions;
@@ -95,28 +96,28 @@ public static class ValueSplitter {
             IExpression leftValue = lastLeft;
             IExpression rightValue = lastRight;
 
-            if (leftValue is SecondStageFunctionCallExpression leftFunc) {
-                if (!leftFunc.Function.IsSingleType) {
-                    return Error(leftFunc.Line, "Calculations with functions that return more then one value are not supported.");
+            if (lastLeft is SecondStageFunctionCallExpression leftFunc) {
+                Result<(IExpression Value, IExpression Declaration)> extractedMethodResult = ExtractFunctionCall(state, leftFunc);
+                if(!extractedMethodResult.TryGetValue(out (IExpression Value, IExpression Declaration) extractedMethod)) {
+                    return extractedMethodResult.ToErrorResult();
                 }
 
-                VariableExpression returnVarEx = leftFunc.Outputs.First();
-                Result<Variable> returnVarResult = state.GetVariable(returnVarEx.Name, returnVarEx.Line);
-                if(!returnVarResult.TryGetValue(out Variable returnVar)) {
-                    throw new UnreachableException();
-                }
+                (IExpression newValue, IExpression callDeclaration) = extractedMethod;
 
-                VariableExpression internalVar = state.CreateRandomNewVar(leftFunc.Line, leftFunc.Type);
-                
-                SecondStageFunctionCallExpression functionCall = leftFunc with { Outputs = ImmutableArray.Create(internalVar) };
-                combined = combined.Append(functionCall);
-                leftValue = new SecondStageValueExpression(leftFunc.Line, returnVar.Type, internalVar);
+                combined.Append(callDeclaration);
+                leftValue = newValue;
             }
             
-            if (rightValue is SecondStageFunctionCallExpression rightFunc) {
-                if (rightFunc.Outputs.Length != 1) {
-                    return Error(rightFunc.Line, "Calculations with functions that return more then one value are not supported.");
+            if (lastRight is SecondStageFunctionCallExpression rightFunc) {
+                Result<(IExpression Value, IExpression Declaration)> extractedMethodResult = ExtractFunctionCall(state, rightFunc);
+                if(!extractedMethodResult.TryGetValue(out (IExpression Value, IExpression Declaration) extractedMethod)) {
+                    return extractedMethodResult.ToErrorResult();
                 }
+
+                (IExpression newValue, IExpression callDeclaration) = extractedMethod;
+
+                combined.Append(callDeclaration);
+                rightValue = newValue;
             }
             
             if (lastLeft is SecondStageCalculationExpression leftCalc) {
@@ -148,6 +149,25 @@ public static class ValueSplitter {
             .Remove(lastRight)
             .Append(combinedExpression)
             .ToArray());
+    }
+
+    private static Result<(IExpression Value, IExpression Declaration)> ExtractFunctionCall(PreTranspilerState state, SecondStageFunctionCallExpression functionCall) {
+        if (!functionCall.Function.IsSingleType) {
+            return Error(functionCall.Line, "Calculations with function calls that return more then one value are not supported.");
+        }
+
+        VariableExpression returnVarEx = functionCall.Outputs.First();
+        Result<Variable> returnVarResult = state.GetVariable(returnVarEx.Name, returnVarEx.Line);
+        if (!returnVarResult.TryGetValue(out Variable returnVar)) {
+            throw new UnreachableException();
+        }
+
+        VariableExpression internalVar = state.CreateRandomNewVar(functionCall.Line, functionCall.Type);
+
+        IExpression newFunctionCall = functionCall with { Outputs = ImmutableArray.Create(internalVar) };
+        IExpression value = new SecondStageValueExpression(functionCall.Line, returnVar.Type, internalVar);
+
+        return Ok((value, functionCall: newFunctionCall));
     }
 
     private static ( DeclareExpression Declaration, SecondStageValueExpression Value) ExtractVariable(

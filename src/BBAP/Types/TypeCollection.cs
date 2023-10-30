@@ -9,7 +9,7 @@ public class TypeCollection {
         {"DOUBLE", new DefaultType("DOUBLE", "D")},
         {"FLOAT", new DefaultType("FLOAT", "F")},
         {"LONG", new DefaultType("LONG", "L")},
-        {"BOOL", new DefaultType("BOOL", "BOOLEAN")},
+        {"BOOL", new DefaultType("BOOL", "ABAP_BOOL")},
         
         {"STRING", new GeneralType("STRING")},
     };
