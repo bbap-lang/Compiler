@@ -14,7 +14,8 @@ public static class FunctionTranspiler {
         builder.Append(functionExpression.Name);
 
         if (functionExpression.Parameters.Length > 0) {
-            builder.Append(" USING ");
+            builder.AppendLine();
+            builder.Append("\tUSING ");
             foreach ((IType type, string name) in functionExpression.Parameters) {
                 builder.Append(name);
                 builder.Append(" TYPE ");
@@ -24,7 +25,8 @@ public static class FunctionTranspiler {
         }
         
         if(functionExpression.ReturnVariables.Length > 0){
-            builder.Append(" CHANGING ");
+            builder.AppendLine();
+            builder.Append("\tCHANGING ");
             foreach (Variable returnVariable in functionExpression.ReturnVariables) {
                 builder.Append(returnVariable.Name);
                 builder.Append(" TYPE ");
@@ -34,6 +36,7 @@ public static class FunctionTranspiler {
         }
         
         builder.AppendLine('.');
+        builder.AppendLine();
         
         builder.AddIntend();
         Transpiler.TranspileBlock(functionExpression.ContentBlock, state);

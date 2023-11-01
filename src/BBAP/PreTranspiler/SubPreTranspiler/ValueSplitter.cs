@@ -9,6 +9,7 @@ using BBAP.Parser.Expressions.Values;
 using BBAP.PreTranspiler.Expressions;
 using BBAP.Results;
 using BBAP.Types;
+using Error = BBAP.Results.Error;
 
 namespace BBAP.PreTranspiler.SubPreTranspiler;
 
@@ -27,7 +28,7 @@ public static class ValueSplitter {
         };
 
         if (newExpressionResult.TryGetValue(out IExpression newExpression)) {
-            return Ok<IExpression[]>(new[] { newExpression });
+            return Ok(new[] { newExpression });
         }
 
         if (newExpressionResult.Error is not TemporaryError) {
@@ -37,6 +38,7 @@ public static class ValueSplitter {
         Result<IExpression[]> newExpressionsResult = expression switch {
             MathCalculationExpression mathEx => SplitMathCalculation(state, mathEx),
             ComparisonExpression comparisonEx => ComparisonPreTranspiler.Run(state, comparisonEx),
+            // BooleanExpression booleanExpression => BooleanPreTranspiler.Run(state, booleanExpression),
 
             FunctionCallExpression fc => FunctionCallPreTranspiler.Run(state, fc),
 
@@ -60,7 +62,7 @@ public static class ValueSplitter {
 
     private static Result<IExpression[]> SplitMathCalculation(PreTranspilerState state,
         MathCalculationExpression expression) {
-        var calculationType = expression.CalculationType switch {
+        SecondStageCalculationType calculationType = expression.CalculationType switch {
             CalculationType.Plus => SecondStageCalculationType.Plus,
             CalculationType.Minus => SecondStageCalculationType.Minus,
             CalculationType.Multiply => SecondStageCalculationType.Multiply,
@@ -85,17 +87,26 @@ public static class ValueSplitter {
         IExpression lastLeft = left.Last();
         IExpression lastRight = right.Last();
 
-        (bool needsSplit, IType? newType) = NeedsSplit(lastLeft, lastRight, state);
+        Result<(bool NeedsSplit, IType NewType)> needsSplitResult = NeedsSplit(lastLeft, lastRight, state);
 
+        if(!needsSplitResult.TryGetValue(out (bool NeedsSplit, IType NewType) needsSplitTuple)) {
+            return needsSplitResult.ToErrorResult();
+        }
+        
+        (bool needsSplit, IType newType) = needsSplitTuple;
+
+        if (!newType.SupportsOperator(calculationType.ToSupportedOperator())) {
+            return Error(lastLeft.Line, $"Type '{newType.Name}' does not support operator '{calculationType}'.");
+        }
+
+        IExpression leftValue = lastLeft;
+        IExpression rightValue = lastRight;
+        IEnumerable<IExpression> combined = left.Concat(right)
+                                                .Remove(lastLeft)
+                                                .Remove(lastRight);
+        
+        
         if (needsSplit) {
-            IEnumerable<IExpression> combined = left.Concat(right)
-                    .Remove(lastLeft)
-                    .Remove(lastRight);
-
-
-            IExpression leftValue = lastLeft;
-            IExpression rightValue = lastRight;
-
             if (lastLeft is SecondStageFunctionCallExpression leftFunc) {
                 Result<(IExpression Value, IExpression Declaration)> extractedMethodResult = ExtractFunctionCall(state, leftFunc);
                 if(!extractedMethodResult.TryGetValue(out (IExpression Value, IExpression Declaration) extractedMethod)) {
@@ -186,36 +197,26 @@ public static class ValueSplitter {
     }
 
 
-    private static (bool NeedsSplit, IType NewType) NeedsSplit(IExpression left,
+    private static Result<(bool NeedsSplit, IType NewType)> NeedsSplit(IExpression left,
         IExpression right,
         PreTranspilerState state) {
+
+        bool isFunction = left is SecondStageFunctionCallExpression || right is SecondStageFunctionCallExpression;
         
         IType leftType = GetExpressionType(left);
         IType rightType = GetExpressionType(right);
+
+        IType typeString = ForceGetType("STRING", state);
         
-        if(left is SecondStageFunctionExpression || right is SecondStageFunctionExpression) {
-            if (AnyType(Keywords.String, state, leftType, rightType) >= 1) {
-                return (true, ForceGetType(Keywords.String, state));
-            }
-
-            IType type = GetHighestNumType(state, leftType, rightType);
-            return (true, type);
+        if (leftType.IsCastableTo(rightType)) {
+            return Ok((isFunction || rightType == typeString, rightType));
         }
 
-        if (AnyType(Keywords.String, state, leftType, rightType) >= 2) {
-            return (false, ForceGetType(Keywords.String, state));
+        if (rightType.IsCastableTo(leftType)) {
+            return Ok((isFunction || leftType == typeString, leftType));
         }
 
-        if (NumTypes(state, leftType, rightType) >= 2) {
-            return (false, GetHighestNumType(state, leftType, rightType));
-        }
-
-        if (AnyType(Keywords.String, state, leftType, rightType) >= 1) {
-            return (left is SecondStageCalculationExpression || right is SecondStageCalculationExpression,
-                ForceGetType(Keywords.String, state));
-        }
-
-        throw new UnreachableException();
+        return Error(right.Line, $"Type '{rightType.Name}' is not castable to '{leftType.Name}'.");
     }
 
     private static IType ForceGetType(string typeName, PreTranspilerState state) {
@@ -225,33 +226,6 @@ public static class ValueSplitter {
         }
 
         return type;
-    }
-
-    private static IType GetHighestNumType(PreTranspilerState state, params IType[] types) {
-        if (AnyType(Keywords.Double, state, types) >= 1) {
-            return ForceGetType(Keywords.Double, state);
-        }
-
-        if (AnyType(Keywords.Float, state, types) >= 1) {
-            return ForceGetType(Keywords.Float, state);
-        }
-
-        if (AnyType(Keywords.Long, state, types) >= 1) {
-            return ForceGetType(Keywords.Long, state);
-        }
-
-        return ForceGetType(Keywords.Int, state);
-    }
-
-    private static int NumTypes(PreTranspilerState state, params IType[] types) {
-        IType intType = ForceGetType(Keywords.Int, state);
-        IType floatType = ForceGetType(Keywords.Float, state);
-        IType doubleType = ForceGetType(Keywords.Double, state);
-        IType longType = ForceGetType(Keywords.Long, state);
-
-        int typesMatch = types.Count(t => t == intType || t == floatType || t == doubleType || t == longType);
-
-        return typesMatch;
     }
 
     private static int AnyType(string typeName, PreTranspilerState state, params IType[] types) {

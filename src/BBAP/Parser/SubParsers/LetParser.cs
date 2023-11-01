@@ -20,10 +20,10 @@ public class LetParser {
             throw new UnreachableException();
         }
 
-        Result<IToken> result = state.Next(typeof(SetToken), typeof(ColonToken));
+        Result<IToken> result = state.Next(typeof(SetToken), typeof(ColonToken), typeof(SemicolonToken));
 
         if (!result.TryGetValue(out IToken? token)) {
-            return variableNameResult.ToErrorResult();
+            return result.ToErrorResult();
         }
 
         IType type;
@@ -38,7 +38,7 @@ public class LetParser {
                 return result.ToErrorResult();
             }
 
-            type = new GeneralType(typeToken.Value);
+            type = new OnlyNameType(typeToken.Value);
             typeLine = typeToken.Line;
             
 

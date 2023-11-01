@@ -1,8 +1,13 @@
 let helloWorld = "Hello World!";
-let num = 0;
+let num = 0xff;
+let num2 = 0b10110101;
 let test = helloWorld + num * 5; 
 
 let test2 = num == 0;
+
+let asgvsadf: string = "Hello";
+
+let sdfgubi = helloWorld == num2;
 
 for(let i = 0; i < 100; i++;){
     let test2 = "test";
@@ -13,19 +18,23 @@ while num < 10{
     printLine("While loop!");
 }
 
+
 if num < 1 {
     printLine("Hello Word 2!");
 }
 
-let testResult = test2(5);
+let returnOne: int;
+let returnTwo: int;
+
+(returnOne, returnTwo) = test2(5);
 
 
 func test(param1: int){
     let test2 = param1;
 }
 
-func test2(param1: int): (int){
+func test2(param1: int): (long, int){
     let hi = "Hi!";
     
-    return 0;
+    return (1, 0);
 }

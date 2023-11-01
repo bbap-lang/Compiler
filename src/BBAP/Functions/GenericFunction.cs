@@ -30,9 +30,9 @@ public record GenericFunction
             }
         }
 
-        builder.AppendLine();
-        builder.Append("\tCHANGING ");
         if (ReturnTypes.Length > 0) {
+            builder.AppendLine();
+            builder.Append("\tCHANGING ");
             foreach ((VariableExpression output, Variable returnVar) in outputs.Select((x, i) => (x, ReturnTypes[i]))) {
                 builder.Append(returnVar.Name);
                 builder.Append(' ');

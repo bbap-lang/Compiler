@@ -12,7 +12,7 @@ namespace BBAP.PreTranspiler.SubPreTranspiler;
 public static class FunctionCallPreTranspiler {
     public static Result<IExpression[]> Run(PreTranspilerState state, FunctionCallExpression functionCallExpression) {
         var additionalExpressions = new List<IExpression>();
-        var parameters = new List<SecondStageValueExpression>();
+        var parameters = new List<VariableExpression>();
 
         Result<IFunction> functionResult = state.GetFunction(functionCallExpression.Name, functionCallExpression.Line);
         if (!functionResult.TryGetValue(out IFunction function)) {
@@ -20,30 +20,18 @@ public static class FunctionCallPreTranspiler {
         }
 
         foreach (IExpression parameter in functionCallExpression.Parameters) {
-            Result<IExpression[]> result = ValueSplitter.Run(state, parameter);
-            if (!result.TryGetValue(out IExpression[]? expressions)) {
-                return result;
+            Result<ExtractParameterResult> result = ExtractParameter(state, parameter);
+            
+            if(!result.TryGetValue(out ExtractParameterResult extractParameterResult)) {
+                return result.ToErrorResult();
             }
-
-            IExpression lastGeneral = expressions.Last();
-            if (lastGeneral is not ISecondStageValue last) {
-                throw new UnreachableException();
-            }
-
-            additionalExpressions.AddRange(expressions.Remove(last));
-
-            VariableExpression newVar = state.CreateRandomNewVar(last.Line, last.Type);
-            var setExpression = new SetExpression(last.Line, newVar, SetType.Generic, last);
-            var typeExpression = new TypeExpression(last.Line, last.Type);
-            var declareExpression = new DeclareExpression(last.Line, newVar, typeExpression, setExpression);
-
-            additionalExpressions.Add(declareExpression);
-
-            var valueEx = new SecondStageValueExpression(newVar.Line, last.Type, newVar);
-            parameters.Add(valueEx);
+            
+            additionalExpressions.AddRange(extractParameterResult.AdditionalExpressions);
+            additionalExpressions.Add(extractParameterResult.DeclareExpression);
+            parameters.Add(extractParameterResult.NewParameter);
         }
 
-        IType[] parameterTypes = parameters.Select(GetType).ToArray();
+        IType[] parameterTypes = parameters.Select(x => x.Type).ToArray();
 
         var outputs = new IType[0];
         ImmutableArray<VariableExpression> outputVariables = new VariableExpression[0].ToImmutableArray();
@@ -52,12 +40,8 @@ public static class FunctionCallPreTranspiler {
             return Error(functionCallExpression.Line, $"Invalid function parameters");
         }
 
-        ImmutableArray<VariableExpression> parameterVariables = parameters.Select(x => x.Value)
-                                                                          .OfType<VariableExpression>()
-                                                                          .ToImmutableArray();
-
         var newExpression
-            = new SecondStageFunctionCallExpression(functionCallExpression.Line, function, parameterVariables,
+            = new SecondStageFunctionCallExpression(functionCallExpression.Line, function, parameters.ToImmutableArray(),
                 outputVariables);
 
         IExpression[] combined = additionalExpressions.Append(newExpression).ToArray();
@@ -65,11 +49,30 @@ public static class FunctionCallPreTranspiler {
         return Ok(combined);
     }
 
-    private static IType GetType(IExpression expression) {
-        return expression switch {
-            SecondStageCalculationExpression ce => ce.Type,
-            SecondStageValueExpression ve => ve.Type,
-            _ => throw new UnreachableException()
-        };
+    public static Result<ExtractParameterResult> ExtractParameter(PreTranspilerState state, IExpression parameter) {
+        
+        Result<IExpression[]> result = ValueSplitter.Run(state, parameter);
+        if (!result.TryGetValue(out IExpression[]? expressions)) {
+            return result.ToErrorResult();
+        }
+
+        IExpression lastGeneral = expressions.Last();
+        if (lastGeneral is not ISecondStageValue last) {
+            throw new UnreachableException();
+        }
+
+
+        VariableExpression newVar = state.CreateRandomNewVar(last.Line, last.Type);
+        var setExpression = new SetExpression(last.Line, newVar, SetType.Generic, last);
+        var typeExpression = new TypeExpression(last.Line, last.Type);
+        var declareExpression = new DeclareExpression(last.Line, newVar, typeExpression, setExpression);
+
+        return Ok(new ExtractParameterResult(expressions.Remove(last), declareExpression, newVar));
     }
+
+    public record struct ExtractParameterResult(
+        IEnumerable<IExpression> AdditionalExpressions,
+        DeclareExpression DeclareExpression,
+        VariableExpression NewParameter
+    );
 }

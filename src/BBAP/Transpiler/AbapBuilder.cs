@@ -21,6 +21,11 @@ public class AbapBuilder {
         _builder.Append(value);
     }
 
+    public void Append(long value) {
+        Intend();
+        _builder.Append(value);
+    }
+
 
     private bool _newLine = true;
 

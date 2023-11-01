@@ -21,11 +21,30 @@ public static class ComparisonPreTranspiler {
 
         int line = comparisonExpression.Line;
         
-        IExpression lastLeft = left.Last();
-        IExpression lastRight = right.Last();
+        IExpression lastLeftEx = left.Last();
+        IExpression lastRightEx = right.Last();
 
+        if(lastLeftEx is not ISecondStageValue lastLeft) {
+            throw new UnreachableException();
+        }
+        
+        if(lastRightEx is not ISecondStageValue lastRight) {
+            throw new UnreachableException();
+        }
+
+        IType leftType = lastLeft.Type;
+        IType rightType = lastRight.Type;
+        
+        if(!leftType.SupportsOperator(comparisonExpression.ComparisonType.ToSupportedOperator())) {
+            return Error(line, $"The type {leftType.Name} does not support the operator {comparisonExpression.ComparisonType}.");
+        }
+        
+        if(!rightType.SupportsOperator(comparisonExpression.ComparisonType.ToSupportedOperator())) {
+            return Error(line, $"The type {rightType.Name} does not support the operator {comparisonExpression.ComparisonType}.");
+        }
+        
         Result<IType> typeResult = state.Types.Get(line,"BOOL");
-        if (!typeResult.TryGetValue(out IType? type)) {
+        if (!typeResult.TryGetValue(out IType? typeBool)) {
             throw new UnreachableException();
         }
 
@@ -40,7 +59,7 @@ public static class ComparisonPreTranspiler {
             _ => throw new UnreachableException()
         };
 
-        var newComparison = new SecondStageCalculationExpression(line, type, calculationType, lastLeft, lastRight);
+        var newComparison = new SecondStageCalculationExpression(line, typeBool, calculationType, lastLeft, lastRight);
 
         var combined = left.Concat(right)
             .Remove(lastLeft)

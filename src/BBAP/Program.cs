@@ -8,6 +8,8 @@ namespace BBAP;
 
 internal class Program {
     private static int Main(string[] args) {
+        Config.WriteDebugOutput = true;
+        
         if (args.Length < 2) {
             PrintHelp();
             return 0;
@@ -32,6 +34,8 @@ internal class Program {
         if (!tokensResult.TryGetValue(out ImmutableArray<IToken> tokens)) {
             Error error = tokensResult.Error;
             Console.WriteLine($"Error at line {error.Line}: {error.Text}");
+            if(Config.WriteDebugOutput)
+                Console.WriteLine(error.Stack);
             return 1;
         }
 
@@ -40,6 +44,8 @@ internal class Program {
         if (!treeResult.TryGetValue(out ImmutableArray<IExpression> tree)) {
             Error error = treeResult.Error;
             Console.WriteLine($"Error at line {error.Line}: {error.Text}");
+            if(Config.WriteDebugOutput)
+                Console.WriteLine(error.Stack);
             return 1;
         }
 
@@ -48,6 +54,8 @@ internal class Program {
         if (!preTranspiledTreeResult.TryGetValue(out ImmutableArray<IExpression> preTranspiledTree)) {
             Error error = preTranspiledTreeResult.Error;
             Console.WriteLine($"Error at line {error.Line}: {error.Text}");
+            if(Config.WriteDebugOutput)
+                Console.WriteLine(error.Stack);
             return 1;
         }
 
@@ -56,6 +64,8 @@ internal class Program {
         if (!outputResult.TryGetValue(out string? output)) {
             Error error = outputResult.Error;
             Console.WriteLine($"Error at line {error.Line}: {error.Text}");
+            if(Config.WriteDebugOutput)
+                Console.WriteLine(error.Stack);
             return 1;
         }
 

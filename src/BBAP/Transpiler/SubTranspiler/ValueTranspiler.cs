@@ -41,9 +41,11 @@ public static class ValueTranspiler {
     }
 
     private static void BuildCalculation(SecondStageCalculationExpression ce, TranspilerState state) {
+        state.Builder.Append('(');
         Run(ce.Left, state);
         state.Builder.Append(GetCalculationType(ce.CalculationType));
         Run(ce.Right, state);
+        state.Builder.Append(')');
     }
 
     private static string GetCalculationType(SecondStageCalculationType type) {
@@ -51,7 +53,7 @@ public static class ValueTranspiler {
             SecondStageCalculationType.Plus => " + ",
             SecondStageCalculationType.Minus => " - ",
             SecondStageCalculationType.Multiply => " * ",
-            SecondStageCalculationType.Divide => "  ",
+            SecondStageCalculationType.Divide => " / ",
             SecondStageCalculationType.Modulo => " MOD ",
             SecondStageCalculationType.BitwiseAnd => throw new NotImplementedException(),
             SecondStageCalculationType.BitwiseOr => throw new NotImplementedException(),

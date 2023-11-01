@@ -1,9 +1,11 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Drawing;
+using System.Runtime.InteropServices.JavaScript;
 using BBAP.Lexer.Tokens;
 using BBAP.Lexer.Tokens.Grouping;
 using BBAP.Lexer.Tokens.Keywords;
+using BBAP.Lexer.Tokens.Others;
 using BBAP.Lexer.Tokens.Setting;
 using BBAP.Lexer.Tokens.Values;
 using BBAP.Parser.Expressions;
@@ -26,6 +28,13 @@ public class Parser {
                     break;
                 }
 
+                if (result.Error is null) {
+                    state.Revert();
+                    Result<IToken> token = state.Next(typeof(EmptyToken));
+                    return Error(token.Error.Line,
+                                 "Unknown error, the line is only a approximation (maybe a bug in the parser. If so, please report on github)");
+                }
+
                 return result.ToErrorResult();
             }
 
@@ -38,7 +47,7 @@ public class Parser {
     public static Result<IExpression> ParseNextStatement(ParserState state) {
         Result<IToken> tokenResult = state.Next(typeof(UnknownWordToken), typeof(IfToken), typeof(ForToken),
             typeof(WhileToken),
-            typeof(DoToken), typeof(LetToken), typeof(FunctionToken), typeof(ReturnToken));
+            typeof(DoToken), typeof(LetToken), typeof(FunctionToken), typeof(ReturnToken), typeof(OpeningGenericBracketToken));
 
         if (!tokenResult.TryGetValue(out IToken? token)) {
             return tokenResult.ToErrorResult();
@@ -50,9 +59,11 @@ public class Parser {
             ForToken => ForParser.Run(state),
             WhileToken => WhileParser.Run(state, token.Line),
             DoToken => DoParser.Run(state),
-            LetToken => LetParser.Run(state),
             FunctionToken => FunctionParser.Run(state, token.Line),
             ReturnToken => ReturnParser.Run(state, token.Line),
+            
+            LetToken => LetParser.Run(state),
+            OpeningGenericBracketToken => FunctionCallParser.RunFull(state, token.Line),
             _ => throw new UnreachableException()
         };
 

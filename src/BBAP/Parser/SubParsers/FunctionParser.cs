@@ -88,10 +88,10 @@ public static class FunctionParser {
                 throw new UnreachableException();
             }
 
-            var typeEx = new TypeExpression(typeToken.Line, new GeneralType(typeToken.Value));
+            var typeEx = new TypeExpression(typeToken.Line, new OnlyNameType(typeToken.Value));
             types.Add(typeEx);
             
-            var endOfParameterResult = state.Next(typeof(ColonToken), typeof(ClosingGenericBracketToken));
+            var endOfParameterResult = state.Next(typeof(CommaToken), typeof(ClosingGenericBracketToken));
             if (!endOfParameterResult.TryGetValue(out IToken? endOfParameterToken)) {
                 return endOfParameterResult.ToErrorResult();
             }

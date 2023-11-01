@@ -65,7 +65,7 @@ public class PreTranspiler {
     public static Result<IExpression[]> RunExpression(PreTranspilerState state, IExpression expression) {
         return expression switch {
             DeclareExpression declareExpression => DeclarePreTranspiler.Run(declareExpression, state),
-            SetExpression setExpression => SetPreTranspiler.Run(setExpression, state),
+            SetExpression setExpression => SetPreTranspiler.Run(setExpression, state, false),
             IncrementExpression incrementExpression => IncrementPreTranspiler.Run(incrementExpression, state),
             FunctionExpression functionExpression => FunctionPreTranspiler.Replace(functionExpression, state),
                 
@@ -73,6 +73,7 @@ public class PreTranspiler {
             ForExpression forExpression => ForPreTranspiler.Run(forExpression, state),
             WhileExpression whileExpression => WhilePreTranspiler.Run(whileExpression, state),
             
+            FunctionCallSetExpression functionCallSetExpression => FunctionCallSetPreTranspiler.Run(functionCallSetExpression, state),
             FunctionCallExpression fc => FunctionCallPreTranspiler.Run(state, fc),
             ReturnExpression re => ReturnPreTranspiler.Run(re, state),
 

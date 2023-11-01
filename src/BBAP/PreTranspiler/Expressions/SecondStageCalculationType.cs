@@ -1,4 +1,7 @@
-﻿namespace BBAP.PreTranspiler.Expressions; 
+﻿using System.Diagnostics;
+using BBAP.Types;
+
+namespace BBAP.PreTranspiler.Expressions; 
 
 public enum SecondStageCalculationType {
     Plus,
@@ -42,6 +45,26 @@ public static class SecondStageCalculationTypeExtensions {
             SecondStageCalculationType.SmallerThenOrEquals => true,
 
             _ => false
+        };
+    }
+
+    public static SupportedOperator ToSupportedOperator(this SecondStageCalculationType baseOperator) {
+        return baseOperator switch {
+            SecondStageCalculationType.Plus => SupportedOperator.Plus,
+            SecondStageCalculationType.Minus => SupportedOperator.Minus,
+            SecondStageCalculationType.Multiply => SupportedOperator.Multiply,
+            SecondStageCalculationType.Divide => SupportedOperator.Divide,
+            SecondStageCalculationType.Modulo => SupportedOperator.Modulo,
+            SecondStageCalculationType.BitwiseAnd => SupportedOperator.BitwiseAnd,
+            SecondStageCalculationType.BitwiseOr => SupportedOperator.BitwiseOr,
+            SecondStageCalculationType.Equals => SupportedOperator.Equals,
+            SecondStageCalculationType.NotEquals => SupportedOperator.NotEquals,
+            SecondStageCalculationType.GreaterThen => SupportedOperator.GreaterThen,
+            SecondStageCalculationType.GreaterThenOrEquals => SupportedOperator.GreaterThenOrEquals,
+            SecondStageCalculationType.SmallerThen => SupportedOperator.SmallerThen,
+            SecondStageCalculationType.SmallerThenOrEquals => SupportedOperator.SmallerThenOrEquals,
+            
+            _ => throw new UnreachableException()
         };
     }
 }

@@ -39,7 +39,7 @@ public static class DeclarePreTranspiler {
             return Ok(new IExpression[]{newDeclareExpressionWithoutSet});
         }
 
-        Result<IExpression[]> splittedValueResult = SetPreTranspiler.Run(declareExpression.SetExpression, state);
+        Result<IExpression[]> splittedValueResult = SetPreTranspiler.Run(declareExpression.SetExpression, state, true);
         if (!splittedValueResult.TryGetValue(out IExpression[]? splittedValue)) {
             return splittedValueResult;
         }
@@ -72,7 +72,21 @@ public static class DeclarePreTranspiler {
             throw new UnreachableException();
         }
 
-        type = value.Type;
+        if (declareExpression.Type.Type is UnknownType) {
+            type = value.Type;
+        } else {
+            Result<IType> declaredTypeResult = state.Types.Get(declareExpression.Type.Line, declareExpression.Type.Type.Name);
+            if(!declaredTypeResult.TryGetValue(out IType? declaredType)) {
+                return declaredTypeResult.ToErrorResult();
+            }
+            
+            if(!value.Type.IsCastableTo(declaredType)) {
+                return Error(value.Line, $"Cannot cast {value.Type.Name} to {declaredType.Name}");
+            }
+            
+            type = declaredType;
+        }
+        
         
         additionalExpressions = splittedValue;
 
