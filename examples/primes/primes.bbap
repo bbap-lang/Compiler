@@ -14,7 +14,7 @@ testVar = new TestType{
 
 let testNumber123 = testvar.field2;
 
-let hello = "Hello ";
+let hello: string = "Hello ";
 let world = "World!";
 
 let helloWorld = hello + world;

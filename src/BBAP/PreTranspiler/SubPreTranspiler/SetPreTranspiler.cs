@@ -33,7 +33,7 @@ public static class SetPreTranspiler {
         }
 
         if (!ignoreNotDeclared && !lastValue.Type.IsCastableTo(variable.Type)) {
-            return Error(lastValue.Line, $"Cannot cast {lastValue.Type} to {variable.Type}");
+            return Error(lastValue.Line, $"Cannot cast {lastValue.Type.Name} to {variable.Type.Name}");
         }
 
         var variableExpression = new VariableExpression(setExpression.Line, variable);

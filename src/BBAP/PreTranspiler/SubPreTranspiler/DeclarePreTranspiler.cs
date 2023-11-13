@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using BBAP.Parser.Expressions;
 using BBAP.Parser.Expressions.Values;
 using BBAP.PreTranspiler.Expressions;
@@ -52,15 +53,20 @@ public static class DeclarePreTranspiler {
         IExpression newSetExpressionUnknown = splittedValue.Last();
 
         if (newSetExpressionUnknown is SecondStageFunctionCallExpression funcCall) {
-            newVarResult = state.CreateVar(declareExpression.Variable.Variable.Name, funcCall.Type, declareExpression.Line);
+            var newVarTypeResultFunc = GetTypeFromValue(declareExpression, funcCall, state);
+            if (!newVarTypeResultFunc.TryGetValue(out type)) {
+                return newVarTypeResultFunc.ToErrorResult();
+            }
+            
+            newVarResult = state.CreateVar(declareExpression.Variable.Variable.Name, type, declareExpression.Line);
 
             if (!newVarResult.TryGetValue(out newVar)) {
                 return newVarResult.ToErrorResult();
             }
 
-            variableExpression = new VariableExpression(declareExpression.Line, new Variable(funcCall.Type, newVar));
+            variableExpression = new VariableExpression(declareExpression.Line, new Variable(type, newVar));
 
-            var emptyDeclare = new DeclareExpression(declareExpression.Line, variableExpression, new TypeExpression(funcCall.Line, funcCall.Type), null);
+            var emptyDeclare = new DeclareExpression(declareExpression.Line, variableExpression, new TypeExpression(funcCall.Line, type), null);
 
             var newFuncCall = funcCall with { Outputs = ImmutableArray.Create(variableExpression) };
             
@@ -77,21 +83,10 @@ public static class DeclarePreTranspiler {
             throw new UnreachableException();
         }
 
-        if (declareExpression.Type.Type is UnknownType) {
-            type = value.Type;
-        } else {
-            Result<IType> declaredTypeResult = state.Types.Get(declareExpression.Type.Line, declareExpression.Type.Type.Name);
-            if(!declaredTypeResult.TryGetValue(out IType? declaredType)) {
-                return declaredTypeResult.ToErrorResult();
-            }
-            
-            if(!value.Type.IsCastableTo(declaredType)) {
-                return Error(value.Line, $"Cannot cast {value.Type.Name} to {declaredType.Name}");
-            }
-            
-            type = declaredType;
+        var newVarTypeResult = GetTypeFromValue(declareExpression, value, state);
+        if (!newVarTypeResult.TryGetValue(out type)) {
+            return newVarTypeResult.ToErrorResult();
         }
-        
         
         additionalExpressions = splittedValue;
 
@@ -116,6 +111,24 @@ public static class DeclarePreTranspiler {
         return Ok(newExpressions);
     }
 
+    public static Result<IType> GetTypeFromValue(DeclareExpression declareExpression, ISecondStageValue value, PreTranspilerState state) {
+        
+        if (declareExpression.Type.Type is UnknownType) {
+            return Ok(value.Type);
+        } else {
+            Result<IType> declaredTypeResult = state.Types.Get(declareExpression.Type.Line, declareExpression.Type.Type.Name);
+            if(!declaredTypeResult.TryGetValue(out IType? declaredType)) {
+                return declaredTypeResult.ToErrorResult();
+            }
+            
+            if(!value.Type.IsCastableTo(declaredType)) {
+                return Error(value.Line, $"Cannot cast {value.Type.Name} to {declaredType.Name}");
+            }
+            
+            return Ok(declaredType);
+        }
+    }
+    
     public static IExpression[] RemoveDeclarations(IExpression[] expressions) {
         var newExpressions = new IExpression[expressions.Length];
 
