@@ -14,7 +14,10 @@ testVar = new TestType{
 
 let testNumber123 = testvar.field2;
 
-let helloWorld = "Hello World!";
+let hello = "Hello ";
+let world = "World!";
+
+let helloWorld = hello + world;
 let num: number = 0xff;
 let num2 = 0b10110101;
 let test = helloWorld + num * 5; 

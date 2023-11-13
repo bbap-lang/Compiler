@@ -4,4 +4,4 @@ using BBAP.Types;
 
 namespace BBAP.PreTranspiler.Expressions; 
 
-public record SecondStageParameterExpression(int Line, VariableExpression Variable, IType Type): IExpression;
+public record SecondStageParameterExpression(int Line, VariableExpression Variable, IType Type): ISecondStageValue;

@@ -23,7 +23,7 @@ public static class FunctionCallSetPreTranspiler {
             returnVariables.Add(newVariableExpression);
         }
 
-        var parameters = new List<VariableExpression>();
+        var parameters = new List<SecondStageParameterExpression>();
         var newTree = new List<IExpression>();
         
         foreach (IExpression parameter in functionCallSetExpression.Parameters) {
@@ -34,8 +34,9 @@ public static class FunctionCallSetPreTranspiler {
             }
             
             newTree.AddRange(extractParameterResult.AdditionalExpressions);
-            newTree.Add(extractParameterResult.DeclareExpression);
-            parameters.Add(extractParameterResult.NewParameter);
+            newTree.Add(extractParameterResult.DeclareExpression);           
+            parameters.Add(new SecondStageParameterExpression(extractParameterResult.NewParameter.Line, extractParameterResult.NewParameter, extractParameterResult.NewParameter.Variable.Type));
+
         }
 
         Result<IFunction> functionResult = state.GetFunction(functionCallSetExpression.Name, functionCallSetExpression.Line);

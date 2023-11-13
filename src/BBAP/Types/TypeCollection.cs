@@ -2,16 +2,13 @@
 
 namespace BBAP.Types;
 
-public class TypeCollection {
+public partial class TypeCollection {
     private Dictionary<string, IType> _types;
 
     public TypeCollection() {
         var typeAny = new AnyType();
 
-        var typeString = new DefaultType(Keywords.String, "STRING", null,
-                                         SupportedOperator.Plus
-                                       | SupportedOperator.Equals
-                                       | SupportedOperator.NotEquals);
+        IType typeString = StringType;
         
         var typeDouble = new DefaultType(Keywords.Double, "D", typeString,
                                          SupportedOperator.AllMath | SupportedOperator.AllComparison);

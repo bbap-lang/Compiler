@@ -2,6 +2,8 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices.JavaScript;
 using System.Text;
+using BBAP.ExtensionMethods;
+using BBAP.Functions;
 using BBAP.Lexer.Tokens.Values;
 using BBAP.Parser.Expressions;
 using BBAP.Parser.Expressions.Blocks;
@@ -188,23 +190,52 @@ public static class ValueSplitter {
                 rightValue = rightVar;
             }
 
-            var newExpression = new SecondStageCalculationExpression(expression.Line, newType, calculationType, leftValue, rightValue);
+            ISecondStageValue newExpression;
+            if (newType == TypeCollection.StringType) {
+                Result<IFunction> concatFunctionResult = state.GetFunction("CONCATENATE", expression.Line);
+                if (!concatFunctionResult.TryGetValue(out IFunction? concatFunction)) {
+                    throw new UnreachableException();
+                }
+
+                VariableExpression newVar = state.CreateRandomNewVar(expression.Line, TypeCollection.StringType);
+                if(leftValue is not SecondStageValueExpression leftValueExpression || leftValueExpression.Value is not VariableExpression leftVariableExpression) {
+                    throw new UnreachableException();
+                }
+                
+                if(rightValue is not SecondStageValueExpression rightValueExpression || rightValueExpression.Value is not VariableExpression rightVariableExpression) {
+                    throw new UnreachableException();
+                }
+
+                var leftParameter = new SecondStageParameterExpression(leftVariableExpression.Line,
+                                                                       leftVariableExpression,
+                                                                       leftValueExpression.Type);
+            
+            
+                var rightParameter = new SecondStageParameterExpression(rightVariableExpression.Line,
+                                                                        rightVariableExpression,
+                                                                        rightValueExpression.Type);
+            
+                newExpression = new SecondStageFunctionCallExpression(expression.Line, concatFunction,
+                                                                      ImmutableArray.Create(leftParameter, rightParameter), ImmutableArray.Create(newVar));
+            } else {
+                newExpression
+                    = new SecondStageCalculationExpression(expression.Line, newType, calculationType, leftValue,
+                                                           rightValue);
+            }
 
             IExpression[] combinedArray = combined.Append(newExpression)
-                .ToArray();
+                                                  .ToArray();
+
 
             return Ok(combinedArray);
         }
 
+        ISecondStageValue combinedExpression  = new SecondStageCalculationExpression(expression.Line, newType, calculationType, lastLeft, lastRight);
 
-        var combinedExpression
-            = new SecondStageCalculationExpression(expression.Line, newType, calculationType, lastLeft, lastRight);
 
-        return Ok(left.Concat(right)
-            .Remove(lastLeft)
-            .Remove(lastRight)
-            .Append(combinedExpression)
-            .ToArray());
+        return Ok(combined
+                  .Append(combinedExpression)
+                  .ToArray());
     }
 
     private static Result<(IExpression Value, IExpression Declaration)> ExtractFunctionCall(PreTranspilerState state, SecondStageFunctionCallExpression functionCall) {

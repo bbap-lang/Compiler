@@ -5,6 +5,6 @@ namespace BBAP.Transpiler.SubTranspiler;
 
 public static class FunctionCallTranspiler {
     public static void Run(SecondStageFunctionCallExpression functionCallExpression, TranspilerState state) {
-        functionCallExpression.Function.Render(state.Builder, functionCallExpression.Parameters, functionCallExpression.Outputs);
+        functionCallExpression.Function.Render(state.Builder, functionCallExpression.Parameters.Select(x => x.Variable), functionCallExpression.Outputs);
     }
 }

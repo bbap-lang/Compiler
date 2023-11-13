@@ -24,6 +24,7 @@ public class PreTranspilerState {
     private readonly Dictionary<string, IFunction> _functions = new() {
         { "PRINT", new Print() },
         { "PRINTLINE", new PrintLine() },
+        { "CONCATENATE", new Concatenate()},
     };
 
     private readonly Dictionary<string, SecondStageFunctionExpression> _declaredFunctions = new();

@@ -12,7 +12,7 @@ namespace BBAP.PreTranspiler.SubPreTranspiler;
 public static class FunctionCallPreTranspiler {
     public static Result<IExpression[]> Run(PreTranspilerState state, FunctionCallExpression functionCallExpression) {
         var additionalExpressions = new List<IExpression>();
-        var parameters = new List<VariableExpression>();
+        var parameters = new List<SecondStageParameterExpression>();
 
         Result<IFunction> functionResult = state.GetFunction(functionCallExpression.Name, functionCallExpression.Line);
         if (!functionResult.TryGetValue(out IFunction function)) {
@@ -28,10 +28,10 @@ public static class FunctionCallPreTranspiler {
             
             additionalExpressions.AddRange(extractParameterResult.AdditionalExpressions);
             additionalExpressions.Add(extractParameterResult.DeclareExpression);
-            parameters.Add(extractParameterResult.NewParameter);
+            parameters.Add(new SecondStageParameterExpression(extractParameterResult.NewParameter.Line, extractParameterResult.NewParameter, extractParameterResult.NewParameter.Variable.Type));
         }
 
-        IType[] parameterTypes = parameters.Select(x => x.Variable.Type).ToArray();
+        IType[] parameterTypes = parameters.Select(x => x.Variable.Variable.Type).ToArray();
 
         var outputs = new IType[0];
         ImmutableArray<VariableExpression> outputVariables = new VariableExpression[0].ToImmutableArray();
