@@ -5,6 +5,7 @@ public interface IType {
     public string AbapName { get; }
     public IType? InheritsFrom { get; }
     public SupportedOperator SupportedOperators { get; }
+    public string DeclareKeyWord { get; }
 }
 
 public static class ITypeExtensions {

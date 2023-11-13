@@ -4,8 +4,6 @@ public class LexerState {
     private readonly string _text;
     private int _position = -1;
 
-    private bool _skipNext;
-
     public LexerState(string text) {
         _text = text;
     }
@@ -15,11 +13,8 @@ public class LexerState {
     public int Line { get; private set; } = 1;
 
     public bool TryNext(out char nextChar) {
-        if (_skipNext)
-            _skipNext = false;
-        else
-            _position++;
-
+        _position++;
+        
         if (_position >= _text.Length) {
             nextChar = '\0';
             AtEnd = true;
@@ -33,7 +28,7 @@ public class LexerState {
         return true;
     }
 
-    public void SkipNext() {
-        _skipNext = true;
+    public void Revert() {
+        _position--;
     }
 }

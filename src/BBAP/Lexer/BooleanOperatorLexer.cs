@@ -11,7 +11,7 @@ public class BooleanOperatorLexer {
 
         if (nextChar == '&') return Ok<IToken>(new AndToken(state.Line));
 
-        state.SkipNext();
+        state.Revert();
         return Ok<IToken>(new BitAndToken(state.Line));
     }
 
@@ -21,7 +21,7 @@ public class BooleanOperatorLexer {
 
         if (nextChar == '|') return Ok<IToken>(new OrToken(state.Line));
 
-        state.SkipNext();
+        state.Revert();
         return Ok<IToken>(new BitOrToken(state.Line));
     }
 }

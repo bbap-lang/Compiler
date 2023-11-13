@@ -9,16 +9,16 @@ public partial class TypeCollection {
         var typeAny = new AnyType();
 
         IType typeString = StringType;
-        
+
         var typeDouble = new DefaultType(Keywords.Double, "D", typeString,
                                          SupportedOperator.AllMath | SupportedOperator.AllComparison);
-        
+
         var typeFloat = new DefaultType(Keywords.Float, "F", typeDouble,
                                         SupportedOperator.AllMath | SupportedOperator.AllComparison);
-        
+
         var typeLong = new DefaultType(Keywords.Long, "L", typeFloat,
                                        SupportedOperator.AllMath | SupportedOperator.AllComparison);
-        
+
         var typeInt = new DefaultType(Keywords.Int, "I", typeLong,
                                       SupportedOperator.AllMath | SupportedOperator.AllComparison);
 
@@ -33,6 +33,26 @@ public partial class TypeCollection {
             { Keywords.Int, typeInt },
             { Keywords.Boolean, typeBool },
         };
+    }
+    
+    public Result<IType> GetTableType(int line, string tableName, string genericTypeName) {
+        Result<IType> genericTypeResult = Get(line, genericTypeName);
+        if (!genericTypeResult.TryGetValue(out IType? genericType)) {
+            return genericTypeResult;
+        }
+
+        Result<TableTypes> tableTypeResult = tableName switch {
+            "TABLE" or "STANDARDTABLE" => Ok(TableTypes.StandardTable),
+            "HASHEDTABLE" => Ok(TableTypes.HashedTable),
+            "SORTEDTABLE" => Ok(TableTypes.SortedTable),
+            _ => Error(line, $"Unknown table type {tableName}"),
+        };
+        
+        if (!tableTypeResult.TryGetValue(out TableTypes tableType)) {
+            return tableTypeResult.ToErrorResult();
+        }
+
+        return Ok<IType>(new TableType(genericType, tableType));
     }
 
     public Result<IType> Get(int line, string name) {
@@ -49,7 +69,7 @@ public partial class TypeCollection {
         }
 
         _types.Add(type.Name, type);
-        
+
         return Ok(0);
     }
 }

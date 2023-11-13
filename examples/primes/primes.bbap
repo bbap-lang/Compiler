@@ -12,6 +12,8 @@ testVar = new TestType{
     field2 = 2
 }
 
+let testTable: Table<TestType>;
+
 let testNumber123 = testvar.field2;
 
 let hello: string = "Hello ";

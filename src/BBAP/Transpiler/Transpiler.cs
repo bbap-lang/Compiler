@@ -26,7 +26,7 @@ public class Transpiler {
         state.Builder.Append("DATA:\t");
         state.Builder.AddIntend();
         foreach (DeclareExpression declaration in declarations) {
-            state.Builder.AppendLine($"{declaration.Variable.Variable.Name} TYPE {declaration.Type.Type.AbapName}");
+            state.Builder.AppendLine($"{declaration.Variable.Variable.Name} {declaration.Type.Type.DeclareKeyWord} {declaration.Type.Type.AbapName}");
         }
         state.Builder.RemoveIntend();
 

@@ -23,7 +23,9 @@ public static class DeclarePreTranspiler {
                     "The type must be defined for declarations without initial value.");
             }
 
-            Result<IType> typeResult = state.Types.Get(declareExpression.Type.Line, declareExpression.Type.Type.Name);
+            Result<IType> typeResult = declareExpression.Type.Type is OnlyNameGenericType ongt 
+                ? state.Types.GetTableType(declareExpression.Type.Line, ongt.Name, ongt.GenericType.Name)
+                : state.Types.Get(declareExpression.Type.Line, declareExpression.Type.Type.Name);
                 
             if (!typeResult.TryGetValue(out type)) {
                 return typeResult.ToErrorResult();

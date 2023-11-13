@@ -71,7 +71,7 @@ public static class NumberLexer {
         }
 
         EndParseNumber:
-        state.SkipNext();
+        state.Revert();
 
         if (numberType != NumberType.Decimal && includesDot) {
             return Error(state.Line,

@@ -87,7 +87,6 @@ public class Lexer {
                 case ']':
                     tokens.Add(new ClosingCurlyBracketToken(state.Line));
                     break;
-
                 case ',':
                     tokens.Add(new CommaToken(state.Line));
                     break;
@@ -131,7 +130,7 @@ public class Lexer {
 
         if (nextChar == '=') return Ok<IToken>(new EqualsToken(state.Line));
 
-        state.SkipNext();
+        state.Revert();
         return Ok<IToken>(new SetToken(state.Line));
     }
 
@@ -146,7 +145,7 @@ public class Lexer {
                 _ => throw new UnreachableException("This should never happen")
             };
 
-        state.SkipNext();
+        state.Revert();
         return op switch {
             '>' => Ok<IToken>(new MoreThenToken(state.Line)),
             '<' => Ok<IToken>(new LessThenToken(state.Line)),
@@ -174,7 +173,7 @@ public class Lexer {
 
         if (op == '-' && nextChar == '-') return Ok<IToken>(new DecrementToken(state.Line));
 
-        state.SkipNext();
+        state.Revert();
         return op switch {
             '+' => Ok<IToken>(new PlusToken(state.Line)),
             '-' => Ok<IToken>(new MinusToken(state.Line)),

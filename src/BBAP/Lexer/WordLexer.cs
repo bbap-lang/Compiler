@@ -23,7 +23,7 @@ public static class WordLexer {
         }
 
         EndWordRead:
-        state.SkipNext();
+        state.Revert();
         string word = wordBuilder.ToString();
 
         IToken token = word switch {

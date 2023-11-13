@@ -1,10 +1,7 @@
-﻿using System.Diagnostics;
+﻿namespace BBAP.Types; 
 
-namespace BBAP.Types; 
-
-public class UnknownType: IType {
-    public string Name => "Unknown";
-    public string AbapName => Name;
+public record OnlyNameGenericType(string Name, OnlyNameType GenericType) : IType {
+    public string AbapName => "INVALID";
 
     public IType? InheritsFrom => null;
 
