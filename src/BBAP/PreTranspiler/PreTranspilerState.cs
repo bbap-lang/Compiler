@@ -8,6 +8,7 @@ using BBAP.Parser.Expressions.Values;
 using BBAP.PreTranspiler.Expressions;
 using BBAP.Results;
 using BBAP.Types;
+using Error = BBAP.Results.Error;
 
 namespace BBAP.PreTranspiler;
 
@@ -18,7 +19,7 @@ public class PreTranspilerState {
     private readonly HashSet<string> _stackNames = new();
     private readonly DefaultClasses.Stack<string> _stack = new();
     
-    private readonly DefaultClasses.Stack<Variable[]> _returnVariables = new();
+    private readonly DefaultClasses.Stack<IVariable[]> _returnVariables = new();
 
     private readonly Dictionary<string, IFunction> _functions = new() {
         { "PRINT", new Print() },
@@ -34,19 +35,46 @@ public class PreTranspilerState {
         _stack.Push("");
     }
 
-    public Result<Variable> GetVariable(string name, int line) {
+    public Result<IVariable> GetVariable(string name, int line) {
         foreach (string layer in _stack) {
             string variableName = $"{name}_{layer}";
             if (_internalVariables.TryGetValue(variableName, out IType? type)) {
-                return Ok(new Variable(type, variableName));
+                return Ok<IVariable>(new Variable(type, variableName));
             }
         }
 
         if (_internalVariables.TryGetValue(name, out IType? varType)) {
-            return Ok(new Variable(varType, name));
+            return Ok<IVariable>(new Variable(varType, name));
         }
         
         return Error(line, $"Variable '{name}' was not defined");
+    }
+
+    public Result<IVariable> GetVariable(IVariable variable, int line) {
+        IVariable[] variableTree = variable.Unwrap();
+
+        Result<IVariable> topVariableResult = GetVariable(variableTree[0].Name, line);
+        if(!topVariableResult.TryGetValue(out IVariable? topVariable)) {
+            return topVariableResult.ToErrorResult();
+        }
+        
+        IVariable? lastVariable = topVariable;
+        foreach (IVariable currentVariable in variableTree.Skip(1)) {
+            if (lastVariable.Type is not StructType structType) {
+                return Error(line, $"The type of {lastVariable.Name} is not a struct.");
+            }
+
+            IVariable? field = structType.Fields.FirstOrDefault(x => x.Name == currentVariable.Name);
+            if (field is null) {
+                return Error(line, $"The field {currentVariable.Name} was not found in {lastVariable.Name}.");
+            }
+
+            field = new FieldVariable(field.Type, field.Name, lastVariable);
+
+            lastVariable = field;
+        }
+
+        return Ok(lastVariable);
     }
 
     public string StackIn() {
@@ -80,7 +108,7 @@ public class PreTranspilerState {
         return Ok(variableName);
     }
     
-    public VariableExpression CreateRandomNewVar(int line, IType type) => new(line, GenerateInternalVariableName(type), type);
+    public VariableExpression CreateRandomNewVar(int line, IType type) => new(line, new Variable( type, GenerateInternalVariableName(type)));
 
     
     private string GenerateInternalVariableName(IType type) {
@@ -106,7 +134,7 @@ public class PreTranspilerState {
 
     public Result<IFunction> AddFunction(SecondStageFunctionExpression functionExpression) {
         
-        Result<IFunction> functionResult = AddFunction(functionExpression.Line, functionExpression.Name, functionExpression.Parameters, functionExpression.ReturnVariables);
+        Result<IFunction> functionResult = AddFunction(functionExpression.Line, functionExpression.Name, functionExpression.Parameters.Select(x => x.Variable).ToImmutableArray(), functionExpression.ReturnVariables.Select(x => x.Variable).ToImmutableArray());
 
         if (!functionResult.TryGetValue(out IFunction? function)) {
             return functionResult.ToErrorResult();
@@ -117,7 +145,7 @@ public class PreTranspilerState {
         return Ok(function);
     }
 
-    private Result<IFunction> AddFunction(int line, string name, ImmutableArray<Variable> parameters, ImmutableArray<Variable> returnType) {
+    private Result<IFunction> AddFunction(int line, string name, ImmutableArray<IVariable> parameters, ImmutableArray<IVariable> returnType) {
         if (_functions.ContainsKey(name)) {
             return Error(line, $"The function {name} was already defined.");
         }
@@ -144,11 +172,11 @@ public class PreTranspilerState {
         return declaredFunction;
     }
 
-    public void GoIntoFunction(Variable[] returnVariables) {
+    public void GoIntoFunction(IVariable[] returnVariables) {
         _returnVariables.Push(returnVariables);
     }
 
-    public Variable[] GetCurrentReturnVariables() {
+    public IVariable[] GetCurrentReturnVariables() {
         return _returnVariables.Peek();
     }
     

@@ -10,7 +10,7 @@ using BBAP.Types;
 namespace BBAP.Functions;
 
 public record GenericFunction
-    (string Name, ImmutableArray<Variable> Parameters, ImmutableArray<Variable> ReturnTypes) : IFunction {
+    (string Name, ImmutableArray<IVariable> Parameters, ImmutableArray<IVariable> ReturnTypes) : IFunction {
     public bool IsSingleType => ReturnTypes.Length == 1;
     public IType SingleType => ReturnTypes.FirstOrDefault()?.Type ?? new UnknownType();
 
@@ -22,10 +22,10 @@ public record GenericFunction
 
         if (Parameters.Length > 0) {
             builder.Append("\tUSING ");
-            foreach ((VariableExpression input, Variable parameter) in inputs.Select((x, i) => (x, Parameters[i]))) {
+            foreach ((VariableExpression input, IVariable parameter) in inputs.Select((x, i) => (x, Parameters[i]))) {
                 builder.Append(parameter.Name);
                 builder.Append(' ');
-                builder.Append(input.Name);
+                builder.Append(input.Variable.Name);
                 builder.Append(' ');
             }
         }
@@ -33,10 +33,10 @@ public record GenericFunction
         if (ReturnTypes.Length > 0) {
             builder.AppendLine();
             builder.Append("\tCHANGING ");
-            foreach ((VariableExpression output, Variable returnVar) in outputs.Select((x, i) => (x, ReturnTypes[i]))) {
+            foreach ((VariableExpression output, IVariable returnVar) in outputs.Select((x, i) => (x, ReturnTypes[i]))) {
                 builder.Append(returnVar.Name);
                 builder.Append(' ');
-                builder.Append(output.Name);
+                builder.Append(output.Variable.Name);
                 builder.Append(' ');
             }
         }

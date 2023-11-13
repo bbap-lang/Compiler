@@ -17,6 +17,19 @@ public class ParserState {
         _tokens = tokens;
     }
 
+        public Result<T> Next<T>() where T: IToken {
+            var nextTokenResult = Next(typeof(T));
+            if (!nextTokenResult.TryGetValue(out IToken? token)) {
+                return nextTokenResult.ToErrorResult();
+            }
+
+            if (token is not T typeToken) {
+                throw new UnreachableException();
+            }
+
+            return Ok(typeToken);
+        }
+    
     public Result<IToken> Next(params Type[] validTokenTypes) {
         if (!validTokenTypes.Any(x => x.Implements(typeof(IToken)))) {
             throw new UnreachableException();

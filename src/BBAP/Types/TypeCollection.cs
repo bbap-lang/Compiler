@@ -7,26 +7,37 @@ public class TypeCollection {
 
     public TypeCollection() {
         var typeAny = new AnyType();
+
+        var typeString = new DefaultType(Keywords.String, "STRING", null,
+                                         SupportedOperator.Plus
+                                       | SupportedOperator.Equals
+                                       | SupportedOperator.NotEquals);
         
-        var typeString = new DefaultType("STRING", "STRING", null, SupportedOperator.Plus | SupportedOperator.Equals | SupportedOperator.NotEquals);
-        var typeDouble = new DefaultType("DOUBLE", "D", typeString, SupportedOperator.AllMath | SupportedOperator.AllComparison);
-        var typeFloat = new DefaultType("FLOAT", "F", typeDouble, SupportedOperator.AllMath | SupportedOperator.AllComparison);
-        var typeLong = new DefaultType("LONG", "L", typeFloat, SupportedOperator.AllMath | SupportedOperator.AllComparison);
-        var typeInt = new DefaultType("INT", "I", typeLong, SupportedOperator.AllMath | SupportedOperator.AllComparison);
+        var typeDouble = new DefaultType(Keywords.Double, "D", typeString,
+                                         SupportedOperator.AllMath | SupportedOperator.AllComparison);
         
-        var typeBool = new DefaultType("BOOL", "ABAP_BOOL", null, SupportedOperator.AllBoolean);
+        var typeFloat = new DefaultType(Keywords.Float, "F", typeDouble,
+                                        SupportedOperator.AllMath | SupportedOperator.AllComparison);
+        
+        var typeLong = new DefaultType(Keywords.Long, "L", typeFloat,
+                                       SupportedOperator.AllMath | SupportedOperator.AllComparison);
+        
+        var typeInt = new DefaultType(Keywords.Int, "I", typeLong,
+                                      SupportedOperator.AllMath | SupportedOperator.AllComparison);
+
+        var typeBool = new DefaultType(Keywords.Boolean, "ABAP_BOOL", null, SupportedOperator.AllBoolean);
 
         _types = new Dictionary<string, IType>() {
             { "ANY", typeAny },
-            { "STRING", typeString },
-            { "DOUBLE", typeDouble },
-            { "FLOAT", typeFloat },
-            { "LONG", typeLong },
-            { "INT", typeInt },
-            { "BOOL", typeBool },
+            { Keywords.String, typeString },
+            { Keywords.Double, typeDouble },
+            { Keywords.Float, typeFloat },
+            { Keywords.Long, typeLong },
+            { Keywords.Int, typeInt },
+            { Keywords.Boolean, typeBool },
         };
     }
-    
+
     public Result<IType> Get(int line, string name) {
         if (_types.TryGetValue(name, out IType? type)) {
             return Ok(type);
@@ -35,4 +46,13 @@ public class TypeCollection {
         return Error(line, $"Type {name} was not defined");
     }
 
+    public Result<int> Add(IType type, int line) {
+        if (_types.ContainsKey(type.Name)) {
+            return Error(line, $"The type {type.Name} already exists.");
+        }
+
+        _types.Add(type.Name, type);
+        
+        return Ok(0);
+    }
 }

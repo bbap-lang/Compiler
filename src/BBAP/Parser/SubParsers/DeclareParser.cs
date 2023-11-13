@@ -5,12 +5,13 @@ using BBAP.Lexer.Tokens.Setting;
 using BBAP.Lexer.Tokens.Values;
 using BBAP.Parser.Expressions;
 using BBAP.Parser.Expressions.Values;
+using BBAP.PreTranspiler;
 using BBAP.Results;
 using BBAP.Types;
 
 namespace BBAP.Parser.SubParsers;
 
-public class LetParser {
+public static class DeclareParser {
     public static Result<IExpression> Run(ParserState state) {
         Result<IToken> variableNameResult = state.Next(typeof(UnknownWordToken));
         if (!variableNameResult.TryGetValue(out IToken? variableNameToken)) {
@@ -26,22 +27,15 @@ public class LetParser {
             return result.ToErrorResult();
         }
 
-        IType type;
-        int typeLine = token.Line;
         TypeExpression? typeExpression;
         VariableExpression? variableExpression;
         DeclareExpression? declareExpression;
         if (token is ColonToken) {
-            result = state.Next(typeof(UnknownWordToken));
-
-            if (!result.TryGetValue(out token) || token is not UnknownWordToken typeToken) {
-                return result.ToErrorResult();
+            Result<TypeExpression> typeResult = TypeParser.Run(state);
+            if (!typeResult.TryGetValue(out typeExpression)) {
+                return typeResult.ToErrorResult();
             }
-
-            type = new OnlyNameType(typeToken.Value);
-            typeLine = typeToken.Line;
             
-
             result = state.Next(typeof(SetToken), typeof(SemicolonToken));
 
             if (!result.TryGetValue(out token)) {
@@ -49,13 +43,12 @@ public class LetParser {
             }
 
             if (token is SemicolonToken) {
-                typeExpression = new TypeExpression( typeLine, type);
-                variableExpression = new VariableExpression(variableName.Line, variableName.Value, new UnknownType());
+                variableExpression = new VariableExpression(variableName.Line, new Variable(new UnknownType(), variableName.Value));
                 declareExpression = new DeclareExpression(variableName.Line, variableExpression, typeExpression, null);
                 return Ok<IExpression>(declareExpression);
             }
         } else {
-            type = new UnknownType();
+            typeExpression = new TypeExpression(variableName.Line, new UnknownType());
         }
         
         Result<IExpression> valueResult = ValueParser.FullExpression(state, out _, typeof(SemicolonToken));
@@ -63,8 +56,7 @@ public class LetParser {
             return valueResult;
         }
         
-        typeExpression = new TypeExpression( typeLine , type);
-        variableExpression = new VariableExpression(variableName.Line, variableName.Value, new UnknownType());
+        variableExpression = new VariableExpression(variableName.Line, new Variable(new UnknownType(), variableName.Value));
         var setExpression = new SetExpression(value.Line, variableExpression, SetType.Generic, value);
         declareExpression = new DeclareExpression(variableName.Line, variableExpression, typeExpression, setExpression);
         return Ok<IExpression>(declareExpression);

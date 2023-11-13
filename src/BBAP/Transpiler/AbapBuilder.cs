@@ -4,7 +4,7 @@ namespace BBAP.Transpiler;
 
 public class AbapBuilder {
     int depth = 0;
-    private StringBuilder _builder = new StringBuilder();
+    private StringBuilder _builder = new();
 
     public void Append(string str) {
         Intend();

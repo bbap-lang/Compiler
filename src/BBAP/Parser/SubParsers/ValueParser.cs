@@ -20,7 +20,7 @@ public class ValueParser {
     private static Result<IExpression> NextValue(ParserState state, Type[] endTokenTypes) {
         var nextTokenResult = state.Next(typeof(OpeningGenericBracketToken),
             typeof(UnknownWordToken),
-            typeof(IntValueToken), typeof(FloatValueToken), typeof(StringValueToken), typeof(NotToken), typeof(MinusToken));
+            typeof(IntValueToken), typeof(FloatValueToken), typeof(StringValueToken), typeof(NotToken), typeof(MinusToken), typeof(BooleanValueToken));
 
         if (!nextTokenResult.TryGetValue(out IToken? nextToken)) {
             return nextTokenResult.ToErrorResult();
@@ -33,6 +33,8 @@ public class ValueParser {
             FloatValueToken floatToken => Ok<IExpression>(new FloatExpression(nextToken.Line, floatToken.Value)),
             StringValueToken stringToken => Ok<IExpression>(new StringExpression(nextToken.Line,
                 stringToken.Value)),
+            BooleanValueToken booleanValueToken => Ok<IExpression>(new BooleanValueExpression(nextToken.Line, booleanValueToken.Value)),
+            
             NotToken => NextValue(state, endTokenTypes).TryGetValue(out IExpression? expression, out Error error)
                 ? Ok<IExpression>(new NotExpression(nextToken.Line, expression))
                 : Error(error),

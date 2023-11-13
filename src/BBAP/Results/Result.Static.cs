@@ -22,4 +22,21 @@ public static class Result {
         string[] splitted = rawStack.Split('\n');
         return string.Join('\n', splitted[3..]);
     }
+    
+    
+    
+    // ExtensionMethods
+    public static Result<T[]> Wrap<T>(this Result<T>[] results) {
+        var values = new T[results.Length];
+        
+        for (int i = 0; i < results.Length; i++) {
+            if (!results[i].TryGetValue(out T? value)) {
+                return results[i].ToErrorResult();
+            }
+
+            values[i] = value;
+        }
+
+        return Ok(values);
+    }
 }

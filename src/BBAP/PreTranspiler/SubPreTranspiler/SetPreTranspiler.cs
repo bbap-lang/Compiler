@@ -10,15 +10,15 @@ namespace BBAP.PreTranspiler.SubPreTranspiler;
 
 public static class SetPreTranspiler {
     public static Result<IExpression[]> Run(SetExpression setExpression, PreTranspilerState state, bool ignoreNotDeclared) {
-        Variable? variable;
+        IVariable? variable;
         if (!ignoreNotDeclared) {
-            Result<Variable> variableResult
-                = state.GetVariable(setExpression.Variable.Name, setExpression.Variable.Line);
+            Result<IVariable> variableResult
+                = state.GetVariable(setExpression.Variable.Variable, setExpression.Variable.Line);
             if (!variableResult.TryGetValue(out variable)) {
                 return variableResult.ToErrorResult();
             }
         } else {
-            variable = new Variable(setExpression.Variable.Type, setExpression.Variable.Name);
+            variable = setExpression.Variable.Variable;
         }
 
         Result<IExpression[]> splittedValueResult = ValueSplitter.Run(state, setExpression.Value);
@@ -36,7 +36,7 @@ public static class SetPreTranspiler {
             return Error(lastValue.Line, $"Cannot cast {lastValue.Type} to {variable.Type}");
         }
 
-        var variableExpression = new VariableExpression(setExpression.Line, variable.Name, variable.Type);
+        var variableExpression = new VariableExpression(setExpression.Line, variable);
 
         IExpression newExpression;
         if (lastValue is SecondStageFunctionCallExpression funcCall) {

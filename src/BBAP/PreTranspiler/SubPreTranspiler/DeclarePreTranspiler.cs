@@ -22,18 +22,23 @@ public static class DeclarePreTranspiler {
                     "The type must be defined for declarations without initial value.");
             }
 
-            type = declareExpression.Type.Type;
+            Result<IType> typeResult = state.Types.Get(declareExpression.Type.Line, declareExpression.Type.Type.Name);
+                
+            if (!typeResult.TryGetValue(out type)) {
+                return typeResult.ToErrorResult();
+            }
             
-            newVarResult = state.CreateVar(declareExpression.Variable.Name, type, declareExpression.Line);
+            newVarResult = state.CreateVar(declareExpression.Variable.Variable.Name, type, declareExpression.Line);
 
             if (!newVarResult.TryGetValue(out newVar)) {
                 return newVarResult.ToErrorResult();
             }
 
 
-            variableExpression = new VariableExpression(declareExpression.Line, newVar, type);
+            variableExpression = new VariableExpression(declareExpression.Line, new Variable(type, newVar));
             DeclareExpression newDeclareExpressionWithoutSet = declareExpression with {
-                 Variable = variableExpression
+                 Variable = variableExpression,
+                 Type = declareExpression.Type with { Type = type }
             };
 
             return Ok(new IExpression[]{newDeclareExpressionWithoutSet});
@@ -47,13 +52,13 @@ public static class DeclarePreTranspiler {
         IExpression newSetExpressionUnknown = splittedValue.Last();
 
         if (newSetExpressionUnknown is SecondStageFunctionCallExpression funcCall) {
-            newVarResult = state.CreateVar(declareExpression.Variable.Name, funcCall.Type, declareExpression.Line);
+            newVarResult = state.CreateVar(declareExpression.Variable.Variable.Name, funcCall.Type, declareExpression.Line);
 
             if (!newVarResult.TryGetValue(out newVar)) {
                 return newVarResult.ToErrorResult();
             }
 
-            variableExpression = new VariableExpression(declareExpression.Line, newVar, funcCall.Type);
+            variableExpression = new VariableExpression(declareExpression.Line, new Variable(funcCall.Type, newVar));
 
             var emptyDeclare = new DeclareExpression(declareExpression.Line, variableExpression, new TypeExpression(funcCall.Line, funcCall.Type), null);
 
@@ -90,13 +95,13 @@ public static class DeclarePreTranspiler {
         
         additionalExpressions = splittedValue;
 
-        newVarResult = state.CreateVar(declareExpression.Variable.Name, type, declareExpression.Line);
+        newVarResult = state.CreateVar(declareExpression.Variable.Variable.Name, type, declareExpression.Line);
 
         if (!newVarResult.TryGetValue(out newVar)) {
             return newVarResult.ToErrorResult();
         }
 
-        variableExpression = new VariableExpression(declareExpression.Line, newVar, type);
+        variableExpression = new VariableExpression(declareExpression.Line, new Variable(type, newVar));
         
         var typeExpression = new TypeExpression(value.Line, type);
 

@@ -1,14 +1,15 @@
 ﻿using System.Diagnostics;
 using System.Text;
 using BBAP.Parser.Expressions;
+using BBAP.PreTranspiler;
 using BBAP.PreTranspiler.Expressions;
 using BBAP.Transpiler.SubTranspiler;
 
-namespace BBAP.Transpiler; 
+namespace BBAP.Transpiler;
 
 public static class SetTranspiler {
     public static void Run(SetExpression setExpression, TranspilerState state) {
-        state.Builder.Append($"{setExpression.Variable.Name}");
+        VariableTranspiler.Run(setExpression.Variable, state.Builder);
         state.Builder.Append(GetSetType(setExpression.SetType));
         ValueTranspiler.Run(setExpression.Value, state);
         state.Builder.AppendLine(".");

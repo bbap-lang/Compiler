@@ -18,6 +18,10 @@ public enum SecondStageCalculationType {
     SmallerThen,
     GreaterThenOrEquals,
     SmallerThenOrEquals,
+    
+    And,
+    Or,
+    Xor
 }
 
 public static class SecondStageCalculationTypeExtensions {

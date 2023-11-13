@@ -12,13 +12,13 @@ public static class FunctionCallSetPreTranspiler {
         var returnVariables = new List<VariableExpression>();
 
         foreach (VariableExpression returnVariable in functionCallSetExpression.ReturnVariables) {
-            Result<Variable> varResult = state.GetVariable(returnVariable.Name, returnVariable.Line);
+            Result<IVariable> varResult = state.GetVariable(returnVariable.Variable.Name, returnVariable.Line);
 
-            if(!varResult.TryGetValue(out Variable? newVariable)) {
+            if(!varResult.TryGetValue(out IVariable? newVariable)) {
                 return varResult.ToErrorResult();
             }
             
-            var newVariableExpression = new VariableExpression(returnVariable.Line, returnVariable.Name, newVariable.Type);
+            var newVariableExpression = returnVariable with { Variable = newVariable};
             
             returnVariables.Add(newVariableExpression);
         }

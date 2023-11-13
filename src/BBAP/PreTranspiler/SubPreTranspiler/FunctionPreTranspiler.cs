@@ -17,7 +17,7 @@ public static class FunctionPreTranspiler {
         state.StackIn(declaredFunction.StackName);
 
 
-        Variable[] returnVariables = declaredFunction.ReturnVariables.ToArray();
+        IVariable[] returnVariables = declaredFunction.ReturnVariables.Select(x => x.Variable).ToArray();
         state.GoIntoFunction(returnVariables);
 
         Result<ImmutableArray<IExpression>>
@@ -36,7 +36,7 @@ public static class FunctionPreTranspiler {
     public static Result<SecondStageFunctionExpression> Create(FunctionExpression functionExpression,
         PreTranspilerState state) {
         var stackName = state.StackIn();
-        var parameters = new List<Variable>();
+        var parameters = new List<VariableExpression>();
         foreach (ParameterExpression parameter in functionExpression.Parameters) {
             Result<IType> typeResult = state.Types.Get(parameter.Line, parameter.Type);
             if (!typeResult.TryGetValue(out IType? type)) {
@@ -50,8 +50,9 @@ public static class FunctionPreTranspiler {
             }
 
             var variable = new Variable(type, variableName);
-
-            parameters.Add(variable);
+            var variableExpression = new VariableExpression(parameter.Line, variable);
+            
+            parameters.Add(variableExpression);
         }
 
         var returnTypes = new List<TypeExpression>();
@@ -66,19 +67,21 @@ public static class FunctionPreTranspiler {
             returnTypes.Add(newTypeExpression);
         }
         
-        Result<Variable>[] returnVariablesResults = returnTypes.Select(returnType
-                                                                       => state.CreateRandomNewVar(functionExpression.Line,
-                                                                        returnType.Type))
-                                                           .Select(x => state.GetVariable(x.Name, x.Line))
-                                                           .ToArray();
+        Result<IVariable>[] returnVariablesResults = returnTypes.Select(returnType
+                                                                            => state.CreateRandomNewVar(functionExpression.Line,
+                                                                             returnType.Type))
+                                                                .Select(x => state.GetVariable(x.Variable.Name, x.Line))
+                                                                .ToArray();
 
-        var returnVariables = new Variable[returnVariablesResults.Length];
-        foreach ((Result<Variable> newVariable, int index) in returnVariablesResults.Select((x, i) => (x, i))) {
-            if (!newVariable.TryGetValue(out Variable variable)) {
+        var returnVariables = new VariableExpression[returnVariablesResults.Length];
+        foreach ((Result<IVariable> newVariable, int index) in returnVariablesResults.Select((x, i) => (x, i))) {
+            if (!newVariable.TryGetValue(out IVariable variable)) {
                 return newVariable.ToErrorResult();
             }
 
-            returnVariables[index] = variable;
+            var variableExpression = new VariableExpression(functionExpression.Line, variable);
+            
+            returnVariables[index] = variableExpression;
         }
 
         var newFunctionExpression = new SecondStageFunctionExpression(functionExpression.Line, functionExpression.Name,

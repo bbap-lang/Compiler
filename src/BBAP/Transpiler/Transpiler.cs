@@ -14,15 +14,19 @@ public class Transpiler {
     public Result<string> Run(ImmutableArray<IExpression> expressions) {
         var state = new TranspilerState();
         
-        IEnumerable<DeclareExpression> declarations = GetAllDeclarations(expressions);
+        IEnumerable<StructExpression> structDeclarations = GetAllOfType<StructExpression>(expressions);
+        IEnumerable<DeclareExpression> declarations = GetAllOfType<DeclareExpression>(expressions);
 
         state.Builder.AppendLine("\" --- THIS CODE IS AUTOMATICALLY GENERATED FROM BBAP ---");
         state.Builder.AppendLine();
+        foreach (StructExpression structExpression in structDeclarations) {
+            StructTranspiler.Run(structExpression, state);
+        }
         state.Builder.AppendLine();
         state.Builder.Append("DATA:\t");
         state.Builder.AddIntend();
         foreach (DeclareExpression declaration in declarations) {
-            state.Builder.AppendLine($"{declaration.Variable.Name} TYPE {declaration.Type.Type.AbapName}");
+            state.Builder.AppendLine($"{declaration.Variable.Variable.Name} TYPE {declaration.Type.Type.AbapName}");
         }
         state.Builder.RemoveIntend();
 
@@ -60,6 +64,11 @@ public class Transpiler {
                 case SecondStageFunctionExpression functionExpression:
                     FunctionTranspiler.Run(functionExpression, state);
                     break;
+                
+                // expressions to skip
+                case StructExpression:
+                    
+                    break;
                 default:
                     state.Builder.Append("\" ");
                     state.Builder.AppendLine(expression.GetType().Name);
@@ -68,15 +77,17 @@ public class Transpiler {
         }
     }
     
-    private static IEnumerable<DeclareExpression> GetAllDeclarations(ImmutableArray<IExpression> expressions) {
+    
+    
+    private static IEnumerable<T> GetAllOfType<T>(ImmutableArray<IExpression> expressions) {
         foreach (IExpression expression in expressions) {
             switch (expression) {
-                case DeclareExpression declareExpression:
+                case T declareExpression:
                     yield return declareExpression;
                     break;
 
                 case WhileExpression whileExpression: {
-                    foreach (DeclareExpression decEx in GetAllDeclarations(whileExpression.BlockContent)) {
+                    foreach (T decEx in GetAllOfType<T>(whileExpression.BlockContent)) {
                         yield return decEx;
                     }
 
@@ -84,7 +95,7 @@ public class Transpiler {
                 }
 
                 case IfExpression ifExpression: {
-                    foreach (DeclareExpression decEx in GetAllDeclarations(ifExpression.BlockContent)) {
+                    foreach (T decEx in GetAllOfType<T>(ifExpression.BlockContent)) {
                         yield return decEx;
                     }
 
@@ -93,4 +104,5 @@ public class Transpiler {
             }
         }
     }
+    
 }

@@ -9,13 +9,13 @@ namespace BBAP.PreTranspiler.SubPreTranspiler;
 
 public static class IncrementPreTranspiler {
     public static Result<IExpression[]> Run(IncrementExpression incrementExpression, PreTranspilerState state) {
-        Result<Variable> variableResult
-            = state.GetVariable(incrementExpression.Variable.Name, incrementExpression.Line);
-        if (!variableResult.TryGetValue(out Variable variable)) {
+        Result<IVariable> variableResult
+            = state.GetVariable(incrementExpression.Variable.Variable.Name, incrementExpression.Line);
+        if (!variableResult.TryGetValue(out IVariable variable)) {
             return variableResult.ToErrorResult();
         }
 
-        VariableExpression variableExpression = incrementExpression.Variable with { Name = variable.Name };
+        VariableExpression variableExpression = incrementExpression.Variable with { Variable = variable};
         SetType setType = incrementExpression.IncrementType switch {
             IncrementType.Plus => SetType.Plus,
             IncrementType.Minus => SetType.Minus,

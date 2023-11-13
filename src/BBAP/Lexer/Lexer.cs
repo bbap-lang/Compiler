@@ -96,6 +96,10 @@ public class Lexer {
                     tokens.Add(new ColonToken(state.Line));
                     break;
 
+                case '.':
+                    tokens.Add(new DotToken(state.Line));
+                    break;
+
                 case '&':
                     result = BooleanOperatorLexer.RunAnd(state);
                     if (!result.TryGetValue(out token)) return result.ToErrorResult();
@@ -196,7 +200,7 @@ public class Lexer {
 
                 if (state.AtEnd)
                     return Error(state.Line,
-                        "File ends inside a block comment. Please make sure all open block comments are closed!");
+                                 "File ends inside a block comment. Please make sure all open block comments are closed!");
 
                 break;
             }

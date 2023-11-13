@@ -18,10 +18,6 @@ public static class BooleanParser {
             return valueResult;
         }
 
-        if (expression is not BooleanExpression && expression is not ComparisonExpression) {
-            return Error(expression.Line, "Invalid expression for boolean-statement.");
-        }
-
         return valueResult;
     }
 

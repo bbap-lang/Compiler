@@ -1,5 +1,21 @@
+alias number: int;
+
+struct TestType{
+    field1: int,
+    field2: int
+}
+
+let testvar: TestType;
+
+testVar = new TestType{
+    field1 = 1,
+    field2 = 2
+}
+
+let testNumber123 = testvar.field2;
+
 let helloWorld = "Hello World!";
-let num = 0xff;
+let num: number = 0xff;
 let num2 = 0b10110101;
 let test = helloWorld + num * 5; 
 
@@ -7,9 +23,24 @@ let test2 = num == 0;
 
 let asgvsadf: string = "Hello";
 
-let sdfgubi = helloWorld == num2;
+let sdfgubi = helloWorld == num2 && true;
 
-for(let i = 0; i < 100; i++;){
+let lknksdxfv = sdfgubi;
+
+if sdfgubi{
+    printLine("Is True!");
+}
+
+if num < 100{
+    printLine("Is True!");
+}
+
+while sdfgubi{
+    printLine("Is True!");
+}
+
+
+for(let i = 0; i < 20; i++;){
     let test2 = "test";
     printLine("Hello Word 2!");
 }
@@ -20,8 +51,12 @@ while num < 10{
 
 
 if num < 1 {
+    printLine("Hello Word 1!");
+} else if num > 5 {
     printLine("Hello Word 2!");
-}
+} else {
+     printLine("Hello Word 3!");
+ }
 
 let returnOne: int;
 let returnTwo: int;
@@ -29,8 +64,8 @@ let returnTwo: int;
 (returnOne, returnTwo) = test2(5);
 
 
-func test(param1: int){
-    let test2 = param1;
+func test(param1: int): (int){
+    return 1;
 }
 
 func test2(param1: int): (long, int){

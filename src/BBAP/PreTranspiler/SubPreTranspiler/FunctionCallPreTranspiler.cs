@@ -31,7 +31,7 @@ public static class FunctionCallPreTranspiler {
             parameters.Add(extractParameterResult.NewParameter);
         }
 
-        IType[] parameterTypes = parameters.Select(x => x.Type).ToArray();
+        IType[] parameterTypes = parameters.Select(x => x.Variable.Type).ToArray();
 
         var outputs = new IType[0];
         ImmutableArray<VariableExpression> outputVariables = new VariableExpression[0].ToImmutableArray();

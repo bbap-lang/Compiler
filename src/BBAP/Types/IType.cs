@@ -9,6 +9,10 @@ public interface IType {
 
 public static class ITypeExtensions {
     public static bool IsCastableTo(this IType baseType, IType targetType) {
+        if(targetType is AliasType aliasType) {
+            targetType = aliasType.SourceType;
+        }
+        
         while (baseType != targetType) {
             if (baseType.InheritsFrom is null) {
                 return false;

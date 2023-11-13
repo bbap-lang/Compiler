@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Globalization;
 using System.Text;
+using BBAP.Lexer.Tokens.Values;
 using BBAP.Parser.Expressions;
 using BBAP.Parser.Expressions.Values;
 using BBAP.PreTranspiler.Expressions;
@@ -34,9 +35,16 @@ public static class ValueTranspiler {
                 builder.Append('\'');
                 break;
             
-            case VariableExpression vae:
-                builder.Append(vae.Name);
+            case BooleanValueExpression be:
+                    builder.Append(be.Value ? "ABAP_TRUE" : "ABAP_FALSE");
                 break;
+            
+            case VariableExpression vae:
+                VariableTranspiler.Run(vae, builder);
+                break;
+            
+            default:
+                throw new UnreachableException();
         }
     }
 
@@ -55,8 +63,8 @@ public static class ValueTranspiler {
             SecondStageCalculationType.Multiply => " * ",
             SecondStageCalculationType.Divide => " / ",
             SecondStageCalculationType.Modulo => " MOD ",
-            SecondStageCalculationType.BitwiseAnd => throw new NotImplementedException(),
-            SecondStageCalculationType.BitwiseOr => throw new NotImplementedException(),
+            SecondStageCalculationType.BitwiseAnd => " BIT-AND ",
+            SecondStageCalculationType.BitwiseOr => " BIT-OR ",
 
             SecondStageCalculationType.Equals => " EQ ",
             SecondStageCalculationType.NotEquals => " NE ",
@@ -64,6 +72,11 @@ public static class ValueTranspiler {
             SecondStageCalculationType.SmallerThen => " LT ",
             SecondStageCalculationType.GreaterThenOrEquals => " GE ",
             SecondStageCalculationType.SmallerThenOrEquals => " LE ",
+            
+            SecondStageCalculationType.And => " AND ",
+            SecondStageCalculationType.Or => " OR ",
+            SecondStageCalculationType.Xor => " XOR ",
+            
             
             _ => throw new UnreachableException()
         };

@@ -30,9 +30,14 @@ public static class WordLexer {
             Keywords.Do => new DoToken(state.Line),
             Keywords.For => new ForToken(state.Line),
             Keywords.If => new IfToken(state.Line),
+            Keywords.Else => new ElseToken(state.Line),
             Keywords.Let => new LetToken(state.Line),
             Keywords.While => new WhileToken(state.Line),
             Keywords.Function => new FunctionToken(state.Line),
+            
+            Keywords.Alias => new AliasToken(state.Line),
+            Keywords.Struct => new StructToken(state.Line),
+            Keywords.New => new NewToken(state.Line),
             
             Keywords.Return => new ReturnToken(state.Line),
 

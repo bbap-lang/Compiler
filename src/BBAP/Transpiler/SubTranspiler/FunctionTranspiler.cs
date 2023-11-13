@@ -16,10 +16,10 @@ public static class FunctionTranspiler {
         if (functionExpression.Parameters.Length > 0) {
             builder.AppendLine();
             builder.Append("\tUSING ");
-            foreach ((IType type, string name) in functionExpression.Parameters) {
-                builder.Append(name);
+            foreach (VariableExpression variable in functionExpression.Parameters) {
+                VariableTranspiler.Run(variable, state.Builder);
                 builder.Append(" TYPE ");
-                builder.Append(type.AbapName);
+                builder.Append(variable.Variable.Type.AbapName);
                 builder.Append(' ');
             }
         }
@@ -27,10 +27,10 @@ public static class FunctionTranspiler {
         if(functionExpression.ReturnVariables.Length > 0){
             builder.AppendLine();
             builder.Append("\tCHANGING ");
-            foreach (Variable returnVariable in functionExpression.ReturnVariables) {
-                builder.Append(returnVariable.Name);
+            foreach (VariableExpression returnVariable in functionExpression.ReturnVariables) {
+                VariableTranspiler.Run(returnVariable, state.Builder);
                 builder.Append(" TYPE ");
-                builder.Append(returnVariable.Type.AbapName);
+                builder.Append(returnVariable.Variable.Type.AbapName);
                 builder.Append(' ');
             }
         }

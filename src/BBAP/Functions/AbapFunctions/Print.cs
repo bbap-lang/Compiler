@@ -20,7 +20,7 @@ public class Print: IFunction {
     public void Render(AbapBuilder builder, IEnumerable<VariableExpression> inputs, IEnumerable<VariableExpression> outputs) {
         foreach (VariableExpression input in inputs) {
             builder.Append("WRITE ");
-            builder.Append(input.Name);
+            builder.Append(input.Variable.Name);
             builder.AppendLine(".");
         }
     }

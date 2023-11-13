@@ -1,9 +1,14 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics;
+using BBAP.Lexer.Tokens.Values;
 using BBAP.Parser.Expressions;
 using BBAP.Parser.Expressions.Blocks;
 using BBAP.Parser.Expressions.Calculations;
+using BBAP.Parser.Expressions.Values;
+using BBAP.PreTranspiler.Expressions;
 using BBAP.Results;
+using BBAP.Types;
+using Error = BBAP.Results.Error;
 
 namespace BBAP.PreTranspiler.SubPreTranspiler; 
 
@@ -15,25 +20,57 @@ public static class IfPreTranspiler {
             return blockResult.ToErrorResult();
         }
         
-        if (ifExpression.Condition is BooleanExpression) {
-            return Ok<IExpression[]>(new [] { ifExpression with { BlockContent = block } });
+        if (ifExpression.Condition is BooleanValueExpression booleanValueExpression) {
+            if (booleanValueExpression.Value) {
+                return Ok(block.ToArray());
+            }
+            return Ok(Array.Empty<IExpression>());
         }
 
-        if (ifExpression.Condition is not ComparisonExpression comparisonExpression) {
+        Result<(IExpression[] additional, ISecondStageValue Condition)> contitionResult = ConditionPreTranspiler.Run(ifExpression.Condition, state);
+        if(!contitionResult.TryGetValue(out var conditionData)){
+            return contitionResult.ToErrorResult();
+        }
+        
+        (IExpression[] splittedCondition, ISecondStageValue condition) = conditionData;
+
+        state.StackOut();
+        
+        var additionalElse = new List<IExpression>();
+        IExpression? elseExpression = null;
+        
+        if(ifExpression.ElseExpression is not null){
+            Result<IExpression[]> elseResult = RunElse(ifExpression.ElseExpression, state);
+            if(!elseResult.TryGetValue(out IExpression[]? elseExpressionList)){
+                return elseResult.ToErrorResult();
+            }
+
+            elseExpression = elseExpressionList.Last();
+            additionalElse.AddRange(elseExpressionList.Remove(elseExpression));
+        }
+        
+        IfExpression newExpression = ifExpression with { Condition = condition, BlockContent = block, ElseExpression = elseExpression};
+
+        IExpression[] combined = splittedCondition.Remove(condition).Concat(additionalElse).Append(newExpression).ToArray();
+        return Ok(combined);
+    }
+
+    private static Result<IExpression[]> RunElse(IExpression expression, PreTranspilerState state) {
+        if (expression is IfExpression ifExpression) {
+            return Run(ifExpression, state);
+        }
+        
+        if (expression is not ElseExpression elseExpression) {
             throw new UnreachableException();
         }
         
-        Result<IExpression[]> splittedConditionResult = ComparisonPreTranspiler.Run(state, comparisonExpression);
-        if (!splittedConditionResult.TryGetValue(out IExpression[]? splittedCondition)) {
-            return splittedConditionResult;
+        state.StackIn();
+        Result<ImmutableArray<IExpression>> blockResult = PreTranspiler.RunBlock(state, elseExpression.BlockContent);
+        if (!blockResult.TryGetValue(out ImmutableArray<IExpression> block)) {
+            return blockResult.ToErrorResult();
         }
-
-        IExpression condition = splittedCondition.Last();
-        IfExpression newExpression = ifExpression with { Condition = condition, BlockContent = block };
-
-        IExpression[] combined = splittedCondition.Remove(condition).Append(newExpression).ToArray();
         
         state.StackOut();
-        return Ok(combined);
+        return Ok<IExpression[]>(new [] { elseExpression with { BlockContent = block } });
     }
 }

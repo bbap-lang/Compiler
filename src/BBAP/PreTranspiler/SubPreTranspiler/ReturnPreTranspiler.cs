@@ -31,19 +31,19 @@ public static class ReturnPreTranspiler {
             newValues.Add(newValue);
         }
 
-        Variable[] returnVariables = state.GetCurrentReturnVariables();
+        IVariable[] returnVariables = state.GetCurrentReturnVariables();
 
         if(newValues.Count != returnVariables.Length) {
             return Error(returnExpression.Line, "The amount of return values does not match the amount of return variables");
         }
         
-        foreach ((Variable returnVariable, ISecondStageValue value) in returnVariables.Select((x, i) => (x, newValues[i]) )) {
+        foreach ((IVariable returnVariable, ISecondStageValue value) in returnVariables.Select((x, i) => (x, newValues[i]) )) {
             if (!value.Type.IsCastableTo(returnVariable.Type)) {
                 return Error(returnExpression.Line, $"The type of the return value ({value.Type.Name}) does not match the type of the return variable ({returnVariable.Type.Name})");
             }
 
             var typeExpression = new TypeExpression(returnExpression.Line, returnVariable.Type);
-            var variableExpression = new VariableExpression(returnExpression.Line, returnVariable.Name, returnVariable.Type);
+            var variableExpression = new VariableExpression(returnExpression.Line, new Variable(returnVariable.Type, returnVariable.Name));
             var setExpression = new SetExpression(returnExpression.Line, variableExpression, SetType.Generic, value);
             var declareExpression = new DeclareExpression(returnExpression.Line, variableExpression, typeExpression, setExpression);
             newExpressions.Add(declareExpression);

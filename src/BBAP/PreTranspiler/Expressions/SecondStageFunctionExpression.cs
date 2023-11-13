@@ -7,6 +7,6 @@ namespace BBAP.PreTranspiler.Expressions;
 
 public record SecondStageFunctionExpression(int Line,
     string Name,
-    ImmutableArray<Variable> Parameters,
-    ImmutableArray<Variable> ReturnVariables,
+    ImmutableArray<VariableExpression> Parameters,
+    ImmutableArray<VariableExpression> ReturnVariables,
     ImmutableArray<IExpression> ContentBlock, string StackName): IExpression;

@@ -2,4 +2,4 @@
 
 namespace BBAP.Parser.Expressions.Blocks; 
 
-public record IfExpression(int Line, IExpression Condition, ImmutableArray<IExpression> BlockContent) : IExpression;
+public record IfExpression(int Line, IExpression Condition, ImmutableArray<IExpression> BlockContent, IExpression? ElseExpression) : IExpression;

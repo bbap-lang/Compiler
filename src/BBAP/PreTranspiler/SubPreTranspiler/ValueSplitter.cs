@@ -4,6 +4,7 @@ using System.Runtime.InteropServices.JavaScript;
 using System.Text;
 using BBAP.Lexer.Tokens.Values;
 using BBAP.Parser.Expressions;
+using BBAP.Parser.Expressions.Blocks;
 using BBAP.Parser.Expressions.Calculations;
 using BBAP.Parser.Expressions.Values;
 using BBAP.PreTranspiler.Expressions;
@@ -14,13 +15,16 @@ using Error = BBAP.Results.Error;
 namespace BBAP.PreTranspiler.SubPreTranspiler;
 
 public static class ValueSplitter {
-    public static Result<IExpression[]> Run(PreTranspilerState state, IExpression expression) {
+    public static Result<IExpression[]> Run(PreTranspilerState state, IExpression expression, bool isInCondition = false) {
+        IType typeBool = ForceGetType(Keywords.Boolean, state);
+        
         Result<IExpression> newExpressionResult = expression switch {
             FloatExpression => CreateExpression(state, expression.Line, Keywords.Float, expression),
             IntExpression => CreateExpression(state, expression.Line, Keywords.Int, expression),
             NegativeExpression => throw new NotImplementedException(), // needs to be splitted up
             NotExpression => throw new NotImplementedException(),
             StringExpression => CreateExpression(state, expression.Line, Keywords.String, expression),
+            BooleanValueExpression => CreateExpression(state, expression.Line, Keywords.Boolean, expression),
 
             VariableExpression ve => CreateVarExpression(state, ve),
 
@@ -28,7 +32,20 @@ public static class ValueSplitter {
         };
 
         if (newExpressionResult.TryGetValue(out IExpression newExpression)) {
-            return Ok(new[] { newExpression });
+            if(newExpression is not ISecondStageValue newValue) {
+                throw new UnreachableException();
+            }
+
+            if (isInCondition && newValue.Type.IsCastableTo(typeBool)) {
+                var trueExpression
+                    = new SecondStageValueExpression(newValue.Line, typeBool,
+                                                     new BooleanValueExpression(newValue.Line, true));
+                newValue = new SecondStageCalculationExpression(newValue.Line, typeBool,
+                                                                SecondStageCalculationType.Equals, newValue,
+                                                                trueExpression);
+            }
+            
+            return Ok<IExpression[]>(new[] { newValue });
         }
 
         if (newExpressionResult.Error is not TemporaryError) {
@@ -38,25 +55,53 @@ public static class ValueSplitter {
         Result<IExpression[]> newExpressionsResult = expression switch {
             MathCalculationExpression mathEx => SplitMathCalculation(state, mathEx),
             ComparisonExpression comparisonEx => ComparisonPreTranspiler.Run(state, comparisonEx),
-            // BooleanExpression booleanExpression => BooleanPreTranspiler.Run(state, booleanExpression),
+            BooleanExpression booleanExpression => BooleanPreTranspiler.Run(state, booleanExpression),
 
             FunctionCallExpression fc => FunctionCallPreTranspiler.Run(state, fc),
 
             _ => throw new UnreachableException(),
         };
+        
+        if(!newExpressionsResult.TryGetValue(out IExpression[]? newExpressions)) {
+            return newExpressionsResult;
+        }
+        
+        IExpression lastExpression = newExpressions.Last();
+        if(lastExpression is not ISecondStageValue lastValue) {
+            throw new UnreachableException();
+        }
+        
+        IType lastType = lastValue.Type;
+        
+        if (!isInCondition && lastType.IsCastableTo(typeBool)) {
+            IEnumerable<IExpression> boolExpressions = CreateBoolExpression(lastValue, state);
 
-        return newExpressionsResult;
+            newExpressions = newExpressions.Remove(lastExpression).Concat(boolExpressions).ToArray();
+        }
+
+        return Ok(newExpressions);
+    }
+
+    private static IEnumerable<IExpression> CreateBoolExpression(ISecondStageValue lastValue, PreTranspilerState state) {
+        VariableExpression newVar = state.CreateRandomNewVar(lastValue.Line, lastValue.Type);
+        var setTrueExpression = new SetExpression(lastValue.Line, newVar, SetType.Generic, new  SecondStageValueExpression(lastValue.Line, lastValue.Type ,  new BooleanValueExpression(lastValue.Line, true)) );
+        var setFalseExpression = new SetExpression(lastValue.Line, newVar, SetType.Generic, new  SecondStageValueExpression(lastValue.Line, lastValue.Type ,  new BooleanValueExpression(lastValue.Line, false)) );
+        
+        var elseExpression = new ElseExpression(lastValue.Line, ImmutableArray.Create<IExpression>(setFalseExpression));
+        var ifExpression = new IfExpression(lastValue.Line, lastValue, ImmutableArray.Create<IExpression>(setTrueExpression), elseExpression);
+
+        yield return ifExpression;
+        yield return new SecondStageValueExpression(lastValue.Line, lastValue.Type, newVar);
     }
 
     private static Result<IExpression> CreateVarExpression(PreTranspilerState state, VariableExpression expression) {
-        string varName = expression.Name;
-        Result<Variable> variableResult = state.GetVariable(varName, expression.Line);
+        Result<IVariable> variableResult = state.GetVariable(expression.Variable, expression.Line);
 
-        if (!variableResult.TryGetValue(out Variable variable)) {
+        if (!variableResult.TryGetValue(out IVariable variable)) {
             return variableResult.ToErrorResult();
         }
 
-        var newVariableExpression = new VariableExpression(expression.Line, variable.Name, variable.Type);
+        var newVariableExpression = expression with { Variable = variable };
         return CreateExpression(state, expression.Line, variable.Type.Name, newVariableExpression);
     }
 
@@ -168,8 +213,8 @@ public static class ValueSplitter {
         }
 
         VariableExpression returnVarEx = functionCall.Outputs.First();
-        Result<Variable> returnVarResult = state.GetVariable(returnVarEx.Name, returnVarEx.Line);
-        if (!returnVarResult.TryGetValue(out Variable returnVar)) {
+        Result<IVariable> returnVarResult = state.GetVariable(returnVarEx.Variable.Name, returnVarEx.Line);
+        if (!returnVarResult.TryGetValue(out IVariable returnVar)) {
             throw new UnreachableException();
         }
 
@@ -228,14 +273,6 @@ public static class ValueSplitter {
         return type;
     }
 
-    private static int AnyType(string typeName, PreTranspilerState state, params IType[] types) {
-        var type = ForceGetType(typeName, state);
-
-        int typesMatch = types.Count(t => t == type);
-
-        return typesMatch;
-    }
-
     private static IType GetExpressionType(IExpression last) {
         return last switch {
             SecondStageCalculationExpression mathEx => mathEx.Type,
@@ -244,11 +281,9 @@ public static class ValueSplitter {
         };
     }
 
-    private static Result<IExpression> CreateExpression(PreTranspilerState state,
-        int line,
-        string typeName,
-        IExpression value) {
-        var typeResult = state.Types.Get(line, typeName);
+    private static Result<IExpression> CreateExpression(PreTranspilerState state, int line, string typeName, IExpression value) {
+        
+        Result<IType> typeResult = state.Types.Get(line, typeName);
         if (!typeResult.TryGetValue(out IType type)) {
             return typeResult.ToErrorResult();
         }
