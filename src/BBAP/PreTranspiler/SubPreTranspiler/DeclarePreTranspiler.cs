@@ -72,7 +72,7 @@ public static class DeclarePreTranspiler {
 
             var newFuncCall = funcCall with { Outputs = ImmutableArray.Create(variableExpression) };
             
-            IExpression[] addExpressions = additionalExpressions.Remove(newSetExpressionUnknown).Append(emptyDeclare).Append(newFuncCall).ToArray();
+            IExpression[] addExpressions = splittedValue.Concat(additionalExpressions).Remove(newSetExpressionUnknown).Append(emptyDeclare).Append(newFuncCall).ToArray();
 
             return Ok(addExpressions);
         }

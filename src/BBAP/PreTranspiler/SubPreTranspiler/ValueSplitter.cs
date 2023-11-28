@@ -157,9 +157,10 @@ public static class ValueSplitter {
 
         IExpression leftValue = lastLeft;
         IExpression rightValue = lastRight;
-        IEnumerable<IExpression> combined = left.Concat(right)
+        List<IExpression> combined = left.Concat(right)
                                                 .Remove(lastLeft)
-                                                .Remove(lastRight);
+                                                .Remove(lastRight)
+                                                .ToList();
         
         
         if (needsSplit) {
@@ -171,7 +172,7 @@ public static class ValueSplitter {
 
                 (IExpression newValue, IExpression callDeclaration) = extractedMethod;
 
-                combined.Append(callDeclaration);
+                combined.Add(callDeclaration);
                 leftValue = newValue;
             }
             
@@ -183,19 +184,21 @@ public static class ValueSplitter {
 
                 (IExpression newValue, IExpression callDeclaration) = extractedMethod;
 
-                combined.Append(callDeclaration);
+                combined.Add(callDeclaration);
                 rightValue = newValue;
             }
             
             if (lastLeft is SecondStageCalculationExpression leftCalc) {
                 (DeclareExpression leftDeclare, SecondStageValueExpression leftVar) = ExtractVariable(state, expression, leftCalc.Type.Type, lastLeft);
-                combined = combined.Append(leftDeclare);
+                
+                combined.Add(leftDeclare);
                 leftValue = leftVar;
             }
 
             if (lastRight is SecondStageCalculationExpression rightCalc) {
                 (DeclareExpression rightDeclare, SecondStageValueExpression rightVar) = ExtractVariable(state, expression, rightCalc.Type.Type, lastRight);
-                combined = combined.Append(rightDeclare);
+                
+                combined.Add(rightDeclare);
                 rightValue = rightVar;
             }
 
@@ -232,8 +235,8 @@ public static class ValueSplitter {
                                                            rightValue);
             }
 
-            IExpression[] combinedArray = combined.Append(newExpression)
-                                                  .ToArray();
+            combined.Add(newExpression);
+            IExpression[] combinedArray = combined.ToArray();
 
 
             return Ok(combinedArray);
@@ -242,9 +245,9 @@ public static class ValueSplitter {
         ISecondStageValue combinedExpression  = new SecondStageCalculationExpression(expression.Line, new TypeExpression(expression.Line, newType), calculationType, lastLeft, lastRight);
 
 
-        return Ok(combined
-                  .Append(combinedExpression)
-                  .ToArray());
+        combined.Add(combinedExpression);
+        
+        return Ok(combined.ToArray());
     }
 
     private static Result<(IExpression Value, IExpression Declaration)> ExtractFunctionCall(PreTranspilerState state, SecondStageFunctionCallExpression functionCall) {
