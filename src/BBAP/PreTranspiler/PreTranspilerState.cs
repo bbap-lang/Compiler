@@ -16,7 +16,7 @@ public class PreTranspilerState {
 
     private readonly Dictionary<string, IType> _internalVariables = new();
 
-    private readonly HashSet<string> _stackNames = new();
+    private ulong _currentStackCount = 0;
     private readonly DefaultClasses.Stack<string> _stack = new();
     
     private readonly DefaultClasses.Stack<IVariable[]> _returnVariables = new();
@@ -32,7 +32,6 @@ public class PreTranspilerState {
     public TypeCollection Types { get; } = new();
 
     public PreTranspilerState() {
-        _stackNames.Add("");
         _stack.Push("");
     }
 
@@ -79,14 +78,10 @@ public class PreTranspilerState {
     }
 
     public string StackIn() {
-        string stackName;
-
-        do {
-            stackName = GenerateRandomString(3);
-        } while (!_stackNames.Add(stackName));
-
+        string stackName = GetNextStackName();
 
         StackIn(stackName);
+        
         return stackName;
     }
     
@@ -129,6 +124,21 @@ public class PreTranspilerState {
         for (int i = 0; i < length; i++) {
             builder.Append(Chars[Random.Shared.Next(Chars.Length)]);
         }
+
+        return builder.ToString();
+    }
+
+    private string GetNextStackName() {
+        StringBuilder builder = new();
+        ulong id = _currentStackCount;
+
+        uint charsLength = (uint) Chars.Length;
+        while (id > 0) {
+            builder.Append(Chars[(int) (id % charsLength)]);
+            id /= charsLength;
+        }
+        
+        _currentStackCount++;
 
         return builder.ToString();
     }
