@@ -5,4 +5,4 @@ using BBAP.Types;
 
 namespace BBAP.PreTranspiler.Expressions; 
 
-public record SecondStageCalculationExpression(int Line, IType Type, SecondStageCalculationType CalculationType, IExpression Left, IExpression Right): ISecondStageValue;
+public record SecondStageCalculationExpression(int Line, TypeExpression Type, SecondStageCalculationType CalculationType, IExpression Left, IExpression Right): ISecondStageValue;

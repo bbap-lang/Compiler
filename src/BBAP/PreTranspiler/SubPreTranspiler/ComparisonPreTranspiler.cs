@@ -32,8 +32,8 @@ public static class ComparisonPreTranspiler {
             throw new UnreachableException();
         }
 
-        IType leftType = lastLeft.Type;
-        IType rightType = lastRight.Type;
+        IType leftType = lastLeft.Type.Type;
+        IType rightType = lastRight.Type.Type;
         
         if(!leftType.SupportsOperator(comparisonExpression.ComparisonType.ToSupportedOperator())) {
             return Error(line, $"The type {leftType.Name} does not support the operator {comparisonExpression.ComparisonType}.");
@@ -59,7 +59,7 @@ public static class ComparisonPreTranspiler {
             _ => throw new UnreachableException()
         };
 
-        var newComparison = new SecondStageCalculationExpression(line, typeBool, calculationType, lastLeft, lastRight);
+        var newComparison = new SecondStageCalculationExpression(line, new TypeExpression(line, typeBool), calculationType, lastLeft, lastRight);
 
         var combined = left.Concat(right)
             .Remove(lastLeft)

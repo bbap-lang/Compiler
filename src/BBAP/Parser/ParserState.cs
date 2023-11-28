@@ -20,7 +20,11 @@ public class ParserState {
         public Result<T> Next<T>() where T: IToken {
             var nextTokenResult = Next(typeof(T));
             if (!nextTokenResult.TryGetValue(out IToken? token)) {
-                return nextTokenResult.ToErrorResult();
+                Error error = nextTokenResult.Error;
+                if (error is not InvalidTokenError invalidTokenError) {
+                    throw new UnreachableException();
+                }
+                return Error(invalidTokenError.Line, $"Invalid token {invalidTokenError.Token}, expected {typeof(T).Name}");
             }
 
             if (token is not T typeToken) {

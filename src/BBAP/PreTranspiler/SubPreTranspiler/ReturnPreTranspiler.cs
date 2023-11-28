@@ -38,8 +38,8 @@ public static class ReturnPreTranspiler {
         }
         
         foreach ((IVariable returnVariable, ISecondStageValue value) in returnVariables.Select((x, i) => (x, newValues[i]) )) {
-            if (!value.Type.IsCastableTo(returnVariable.Type)) {
-                return Error(returnExpression.Line, $"The type of the return value ({value.Type.Name}) does not match the type of the return variable ({returnVariable.Type.Name})");
+            if (!value.Type.Type.IsCastableTo(returnVariable.Type)) {
+                return Error(returnExpression.Line, $"The type of the return value ({value.Type.Type.Name}) does not match the type of the return variable ({returnVariable.Type.Name})");
             }
 
             var typeExpression = new TypeExpression(returnExpression.Line, returnVariable.Type);

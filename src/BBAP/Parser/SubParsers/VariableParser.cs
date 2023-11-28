@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using BBAP.Lexer.Tokens.Others;
 using BBAP.Lexer.Tokens.Values;
 using BBAP.Parser.Expressions.Values;
 using BBAP.PreTranspiler;
@@ -24,5 +25,24 @@ public class VariableParser {
         variableExpression = new VariableExpression(line, variable);
 
         return variableExpression;
+    }
+
+    public static Result<VariableExpression> ParseRaw(ParserState state) {
+        List<UnknownWordToken> variableTokens = new();
+        Result<DotToken> dotResult;
+        do {
+            Result<UnknownWordToken> tokenResult = state.Next<UnknownWordToken>();
+            if (!tokenResult.TryGetValue(out UnknownWordToken? variableName)) {
+                return tokenResult.ToErrorResult();
+            }
+                
+            variableTokens.Add(variableName);
+            
+            dotResult = state.Next<DotToken>();
+        } while (dotResult.IsSuccess);
+        state.Revert();
+
+        VariableExpression variableExpression = Run(variableTokens.ToImmutableArray());
+        return Ok(variableExpression);
     }
 }

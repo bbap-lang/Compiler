@@ -28,7 +28,7 @@ public static class FunctionCallPreTranspiler {
             
             additionalExpressions.AddRange(extractParameterResult.AdditionalExpressions);
             additionalExpressions.Add(extractParameterResult.DeclareExpression);
-            parameters.Add(new SecondStageParameterExpression(extractParameterResult.NewParameter.Line, extractParameterResult.NewParameter, extractParameterResult.NewParameter.Variable.Type));
+            parameters.Add(new SecondStageParameterExpression(extractParameterResult.NewParameter.Line, extractParameterResult.NewParameter, new TypeExpression(extractParameterResult.NewParameter.Line, extractParameterResult.NewParameter.Variable.Type)));
         }
 
         IType[] parameterTypes = parameters.Select(x => x.Variable.Variable.Type).ToArray();
@@ -62,9 +62,9 @@ public static class FunctionCallPreTranspiler {
         }
 
 
-        VariableExpression newVar = state.CreateRandomNewVar(last.Line, last.Type);
+        VariableExpression newVar = state.CreateRandomNewVar(last.Line, last.Type.Type);
         var setExpression = new SetExpression(last.Line, newVar, SetType.Generic, last);
-        var typeExpression = new TypeExpression(last.Line, last.Type);
+        var typeExpression = new TypeExpression(last.Line, last.Type.Type);
         var declareExpression = new DeclareExpression(last.Line, newVar, typeExpression, setExpression);
 
         return Ok(new ExtractParameterResult(expressions.Remove(last), declareExpression, newVar));

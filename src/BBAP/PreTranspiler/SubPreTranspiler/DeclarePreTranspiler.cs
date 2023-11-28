@@ -116,15 +116,15 @@ public static class DeclarePreTranspiler {
     public static Result<IType> GetTypeFromValue(DeclareExpression declareExpression, ISecondStageValue value, PreTranspilerState state) {
         
         if (declareExpression.Type.Type is UnknownType) {
-            return Ok(value.Type);
+            return Ok(value.Type.Type);
         } else {
             Result<IType> declaredTypeResult = state.Types.Get(declareExpression.Type.Line, declareExpression.Type.Type.Name);
             if(!declaredTypeResult.TryGetValue(out IType? declaredType)) {
                 return declaredTypeResult.ToErrorResult();
             }
             
-            if(!value.Type.IsCastableTo(declaredType)) {
-                return Error(value.Line, $"Cannot cast {value.Type.Name} to {declaredType.Name}");
+            if(!value.Type.Type.IsCastableTo(declaredType)) {
+                return Error(value.Line, $"Cannot cast {value.Type.Type.Name} to {declaredType.Name}");
             }
             
             return Ok(declaredType);

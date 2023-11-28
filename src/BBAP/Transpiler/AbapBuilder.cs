@@ -26,7 +26,6 @@ public class AbapBuilder {
         _builder.Append(value);
     }
 
-
     private bool _newLine = true;
 
     public void AppendLine(string str) {
@@ -64,4 +63,5 @@ public class AbapBuilder {
             _newLine = false;
         }
     }
+
 }

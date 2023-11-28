@@ -27,4 +27,28 @@ public static class Keywords {
     
     public const string True = "TRUE";
     public const string False = "FALSE";
+
+    public const string Select = "SELECT";
+    public const string From = "FROM";
+    
+    public const string Where = "WHERE";
+    public const string Not = "NOT";
+    
+    public const string Join = "JOIN";
+    public const string Full = "FULL";
+    public const string Outer = "OUTER";
+    public const string Inner = "INNER";
+    public const string Left = "LEFT";
+    public const string Right = "RIGHT";
+    public const string On = "ON";
+    
+    public const string Order = "ORDER";
+    public const string By = "BY";
+    public const string Ascending = "ASC";
+    public const string Descending = "DESC";
+
+    public const string Like = "LIKE";
+    public const string NOT = "NOT";
+    
+    public const string Limit = "LIMIT";
 }

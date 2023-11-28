@@ -9,16 +9,13 @@ namespace BBAP.Parser.SubParsers;
 
 public class AliasParser {
     public static Result<IExpression> Run(ParserState state) {
-        Result<IToken> nameResult = state.Next(typeof(UnknownWordToken));
-        if (!nameResult.TryGetValue(out IToken? nameToken)) {
+        Result<UnknownWordToken> nameResult = state.Next<UnknownWordToken>();
+        if (!nameResult.TryGetValue(out UnknownWordToken? name)) {
             return nameResult.ToErrorResult();
         }
         
-        if(nameToken is not UnknownWordToken name) {
-            throw new UnreachableException();
-        }
 
-        Result<IToken> tmpTokenResult = state.Next(typeof(ColonToken));
+        Result<ColonToken> tmpTokenResult = state.Next<ColonToken>();
 
         if (!tmpTokenResult.TryGetValue(out _)) {
             return tmpTokenResult.ToErrorResult();

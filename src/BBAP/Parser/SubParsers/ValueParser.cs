@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using BBAP.Lexer.Tokens;
@@ -7,12 +8,14 @@ using BBAP.Lexer.Tokens.Comparing;
 using BBAP.Lexer.Tokens.Grouping;
 using BBAP.Lexer.Tokens.Operators;
 using BBAP.Lexer.Tokens.Others;
+using BBAP.Lexer.Tokens.Sql;
 using BBAP.Lexer.Tokens.Values;
 using BBAP.Parser.Expressions;
 using BBAP.Parser.Expressions.Calculations;
 using BBAP.Parser.Expressions.Values;
 using BBAP.Parser.ExtensionMethods;
 using BBAP.Results;
+using NotToken = BBAP.Lexer.Tokens.Boolean.NotToken;
 
 namespace BBAP.Parser.SubParsers;
 
@@ -97,6 +100,12 @@ public class ValueParser {
     }
 
     public static Result<IExpression> FullExpression(ParserState state, out IToken lastToken, params Type[] endTokenTypes) {
+        Result<SelectToken> selectTokenResult = state.Next<SelectToken>();
+        if (selectTokenResult.TryGetValue(out SelectToken? selectToken)) {
+            return SelectParser.Run(state, out lastToken, endTokenTypes, selectToken.Line);
+        }
+        state.Revert();
+        
         var expressions = new List<IExpression>();
 
         while (true) {

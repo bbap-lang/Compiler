@@ -7,7 +7,9 @@ using BBAP.Lexer.Tokens.Grouping;
 using BBAP.Lexer.Tokens.Operators;
 using BBAP.Lexer.Tokens.Others;
 using BBAP.Lexer.Tokens.Setting;
+using BBAP.Lexer.Tokens.Sql;
 using BBAP.Results;
+using NotToken = BBAP.Lexer.Tokens.Boolean.NotToken;
 
 namespace BBAP.Lexer;
 

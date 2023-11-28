@@ -8,8 +8,10 @@ using BBAP.Lexer.Tokens.Values;
 using BBAP.Parser.Expressions;
 using BBAP.Parser.Expressions.Blocks;
 using BBAP.Parser.Expressions.Calculations;
+using BBAP.Parser.Expressions.Sql;
 using BBAP.Parser.Expressions.Values;
 using BBAP.PreTranspiler.Expressions;
+using BBAP.PreTranspiler.Expressions.Sql;
 using BBAP.Results;
 using BBAP.Types;
 using Error = BBAP.Results.Error;
@@ -17,6 +19,7 @@ using Error = BBAP.Results.Error;
 namespace BBAP.PreTranspiler.SubPreTranspiler;
 
 public static class ValueSplitter {
+    
     public static Result<IExpression[]> Run(PreTranspilerState state, IExpression expression, bool isInCondition = false) {
         IType typeBool = ForceGetType(Keywords.Boolean, state);
         
@@ -38,11 +41,11 @@ public static class ValueSplitter {
                 throw new UnreachableException();
             }
 
-            if (isInCondition && newValue.Type.IsCastableTo(typeBool)) {
+            if (isInCondition && newValue.Type.Type.IsCastableTo(typeBool)) {
                 var trueExpression
-                    = new SecondStageValueExpression(newValue.Line, typeBool,
+                    = new SecondStageValueExpression(newValue.Line, new TypeExpression(newValue.Line, typeBool),
                                                      new BooleanValueExpression(newValue.Line, true));
-                newValue = new SecondStageCalculationExpression(newValue.Line, typeBool,
+                newValue = new SecondStageCalculationExpression(newValue.Line, new TypeExpression(newValue.Line, typeBool),
                                                                 SecondStageCalculationType.Equals, newValue,
                                                                 trueExpression);
             }
@@ -60,6 +63,8 @@ public static class ValueSplitter {
             BooleanExpression booleanExpression => BooleanPreTranspiler.Run(state, booleanExpression),
 
             FunctionCallExpression fc => FunctionCallPreTranspiler.Run(state, fc),
+            
+            SqlSelectExpression sqlSelectExpression => SqlPreTranspiler.RunSelect(sqlSelectExpression, state),
 
             _ => throw new UnreachableException(),
         };
@@ -69,11 +74,15 @@ public static class ValueSplitter {
         }
         
         IExpression lastExpression = newExpressions.Last();
+        if (lastExpression is SecondStageSelectExpression) {
+            return Ok(newExpressions);
+        }
+        
         if(lastExpression is not ISecondStageValue lastValue) {
             throw new UnreachableException();
         }
         
-        IType lastType = lastValue.Type;
+        IType lastType = lastValue.Type.Type;
         
         if (!isInCondition && lastType.IsCastableTo(typeBool)) {
             IEnumerable<IExpression> boolExpressions = CreateBoolExpression(lastValue, state);
@@ -85,7 +94,7 @@ public static class ValueSplitter {
     }
 
     private static IEnumerable<IExpression> CreateBoolExpression(ISecondStageValue lastValue, PreTranspilerState state) {
-        VariableExpression newVar = state.CreateRandomNewVar(lastValue.Line, lastValue.Type);
+        VariableExpression newVar = state.CreateRandomNewVar(lastValue.Line, lastValue.Type.Type);
         var setTrueExpression = new SetExpression(lastValue.Line, newVar, SetType.Generic, new  SecondStageValueExpression(lastValue.Line, lastValue.Type ,  new BooleanValueExpression(lastValue.Line, true)) );
         var setFalseExpression = new SetExpression(lastValue.Line, newVar, SetType.Generic, new  SecondStageValueExpression(lastValue.Line, lastValue.Type ,  new BooleanValueExpression(lastValue.Line, false)) );
         
@@ -179,13 +188,13 @@ public static class ValueSplitter {
             }
             
             if (lastLeft is SecondStageCalculationExpression leftCalc) {
-                (DeclareExpression leftDeclare, SecondStageValueExpression leftVar) = ExtractVariable(state, expression, leftCalc.Type, lastLeft);
+                (DeclareExpression leftDeclare, SecondStageValueExpression leftVar) = ExtractVariable(state, expression, leftCalc.Type.Type, lastLeft);
                 combined = combined.Append(leftDeclare);
                 leftValue = leftVar;
             }
 
             if (lastRight is SecondStageCalculationExpression rightCalc) {
-                (DeclareExpression rightDeclare, SecondStageValueExpression rightVar) = ExtractVariable(state, expression, rightCalc.Type, lastRight);
+                (DeclareExpression rightDeclare, SecondStageValueExpression rightVar) = ExtractVariable(state, expression, rightCalc.Type.Type, lastRight);
                 combined = combined.Append(rightDeclare);
                 rightValue = rightVar;
             }
@@ -219,7 +228,7 @@ public static class ValueSplitter {
                                                                       ImmutableArray.Create(leftParameter, rightParameter), ImmutableArray.Create(newVar));
             } else {
                 newExpression
-                    = new SecondStageCalculationExpression(expression.Line, newType, calculationType, leftValue,
+                    = new SecondStageCalculationExpression(expression.Line, new TypeExpression(expression.Line, newType), calculationType, leftValue,
                                                            rightValue);
             }
 
@@ -230,7 +239,7 @@ public static class ValueSplitter {
             return Ok(combinedArray);
         }
 
-        ISecondStageValue combinedExpression  = new SecondStageCalculationExpression(expression.Line, newType, calculationType, lastLeft, lastRight);
+        ISecondStageValue combinedExpression  = new SecondStageCalculationExpression(expression.Line, new TypeExpression(expression.Line, newType), calculationType, lastLeft, lastRight);
 
 
         return Ok(combined
@@ -249,10 +258,10 @@ public static class ValueSplitter {
             throw new UnreachableException();
         }
 
-        VariableExpression internalVar = state.CreateRandomNewVar(functionCall.Line, functionCall.Type);
+        VariableExpression internalVar = state.CreateRandomNewVar(functionCall.Line, functionCall.Type.Type);
 
         IExpression newFunctionCall = functionCall with { Outputs = ImmutableArray.Create(internalVar) };
-        IExpression value = new SecondStageValueExpression(functionCall.Line, returnVar.Type, internalVar);
+        IExpression value = new SecondStageValueExpression(functionCall.Line, new TypeExpression(functionCall.Line, returnVar.Type), internalVar);
 
         return Ok((value, functionCall: newFunctionCall));
     }
@@ -267,7 +276,7 @@ public static class ValueSplitter {
         var leftSet = new SetExpression(lastLeft.Line, leftVar, SetType.Generic, lastLeft);
         var newDeclareExpression = new DeclareExpression(expression.Line, leftVar, typeExpression, leftSet);
 
-        var newValueExpression = new SecondStageValueExpression(expression.Line, NewType, leftVar);
+        var newValueExpression = new SecondStageValueExpression(expression.Line, new TypeExpression(expression.Line, NewType), leftVar);
 
         return (newDeclareExpression, newValueExpression);
     }
@@ -306,8 +315,8 @@ public static class ValueSplitter {
 
     private static IType GetExpressionType(IExpression last) {
         return last switch {
-            SecondStageCalculationExpression mathEx => mathEx.Type,
-            SecondStageValueExpression valueEx => valueEx.Type,
+            SecondStageCalculationExpression mathEx => mathEx.Type.Type,
+            SecondStageValueExpression valueEx => valueEx.Type.Type,
             _ => throw new UnreachableException()
         };
     }
@@ -319,7 +328,7 @@ public static class ValueSplitter {
             return typeResult.ToErrorResult();
         }
 
-        return Ok<IExpression>(new SecondStageValueExpression(line, type, value));
+        return Ok<IExpression>(new SecondStageValueExpression(line, new TypeExpression(line, type), value));
     }
 
     private record TemporaryError() : Error(0, string.Empty);

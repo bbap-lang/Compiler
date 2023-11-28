@@ -33,8 +33,8 @@ public class BooleanPreTranspiler {
             throw new UnreachableException();
         }
 
-        IType leftType = lastLeft.Type;
-        IType rightType = lastRight.Type;
+        IType leftType = lastLeft.Type.Type;
+        IType rightType = lastRight.Type.Type;
         
         Result<IType> typeResult = state.Types.Get(line,"BOOL");
         if (!typeResult.TryGetValue(out IType? typeBool)) {
@@ -57,7 +57,7 @@ public class BooleanPreTranspiler {
             _ => throw new UnreachableException()
         };
 
-        var newComparison = new SecondStageCalculationExpression(line, typeBool, calculationType, lastLeft, lastRight);
+        var newComparison = new SecondStageCalculationExpression(line, new TypeExpression(line, typeBool), calculationType, lastLeft, lastRight);
 
         IExpression[] combined = left.Concat(right)
                                      .Remove(lastLeft)

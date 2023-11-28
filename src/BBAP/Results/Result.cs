@@ -24,7 +24,7 @@ public readonly struct Result<T> {
 
 
     public bool TryGetValue([NotNullWhen(true)]out T? value) {
-        if (IsSuccess && _value is not null) {
+        if (IsSuccess) {
             value = _value;
             return true;
         }
@@ -33,7 +33,7 @@ public readonly struct Result<T> {
         return false;
     }
     public bool TryGetValue([NotNullWhen(true)]out T? value, out Error error) {
-        if (IsSuccess && _value is not null) {
+        if (IsSuccess) {
             value = _value;
             error = default;
             return true;

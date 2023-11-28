@@ -4,6 +4,7 @@ using BBAP.Parser.Expressions;
 using BBAP.Parser.Expressions.Blocks;
 using BBAP.Parser.Expressions.Values;
 using BBAP.PreTranspiler.Expressions;
+using BBAP.PreTranspiler.Expressions.Sql;
 using BBAP.PreTranspiler.SubPreTranspiler;
 using BBAP.Results;
 using BBAP.Transpiler.SubTranspiler;
@@ -63,6 +64,9 @@ public class Transpiler {
                     break;
                 case SecondStageFunctionExpression functionExpression:
                     FunctionTranspiler.Run(functionExpression, state);
+                    break;
+                case SecondStageSelectExpression selectExpression:
+                    SelectTranspiler.Run(selectExpression, state);
                     break;
                 
                 // expressions to skip

@@ -23,7 +23,7 @@ public static class IncrementPreTranspiler {
         };
         
         var oneExpression = new IntExpression(incrementExpression.Line, 1);
-        var valueExpression = new SecondStageValueExpression(incrementExpression.Line, variable.Type, oneExpression);
+        var valueExpression = new SecondStageValueExpression(incrementExpression.Line, new TypeExpression(incrementExpression.Line, variable.Type), oneExpression);
         var setExpression = new SetExpression(incrementExpression.Line, variableExpression, setType, valueExpression);
 
         return Ok(new IExpression[] { setExpression });

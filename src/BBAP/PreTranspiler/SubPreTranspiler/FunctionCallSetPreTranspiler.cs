@@ -35,7 +35,7 @@ public static class FunctionCallSetPreTranspiler {
             
             newTree.AddRange(extractParameterResult.AdditionalExpressions);
             newTree.Add(extractParameterResult.DeclareExpression);           
-            parameters.Add(new SecondStageParameterExpression(extractParameterResult.NewParameter.Line, extractParameterResult.NewParameter, extractParameterResult.NewParameter.Variable.Type));
+            parameters.Add(new SecondStageParameterExpression(extractParameterResult.NewParameter.Line, extractParameterResult.NewParameter, new TypeExpression(extractParameterResult.NewParameter.Line, extractParameterResult.NewParameter.Variable.Type)));
 
         }
 

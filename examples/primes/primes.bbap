@@ -13,6 +13,13 @@ testVar = new TestType{
 }
 
 let testTable: Table<TestType>;
+let testTable2: Table<TestType>;
+
+testTable2 = SELECT testTable.field1, testTable.field2 
+                FROM testTable 
+                WHERE testTable.field1 == 1
+                ORDER BY testTable.field1
+                LIMIT 10;
 
 let testNumber123 = testvar.field2;
 

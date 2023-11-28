@@ -48,7 +48,7 @@ public class NewStructPreTranspiler {
                 throw new UnreachableException();
             }
             
-            if (!value.Type.IsCastableTo(field.Type)) {
+            if (!value.Type.Type.IsCastableTo(field.Type)) {
                 return Error(x.Line, $"{x.Variable.Variable.Type.AbapName} is not castable to {field.Type.AbapName}");
             }
 

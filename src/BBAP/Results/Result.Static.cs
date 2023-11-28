@@ -39,4 +39,8 @@ public static class Result {
 
         return Ok(values);
     }
+    
+    public static Result<T[]> Wrap<T>(this IEnumerable<Result<T>> results) {
+        return results.ToArray().Wrap();
+    }
 }

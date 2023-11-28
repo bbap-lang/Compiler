@@ -28,14 +28,14 @@ public static class ConditionPreTranspiler {
             throw new UnreachableException();
         }
 
-        if (!condition.Type.IsCastableTo(typeBool)) {
+        if (!condition.Type.Type.IsCastableTo(typeBool)) {
             return Error(condition.Line, "The condition is not castable to boolean.");
         }
         
         if(condition is SecondStageValueExpression conditionValue) {
-            var trueExpression = new SecondStageValueExpression(conditionValue.Line, typeBool,
+            var trueExpression = new SecondStageValueExpression(conditionValue.Line, new TypeExpression(conditionValue.Line, typeBool),
                                                                 new BooleanValueExpression(conditionValue.Line, true));
-            condition = new SecondStageCalculationExpression(conditionValue.Line, typeBool,
+            condition = new SecondStageCalculationExpression(conditionValue.Line, new TypeExpression(conditionValue.Line, typeBool),
                                                              SecondStageCalculationType.Equals, conditionValue,trueExpression );
         }
         

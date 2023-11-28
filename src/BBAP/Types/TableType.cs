@@ -1,4 +1,6 @@
-﻿namespace BBAP.Types; 
+﻿using System.Diagnostics;
+
+namespace BBAP.Types; 
 
 public record TableType(IType ContentType, TableTypes Type) : IType {
     public string Name => $"{Type}<{ContentType.Name}>";
@@ -10,7 +12,7 @@ public record TableType(IType ContentType, TableTypes Type) : IType {
         TableTypes.StandardTable => $"TYPE STANDARD TABLE OF",
         TableTypes.SortedTable => $"TYPE SORTED TABLE OF",
         TableTypes.HashedTable => $"TYPE STANDARD TABLE OF",
-        _ => throw new NotImplementedException()
+        _ => throw new UnreachableException()
     };
 }
 

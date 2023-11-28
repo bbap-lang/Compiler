@@ -18,6 +18,9 @@ public static class ValueTranspiler {
             case SecondStageCalculationExpression ce:
                 BuildCalculation(ce, state);
                 break;
+            
+            default:
+                throw new UnreachableException();
         }
     }
 
