@@ -14,7 +14,9 @@ public class Concatenate : IFunction{
 
     public IType SingleType => TypeCollection.StringType;
 
-    public bool IsSingleType => true;
+    public bool IsSingleTypeOutput => true;
+
+    public bool IsMethod => false;
 
     public void Render(AbapBuilder builder, IEnumerable<VariableExpression> inputs, IEnumerable<VariableExpression> outputs) {
         builder.Append("CONCATENATE ");

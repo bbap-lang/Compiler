@@ -163,18 +163,47 @@ public class PreTranspilerState {
             return Error(line, $"The function {name} was already defined.");
         }
         
-        var newFunction = new GenericFunction(name, parameters, returnType);
+        var newFunction = new GenericFunction(name, parameters, returnType, false);
         
         _functions.Add(name, newFunction);
         return Ok<IFunction>(newFunction);
     }
 
-    public Result<IFunction> GetFunction(string name, int line) {
-        if (!_functions.TryGetValue(name, out IFunction? function)) {
-            return Error(line, $"Function '{name}' is not defined.");
+    public record GetFunctionResponse(IFunction Function, IVariable? FirstParameter);
+    public Result<GetFunctionResponse> GetFunction(string name, int line) {
+        string[] splittedName = name.Split('.');
+
+
+        IType? type = null;
+        IVariable? firstParameter = null;
+        if(splittedName.Length > 1) {
+            IVariable variable = new Variable(new UnknownType(), splittedName[0]);
+            
+            for (int i = 1; i < splittedName.Length - 1; i++) {
+                variable = new FieldVariable(new UnknownType(), splittedName[i], variable);
+            }
+
+            Result<IVariable> functionVariableResult = GetVariable(variable, line);
+            if (!functionVariableResult.TryGetValue(out IVariable? functionVariable)) {
+                return functionVariableResult.ToErrorResult();
+            }
+
+            type = functionVariable.Unwrap().Last().Type;
+            firstParameter = functionVariable;
+
+            name = splittedName[^1];
         }
 
-        return Ok(function);
+        do { 
+            string fullName = type is null ? name : $"{type.Name}_{name}";
+            if (_functions.TryGetValue(fullName, out IFunction? function) && (function.IsMethod == type is not null)) {
+                return Ok(new GetFunctionResponse(function, firstParameter));
+            }
+
+            type = type?.InheritsFrom;
+        } while (type is not null);
+
+        return Error(line, $"Function '{name}' is not defined.");
     }
 
     public SecondStageFunctionExpression GetDeclaredFunction(string functionName) {

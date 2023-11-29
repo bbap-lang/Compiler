@@ -10,8 +10,8 @@ using BBAP.Types;
 namespace BBAP.Functions;
 
 public record GenericFunction
-    (string Name, ImmutableArray<IVariable> Parameters, ImmutableArray<IVariable> ReturnTypes) : IFunction {
-    public bool IsSingleType => ReturnTypes.Length == 1;
+    (string Name, ImmutableArray<IVariable> Parameters, ImmutableArray<IVariable> ReturnTypes, bool IsMethod) : IFunction {
+    public bool IsSingleTypeOutput => ReturnTypes.Length == 1;
     public IType SingleType => ReturnTypes.FirstOrDefault()?.Type ?? new UnknownType();
 
     public void Render(AbapBuilder builder,

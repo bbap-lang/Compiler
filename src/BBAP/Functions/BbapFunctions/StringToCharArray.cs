@@ -14,7 +14,9 @@ public class StringToCharArray: IFunction{
 
     public IType SingleType => TypeCollection.BaseCharType;
 
-    public bool IsSingleType => true;
+    public bool IsSingleTypeOutput => true;
+
+    public bool IsMethod => true;
 
     public void Render(AbapBuilder builder, IEnumerable<VariableExpression> inputs, IEnumerable<VariableExpression> outputs) {
         VariableExpression? output = outputs.FirstOrDefault();

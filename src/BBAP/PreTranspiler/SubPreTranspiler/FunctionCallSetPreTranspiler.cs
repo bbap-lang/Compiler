@@ -25,6 +25,24 @@ public static class FunctionCallSetPreTranspiler {
 
         var parameters = new List<SecondStageParameterExpression>();
         var newTree = new List<IExpression>();
+
+        Result<PreTranspilerState.GetFunctionResponse> functionResult = state.GetFunction(functionCallSetExpression.Name, functionCallSetExpression.Line);
+        if (!functionResult.TryGetValue(out PreTranspilerState.GetFunctionResponse? functionResponse)) {
+            return functionResult.ToErrorResult();
+        }
+        
+        (IFunction function, IVariable? firstParameter) = functionResponse;
+
+        if (firstParameter is not null) {
+            var parameterExpression = new SecondStageParameterExpression(functionCallSetExpression.Line,
+                                                                         new
+                                                                             VariableExpression(functionCallSetExpression.Line,
+                                                                              firstParameter),
+                                                                         new TypeExpression(functionCallSetExpression.Line,
+                                                                          firstParameter.Type));
+            parameters.Add(parameterExpression);
+        }
+
         
         foreach (IExpression parameter in functionCallSetExpression.Parameters) {
             Result<FunctionCallPreTranspiler.ExtractParameterResult> result = FunctionCallPreTranspiler.ExtractParameter(state, parameter);
@@ -37,11 +55,6 @@ public static class FunctionCallSetPreTranspiler {
             newTree.Add(extractParameterResult.DeclareExpression);           
             parameters.Add(new SecondStageParameterExpression(extractParameterResult.NewParameter.Line, extractParameterResult.NewParameter, new TypeExpression(extractParameterResult.NewParameter.Line, extractParameterResult.NewParameter.Variable.Type)));
 
-        }
-
-        Result<IFunction> functionResult = state.GetFunction(functionCallSetExpression.Name, functionCallSetExpression.Line);
-        if(!functionResult.TryGetValue(out IFunction? function)) {
-            return functionResult.ToErrorResult();
         }
 
         var newExpression = new SecondStageFunctionCallExpression(functionCallSetExpression.Line, function,

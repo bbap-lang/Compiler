@@ -10,7 +10,8 @@ public interface IFunction {
     public bool Matches(IType[] inputs, IType[] outputs);
     public string Name { get; }
     public IType SingleType { get; }
-    public bool IsSingleType { get; }
+    public bool IsSingleTypeOutput { get; }
+    public bool IsMethod { get; }
 
     public void Render(AbapBuilder builder, IEnumerable<VariableExpression> inputs, IEnumerable<VariableExpression> outputs);
 }

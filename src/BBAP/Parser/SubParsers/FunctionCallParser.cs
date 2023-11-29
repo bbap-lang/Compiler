@@ -16,7 +16,7 @@ namespace BBAP.Parser.SubParsers;
 public static class FunctionCallParser {
     public static Result<IExpression> Run(ParserState state, ImmutableArray<UnknownWordToken> names) {
         int line = names.Last().Line;
-        string functionName = string.Join('_', names.Select(x => x.Value));
+        string functionName = string.Join('.', names.Select(x => x.Value));
         var parameters = new List<IExpression>();
 
         IToken? lastToken = null;

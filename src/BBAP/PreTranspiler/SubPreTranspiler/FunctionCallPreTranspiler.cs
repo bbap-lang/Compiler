@@ -14,9 +14,21 @@ public static class FunctionCallPreTranspiler {
         var additionalExpressions = new List<IExpression>();
         var parameters = new List<SecondStageParameterExpression>();
 
-        Result<IFunction> functionResult = state.GetFunction(functionCallExpression.Name, functionCallExpression.Line);
-        if (!functionResult.TryGetValue(out IFunction function)) {
+        Result<PreTranspilerState.GetFunctionResponse> functionResult = state.GetFunction(functionCallExpression.Name, functionCallExpression.Line);
+        if (!functionResult.TryGetValue(out PreTranspilerState.GetFunctionResponse? functionResponse)) {
             return functionResult.ToErrorResult();
+        }
+        
+        (IFunction function, IVariable? firstParameter) = functionResponse;
+
+        if (firstParameter is not null) {
+            var parameterExpression = new SecondStageParameterExpression(functionCallExpression.Line,
+                                                                         new
+                                                                             VariableExpression(functionCallExpression.Line,
+                                                                              firstParameter),
+                                                                         new TypeExpression(functionCallExpression.Line,
+                                                                          firstParameter.Type));
+            parameters.Add(parameterExpression);
         }
 
         foreach (IExpression parameter in functionCallExpression.Parameters) {

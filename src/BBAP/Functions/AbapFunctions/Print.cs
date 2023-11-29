@@ -11,8 +11,10 @@ public class Print: IFunction {
 
     public string Name => "PRINT";
     public IType SingleType => new UnknownType();
-    public bool IsSingleType => false;
-    
+    public bool IsSingleTypeOutput => false;
+
+    public bool IsMethod => false;
+
     public bool Matches(IType[] inputs, IType[] outputs) {
         return inputs.Length > 0 && outputs.Length == 0;
     }

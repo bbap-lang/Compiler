@@ -204,10 +204,12 @@ public static class ValueSplitter {
 
             ISecondStageValue newExpression;
             if (newType == TypeCollection.StringType) {
-                Result<IFunction> concatFunctionResult = state.GetFunction("CONCATENATE", expression.Line);
-                if (!concatFunctionResult.TryGetValue(out IFunction? concatFunction)) {
+                Result<PreTranspilerState.GetFunctionResponse> concatFunctionResult = state.GetFunction("CONCATENATE", expression.Line);
+                if (!concatFunctionResult.TryGetValue(out PreTranspilerState.GetFunctionResponse? getFunctionResponse)) {
                     throw new UnreachableException();
                 }
+                
+                IFunction? concatFunction = getFunctionResponse.Function;
 
                 VariableExpression newVar = state.CreateRandomNewVar(expression.Line, TypeCollection.StringType);
                 if(leftValue is not SecondStageValueExpression leftValueExpression || leftValueExpression.Value is not VariableExpression leftVariableExpression) {
@@ -251,7 +253,7 @@ public static class ValueSplitter {
     }
 
     private static Result<(IExpression Value, IExpression Declaration)> ExtractFunctionCall(PreTranspilerState state, SecondStageFunctionCallExpression functionCall) {
-        if (!functionCall.Function.IsSingleType) {
+        if (!functionCall.Function.IsSingleTypeOutput) {
             return Error(functionCall.Line, "Calculations with function calls that return more then one value are not supported.");
         }
 
