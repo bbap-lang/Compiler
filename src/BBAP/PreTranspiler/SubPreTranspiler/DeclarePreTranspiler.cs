@@ -121,9 +121,9 @@ public static class DeclarePreTranspiler {
             if (!typeResult.TryGetValue(out IType? declaredType)) {
                 return typeResult.ToErrorResult();
             }
-            
-            if(!value.Type.Type.IsCastableTo(declaredType)) {
-                return Error(value.Line, $"Cannot cast {value.Type.Type.Name} to {declaredType.Name}");
+            Result<int> typeCheckResult = SetPreTranspiler.CheckTypes(false, value, declaredType);
+            if (!typeCheckResult.IsSuccess) {
+                return typeCheckResult.ToErrorResult();
             }
             
             return Ok(declaredType);

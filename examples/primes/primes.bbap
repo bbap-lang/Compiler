@@ -34,6 +34,7 @@ let hello: string = "Hello ";
 let world = "World!";
 
 let testChar: char[10] = world.toCharArray();
+let charTest2: char[20] = "Hello World!";
 
 let helloWorld = hello + world;
 let num: number = 0xff;
@@ -82,7 +83,7 @@ if num < 1 {
 let returnOne: long;
 let returnTwo: int;
 
-(returnOne, returnTwo) = test2(5); // BUG: This should not be allowed because the return type is long
+(returnOne, returnTwo) = test2(5);
 
 
 func test(param1: int): (int){

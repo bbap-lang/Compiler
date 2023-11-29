@@ -42,8 +42,9 @@ public static class SetPreTranspiler {
             throw new UnreachableException();
         }
 
-        if (!ignoreNotDeclared && !lastValue.Type.Type.IsCastableTo(variable.Type)) {
-            return Error(lastValue.Line, $"Cannot cast {lastValue.Type.Type.Name} to {variable.Type.Name}");
+        Result<int> typeCheckResult = CheckTypes(ignoreNotDeclared, lastValue, variable.Type);
+        if (!typeCheckResult.IsSuccess) {
+            return typeCheckResult.ToErrorResult();
         }
 
         var variableExpression = new VariableExpression(setExpression.Line, variable);
@@ -59,6 +60,25 @@ public static class SetPreTranspiler {
         IExpression[] newExpressions = splittedValue.Remove(lastValue).Append(newExpression).ToArray();
 
         return Ok(newExpressions);
+    }
+
+    public static Result<int> CheckTypes(bool ignoreNotDeclared, ISecondStageValue value, IType variableType) {
+        if (!ignoreNotDeclared && !value.Type.Type.IsCastableTo(variableType)) {
+            if (!(value is SecondStageValueExpression { Value: StringExpression stringExpression} && variableType.IsCastableTo(TypeCollection.BaseCharType))) {
+                return Error(value.Line, $"Cannot cast {value.Type.Type.Name} to {variableType.Name}");
+            }
+
+            IType rawType = variableType;
+            if (rawType is AliasType aliasType) {
+                rawType = aliasType;
+            }
+
+            if (rawType is CharType charType && charType.Length < stringExpression.Value.Length) {
+                return Error(value.Line, $"The string has '{stringExpression.Value.Length}' characters, but the char array it should be stored in, can only store '{charType.Length}' characters.");
+            }
+        }
+
+        return Ok();
     }
 
     private static Result<SecondStageSelectExpression> RunSelect(SecondStageSelectExpression selectExpression, SetExpression setExpression, PreTranspilerState state) {
