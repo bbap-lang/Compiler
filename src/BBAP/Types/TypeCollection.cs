@@ -76,6 +76,14 @@ public partial class TypeCollection {
         return Ok(0);
     }
 
+    public void Remove(IType type) {
+        if (!_types.ContainsKey(type.Name)) {
+            throw new UnreachableException();
+        }
+        
+        _types.Remove(type.Name);
+    }
+    
     public Result<IType> GetLengthType(int line, string name, long length) {
         switch (name) {
             case Keywords.Char:

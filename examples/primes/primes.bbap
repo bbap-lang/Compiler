@@ -5,6 +5,12 @@ struct TestType{
     field2: int
 }
 
+extend TestType{
+    func testFunc(){
+        printLine(this.field1);
+    }
+}
+
 let testvar: TestType;
 
 

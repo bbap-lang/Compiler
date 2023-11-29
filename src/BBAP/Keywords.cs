@@ -23,6 +23,8 @@ public static class Keywords {
     public const string Alias = "ALIAS";
     public const string Struct = "STRUCT";
     public const string New = "NEW";
+    public const string Extend = "EXTEND";
+    public const string This = "THIS";
     
     public const string Return = "RETURN";
     

@@ -16,8 +16,12 @@ public class PreTranspiler {
     public Result<ImmutableArray<IExpression>> Run(ImmutableArray<IExpression> inputTree) {
         var state = new PreTranspilerState();
 
+        Result<int> registerStructsResult = RegisterStructs(inputTree, state);
+        if (!registerStructsResult.IsSuccess) {
+            return registerStructsResult.ToErrorResult();
+        }
+        
         Result<int> registerFunctionsResult = RegisterFunctions(inputTree, state);
-
         if (!registerFunctionsResult.IsSuccess) {
             return registerFunctionsResult.ToErrorResult();
         }
@@ -31,15 +35,46 @@ public class PreTranspiler {
         return Ok(newTree);
     }
 
+    private Result<int> RegisterStructs(ImmutableArray<IExpression> inputTree, PreTranspilerState state) {
+        IEnumerable<StructExpression> structExpressions = inputTree.OfType<StructExpression>();
+        foreach (StructExpression @struct in structExpressions) {
+            Result<int> createResult = StructPreTranspiler.Create(@struct, state);
+            if(!createResult.IsSuccess) {
+                return createResult.ToErrorResult();
+            }
+        }
+        
+        foreach (StructExpression @struct in structExpressions) {
+            Result<int> createResult = StructPreTranspiler.PostCreate(@struct, state);
+            if(!createResult.IsSuccess) {
+                return createResult.ToErrorResult();
+            }
+        }
+        
+        return Ok(0);
+    }
+    
     private Result<int> RegisterFunctions(ImmutableArray<IExpression> inputTree, PreTranspilerState state) {
         IEnumerable<FunctionExpression> functionExpressions = inputTree.OfType<FunctionExpression>();
         foreach (FunctionExpression function in functionExpressions) {
-            Result<SecondStageFunctionExpression> expressionResult = FunctionPreTranspiler.Create(function, state);
+            Result<SecondStageFunctionExpression> expressionResult = FunctionPreTranspiler.Create(function, null, state);
             if (!expressionResult.TryGetValue(out SecondStageFunctionExpression? expression)) {
                 return expressionResult.ToErrorResult();
             }
 
             state.AddFunction(expression);
+        }
+        
+        IEnumerable<ExtendExpression> extendExpressions = inputTree.OfType<ExtendExpression>();
+        foreach (ExtendExpression extend in extendExpressions) {
+            Result<SecondStageFunctionExpression[]> expressionResult = ExtendPreTranspiler.Create(extend, state);
+            if (!expressionResult.TryGetValue(out SecondStageFunctionExpression[]? expressions)) {
+                return expressionResult.ToErrorResult();
+            }
+
+            foreach (var expression in expressions) {
+                state.AddFunction(expression);
+            }
         }
 
         return Ok(0);
@@ -67,7 +102,8 @@ public class PreTranspiler {
             DeclareExpression declareExpression => DeclarePreTranspiler.Run(declareExpression, state),
             SetExpression setExpression => SetPreTranspiler.Run(setExpression, state, false),
             IncrementExpression incrementExpression => IncrementPreTranspiler.Run(incrementExpression, state),
-            FunctionExpression functionExpression => FunctionPreTranspiler.Replace(functionExpression, state),
+            FunctionExpression functionExpression => FunctionPreTranspiler.Replace(functionExpression, null, state),
+            ExtendExpression extendExpression => ExtendPreTranspiler.Replace(extendExpression, state),
                 
             IfExpression ifExpression => IfPreTranspiler.Run(ifExpression, state),
             ForExpression forExpression => ForPreTranspiler.Run(forExpression, state),
@@ -78,7 +114,7 @@ public class PreTranspiler {
             ReturnExpression re => ReturnPreTranspiler.Run(re, state),
 
             AliasExpression aliasExpression => AliasPreTranspiler.Run(aliasExpression, state),
-            StructExpression structExpression => StructPreTranspiler.Run(structExpression, state),
+            StructExpression structExpression => StructPreTranspiler.Replace(structExpression, state),
             StructSetExpression structSetExpression => NewStructPreTranspiler.Run(structSetExpression, state),
             
             _ => Ok(new[]{expression})

@@ -41,6 +41,7 @@ public static class WordLexer {
             Keywords.Alias => new AliasToken(state.Line),
             Keywords.Struct => new StructToken(state.Line),
             Keywords.New => new NewToken(state.Line),
+            Keywords.Extend => new ExtendToken(state.Line),
             
             Keywords.Return => new ReturnToken(state.Line),
 
