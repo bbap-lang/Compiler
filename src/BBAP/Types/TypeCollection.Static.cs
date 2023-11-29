@@ -6,4 +6,6 @@ public partial class TypeCollection {
                                      SupportedOperator.Plus
                                    | SupportedOperator.Equals
                                    | SupportedOperator.NotEquals);
+    
+    public static IType BaseCharType = new BaseCharType(StringType);
 }

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Text;
 using BBAP.Functions;
 using BBAP.Functions.AbapFunctions;
+using BBAP.Functions.BbapFunctions;
 using BBAP.Parser.Expressions;
 using BBAP.Parser.Expressions.Values;
 using BBAP.PreTranspiler.Expressions;
@@ -25,6 +26,7 @@ public class PreTranspilerState {
         { "PRINT", new Print() },
         { "PRINTLINE", new PrintLine() },
         { "CONCATENATE", new Concatenate()},
+        { "STRING_TOCHARARRAY", new StringToCharArray()},
     };
 
     private readonly Dictionary<string, SecondStageFunctionExpression> _declaredFunctions = new();

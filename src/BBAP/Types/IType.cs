@@ -13,6 +13,10 @@ public static class ITypeExtensions {
         if(targetType is AliasType aliasType) {
             targetType = aliasType.SourceType;
         }
+
+        if (baseType is CharType or BaseCharType && targetType is CharType or BaseCharType) {
+            return true;
+        }
         
         while (baseType != targetType) {
             if (baseType.InheritsFrom is null) {

@@ -7,7 +7,6 @@ struct TestType{
 
 let testvar: TestType;
 
-let testChar: char[10];
 
 testVar = new TestType{
     field1 = 1,
@@ -27,6 +26,8 @@ let testNumber123 = testvar.field2;
 
 let hello: string = "Hello ";
 let world = "World!";
+
+let testChar: char[10] = String_ToCharArray("Hello World!");
 
 let helloWorld = hello + world;
 let num: number = 0xff;
