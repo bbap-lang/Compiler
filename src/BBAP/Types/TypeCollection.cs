@@ -1,4 +1,5 @@
-﻿using BBAP.Results;
+﻿using System.Diagnostics;
+using BBAP.Results;
 
 namespace BBAP.Types;
 
@@ -9,6 +10,7 @@ public partial class TypeCollection {
         var typeAny = new AnyType();
 
         IType typeString = StringType;
+        IType typeBaseChar = new BaseCharType(typeString);
 
         var typeDouble = new DefaultType(Keywords.Double, "D", typeString,
                                          SupportedOperator.AllMath | SupportedOperator.AllComparison);
@@ -27,6 +29,7 @@ public partial class TypeCollection {
         _types = new Dictionary<string, IType>() {
             { "ANY", typeAny },
             { Keywords.String, typeString },
+            { Keywords.Char, typeBaseChar},
             { Keywords.Double, typeDouble },
             { Keywords.Float, typeFloat },
             { Keywords.Long, typeLong },
@@ -71,5 +74,18 @@ public partial class TypeCollection {
         _types.Add(type.Name, type);
 
         return Ok(0);
+    }
+
+    public Result<IType> GetLengthType(int line, string name, long length) {
+        switch (name) {
+            case Keywords.Char:
+                Result<IType> baseCharResult = Get(line, Keywords.Char);
+                if (!baseCharResult.TryGetValue(out IType? baseChar)) throw new UnreachableException();
+                var charType = new CharType(baseChar, length);
+                return Ok<IType>(charType);
+            
+            default:
+                return Error(line, $"The type {name} does not support a length."); //TODO: Support arrays of all kinds
+        }
     }
 }

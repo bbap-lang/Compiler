@@ -87,7 +87,7 @@ public class Lexer {
                     tokens.Add(new OpeningSquareBracketToken(state.Line));
                     break;
                 case ']':
-                    tokens.Add(new ClosingCurlyBracketToken(state.Line));
+                    tokens.Add(new ClosingSquareBracketToken(state.Line));
                     break;
                 case ',':
                     tokens.Add(new CommaToken(state.Line));

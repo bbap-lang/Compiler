@@ -10,6 +10,7 @@ public static class Keywords {
     public const string Fixed = "FIXED";
     public const string String = "STRING";
     public const string Boolean = "BOOL";
+    public const string Char = "CHAR";
     
     public const string Do = "DO";
     public const string For = "FOR";

@@ -23,10 +23,8 @@ public static class DeclarePreTranspiler {
                     "The type must be defined for declarations without initial value.");
             }
 
-            Result<IType> typeResult = declareExpression.Type.Type is OnlyNameGenericType ongt 
-                ? state.Types.GetTableType(declareExpression.Type.Line, ongt.Name, ongt.GenericType.Name)
-                : state.Types.Get(declareExpression.Type.Line, declareExpression.Type.Type.Name);
-                
+            Result<IType> typeResult = TypePreTranspiler.Run(declareExpression.Type.Type, state, declareExpression.Type.Line);
+
             if (!typeResult.TryGetValue(out type)) {
                 return typeResult.ToErrorResult();
             }
@@ -118,9 +116,10 @@ public static class DeclarePreTranspiler {
         if (declareExpression.Type.Type is UnknownType) {
             return Ok(value.Type.Type);
         } else {
-            Result<IType> declaredTypeResult = state.Types.Get(declareExpression.Type.Line, declareExpression.Type.Type.Name);
-            if(!declaredTypeResult.TryGetValue(out IType? declaredType)) {
-                return declaredTypeResult.ToErrorResult();
+            Result<IType> typeResult = TypePreTranspiler.Run(declareExpression.Type.Type, state, declareExpression.Type.Line);
+
+            if (!typeResult.TryGetValue(out IType? declaredType)) {
+                return typeResult.ToErrorResult();
             }
             
             if(!value.Type.Type.IsCastableTo(declaredType)) {
