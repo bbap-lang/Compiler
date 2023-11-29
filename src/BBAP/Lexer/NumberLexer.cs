@@ -65,6 +65,7 @@ public static class NumberLexer {
                     break;
                 case '_':
                 // Underscores get ignored inside a number
+                break;
                 default:
                     goto EndParseNumber;
             }

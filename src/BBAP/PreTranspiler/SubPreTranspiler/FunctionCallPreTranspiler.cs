@@ -48,8 +48,9 @@ public static class FunctionCallPreTranspiler {
         var outputs = new IType[0];
         ImmutableArray<VariableExpression> outputVariables = new VariableExpression[0].ToImmutableArray();
 
-        if (!function.Matches(parameterTypes, outputs)) {
-            return Error(functionCallExpression.Line, $"Invalid function parameters");
+        Result<int> matchResult = function.Matches(parameterTypes, outputs, functionCallExpression.Line);
+        if (!matchResult.IsSuccess) {
+            return matchResult.ToErrorResult();
         }
 
         var newExpression

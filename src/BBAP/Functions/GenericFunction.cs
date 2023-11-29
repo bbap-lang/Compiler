@@ -4,6 +4,7 @@ using BBAP.Parser.Expressions;
 using BBAP.Parser.Expressions.Values;
 using BBAP.PreTranspiler;
 using BBAP.PreTranspiler.Expressions;
+using BBAP.Results;
 using BBAP.Transpiler;
 using BBAP.Types;
 
@@ -44,13 +45,24 @@ public record GenericFunction
         builder.AppendLine('.');
     }
 
-    public bool Matches(IType[] inputs, IType[] outputs) {
+    public Result<int> Matches(IType[] inputs, IType[] outputs, int line) {
         if (Parameters.Length != inputs.Length) {
-            return false;
+            return Error(line, $"The number of parameters does not match in the function call for '{Name}'.");
         }
 
-        return !inputs.Where((t, i) => Parameters[i].Type != t).Any()
-            && !outputs.Where((t, i) => ReturnTypes[i].Type != t).Any();
+        foreach ((IType type, int index) in inputs.Select((t, i) =>(t, i))) {
+            if (!type.IsCastableTo(Parameters[index].Type)) {
+                return Error(line, $"The parameter type {type.Name}  is not castable to {Parameters[index].Name} in the function call for '{Name}'.");
+            }
+        }
+        
+        foreach ((IType type, int index) in outputs.Select((t, i) =>(t, i))) {
+            if (!ReturnTypes[index].Type.IsCastableTo(type)) {
+                return Error(line, $"The return type {ReturnTypes[index].Type.Name} is not castable to {type.Name} in the function call for '{Name}'.");
+            }
+        }
+
+        return Ok();
     }
 
 }

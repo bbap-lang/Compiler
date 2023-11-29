@@ -6,6 +6,10 @@ public static class Result {
     public static Result<T> Ok<T>(T value) {
         return new Result<T>(value);
     }
+    
+    public static Result<int> Ok() {
+        return new Result<int>(0);
+    }
 
     public static Result<ErrorResult> Error(Error error) {
         string stack = string.IsNullOrWhiteSpace(error.Stack) ? GetStack() : error.Stack;

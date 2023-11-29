@@ -24,7 +24,7 @@ let testTable2: Table<TestType>;
 
 testTable2 = SELECT testTable.field1, testTable.field2 
                 FROM testTable 
-                WHERE testTable.field1 == 1
+                WHERE testTable.field1 == testvar.field1
                 ORDER BY testTable.field1
                 LIMIT 10;
 
@@ -79,10 +79,10 @@ if num < 1 {
      printLine("Hello Word 3!");
  }
 
-let returnOne: int;
+let returnOne: long;
 let returnTwo: int;
 
-(returnOne, returnTwo) = test2(5);
+(returnOne, returnTwo) = test2(5); // BUG: This should not be allowed because the return type is long
 
 
 func test(param1: int): (int){

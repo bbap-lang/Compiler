@@ -4,6 +4,7 @@ using BBAP.Parser.Expressions;
 using BBAP.Parser.Expressions.Values;
 using BBAP.PreTranspiler.Expressions;
 using BBAP.Results;
+using BBAP.Types;
 
 namespace BBAP.PreTranspiler.SubPreTranspiler; 
 
@@ -22,6 +23,7 @@ public static class FunctionCallSetPreTranspiler {
             
             returnVariables.Add(newVariableExpression);
         }
+        
 
         var parameters = new List<SecondStageParameterExpression>();
         var newTree = new List<IExpression>();
@@ -55,6 +57,13 @@ public static class FunctionCallSetPreTranspiler {
             newTree.Add(extractParameterResult.DeclareExpression);           
             parameters.Add(new SecondStageParameterExpression(extractParameterResult.NewParameter.Line, extractParameterResult.NewParameter, new TypeExpression(extractParameterResult.NewParameter.Line, extractParameterResult.NewParameter.Variable.Type)));
 
+        }
+
+        IType[] inputTypes = parameters.Select(x => x.Type.Type).ToArray();
+        IType[] returnTypes = returnVariables.Select(x => x.Variable.Type).ToArray();
+        Result<int> matchResult = function.Matches(inputTypes, returnTypes, functionCallSetExpression.Line);
+        if (!matchResult.IsSuccess) {
+            return matchResult.ToErrorResult();
         }
 
         var newExpression = new SecondStageFunctionCallExpression(functionCallSetExpression.Line, function,
