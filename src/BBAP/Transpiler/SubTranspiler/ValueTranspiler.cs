@@ -19,9 +19,18 @@ public static class ValueTranspiler {
                 BuildCalculation(ce, state);
                 break;
             
+            case SecondStageNotExpression ne:
+                BuildNot(ne, state);
+                break;
+            
             default:
                 throw new UnreachableException();
         }
+    }
+
+    private static void BuildNot(SecondStageNotExpression expression, TranspilerState state) {
+        state.Builder.Append("NOT ");
+        Run(expression.InnerExpression, state);
     }
 
     private static void BuildValue(SecondStageValueExpression ve, AbapBuilder builder) {

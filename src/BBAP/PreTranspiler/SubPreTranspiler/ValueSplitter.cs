@@ -26,8 +26,6 @@ public static class ValueSplitter {
         Result<IExpression> newExpressionResult = expression switch {
             FloatExpression => CreateExpression(state, expression.Line, Keywords.Float, expression),
             IntExpression => CreateExpression(state, expression.Line, Keywords.Int, expression),
-            NegativeExpression => throw new NotImplementedException(), // needs to be splitted up
-            NotExpression => throw new NotImplementedException(),
             StringExpression => CreateExpression(state, expression.Line, Keywords.String, expression),
             BooleanValueExpression => CreateExpression(state, expression.Line, Keywords.Boolean, expression),
 
@@ -61,6 +59,8 @@ public static class ValueSplitter {
             MathCalculationExpression mathEx => SplitMathCalculation(state, mathEx),
             ComparisonExpression comparisonEx => ComparisonPreTranspiler.Run(state, comparisonEx),
             BooleanExpression booleanExpression => BooleanPreTranspiler.Run(state, booleanExpression),
+            NotExpression notExpression => CreateNotExpression(state, notExpression),
+            NegativeExpression negativeExpression => CreateNegativeExpression(state, negativeExpression),
 
             FunctionCallExpression fc => FunctionCallPreTranspiler.Run(state, fc),
             
@@ -91,6 +91,67 @@ public static class ValueSplitter {
         }
 
         return Ok(newExpressions);
+    }
+
+    private static Result<IExpression[]> CreateNegativeExpression(PreTranspilerState state, NegativeExpression expression) {
+        Result<IExpression[]> innerExpressionResult = Run(state, expression.InnerExpression, false);
+        if (!innerExpressionResult.TryGetValue(out IExpression[]? allExpressions)) {
+            return innerExpressionResult.ToErrorResult();
+        }
+        
+        IExpression lastExpression = allExpressions.Last();
+        
+        if(lastExpression is not ISecondStageValue innerValue) {
+            throw new UnreachableException();
+        }
+
+        Result<IType> doubleTypeResult = state.Types.Get(innerValue.Line, Keywords.Double);
+        if(!doubleTypeResult.TryGetValue(out IType? doubleType)) {
+            return doubleTypeResult.ToErrorResult();
+        }
+
+        if (!innerValue.Type.Type.IsCastableTo(doubleType)) {
+            return Error(expression.Line, $"Type '{innerValue.Type.Type.Name}' is not a number.");
+        }
+
+        var zeroValue
+            = new SecondStageValueExpression(expression.Line, innerValue.Type, new IntExpression(expression.Line, 0));
+
+        var newExpression = new SecondStageCalculationExpression(expression.Line, innerValue.Type,
+                                                                 SecondStageCalculationType.Minus, zeroValue,
+                                                                 innerValue);
+        
+
+        IExpression[] combined = allExpressions.Remove(lastExpression).Append(newExpression).ToArray();
+        return Ok(combined);
+    }
+
+    private static Result<IExpression[]> CreateNotExpression(PreTranspilerState state, NotExpression expression) {
+        Result<IExpression[]> innerExpressionResult = Run(state, expression.Inner, true);
+        if (!innerExpressionResult.TryGetValue(out IExpression[]? allExpressions)) {
+            return innerExpressionResult.ToErrorResult();
+        }
+        
+        IExpression lastExpression = allExpressions.Last();
+        
+        if(lastExpression is not ISecondStageValue innerValue) {
+            throw new UnreachableException();
+        }
+
+        Result<IType> boolTypeResult = state.Types.Get(innerValue.Line, Keywords.Boolean);
+        if(!boolTypeResult.TryGetValue(out IType? boolType)) {
+            return boolTypeResult.ToErrorResult();
+        }
+
+        if (!innerValue.Type.Type.IsCastableTo(boolType)) {
+            return Error(expression.Line, $"Type '{innerValue.Type.Type.Name}' is not a boolean.");
+        }
+        
+            
+        var newExpression = new SecondStageNotExpression(expression.Line, new TypeExpression(expression.Line, boolType), innerValue);
+        
+        IExpression[] combined = allExpressions.Remove(lastExpression).Append(newExpression).ToArray();
+        return Ok(combined);
     }
 
     private static IEnumerable<IExpression> CreateBoolExpression(ISecondStageValue lastValue, PreTranspilerState state) {

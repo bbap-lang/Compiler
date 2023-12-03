@@ -41,7 +41,11 @@ let num: number = 0xff;
 let num2 = 0b10110101;
 let test = helloWorld + num * 5; 
 
+let negativeNum = -num;
+
 let test2 = num == 0;
+
+let notExpression = !test2;
 
 let asgvsadf: string = "Hello";
 
@@ -78,7 +82,7 @@ if num < 1 {
     printLine("Hello Word 2!");
 } else {
      printLine("Hello Word 3!");
- }
+}
 
 let returnOne: long;
 let returnTwo: int;
