@@ -9,6 +9,24 @@ using BBAP.Types;
 namespace BBAP.Parser.SubParsers; 
 
 public class VariableParser {
+    public static VariableExpression Run(CombinedWord combinedWord) { //TODO: Add Namespace Support
+        VariableExpression? variableExpression = null;
+        IVariable variable = null;
+
+        foreach (string wordToken in combinedWord.Variable) {
+            if (variable is not null) {
+                variable = new FieldVariable(new UnknownType(), wordToken, variable);
+            } else {
+                variable = new Variable(new UnknownType(), wordToken);
+            }
+        }
+        
+        variableExpression = new VariableExpression(combinedWord.Line, variable);
+
+        return variableExpression;
+    }
+    
+    /*
     public static VariableExpression Run(ImmutableArray<UnknownWordToken> variableTokens) {
         int line = variableTokens.Last().Line;
         VariableExpression? variableExpression = null;
@@ -26,23 +44,19 @@ public class VariableParser {
 
         return variableExpression;
     }
+*/
+    public static Result<VariableExpression> ParseRaw(ParserState state) { 
+        //Use UnknownWordParser.ParseWord
+        Result<CombinedWord> combinedWordResult = UnknownWordParser.ParseWord(state);
+        if (!combinedWordResult.TryGetValue(out CombinedWord? combinedWord)) {
+            return combinedWordResult.ToErrorResult();
+        }
 
-    public static Result<VariableExpression> ParseRaw(ParserState state) {
-        List<UnknownWordToken> variableTokens = new();
-        Result<DotToken> dotResult;
-        do {
-            Result<UnknownWordToken> tokenResult = state.Next<UnknownWordToken>();
-            if (!tokenResult.TryGetValue(out UnknownWordToken? variableName)) {
-                return tokenResult.ToErrorResult();
-            }
-                
-            variableTokens.Add(variableName);
-            
-            dotResult = state.Next<DotToken>();
-        } while (dotResult.IsSuccess);
-        state.Revert();
-
-        VariableExpression variableExpression = Run(variableTokens.ToImmutableArray());
+        if (combinedWord.GetCombinedWordType() == CombinedWordType.TypeOrStaticFunction) {
+            return Error(combinedWord.Line, "Unexpected type expression, expected variable.");
+        }
+        
+        VariableExpression variableExpression = Run(combinedWord);
         return Ok(variableExpression);
     }
 }

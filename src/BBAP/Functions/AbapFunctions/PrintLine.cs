@@ -11,7 +11,7 @@ public class PrintLine: IFunction {
     public IType SingleType => new UnknownType();
     public bool IsSingleTypeOutput => false;
 
-    public bool IsMethod => false;
+    public FunctionAttributes Attributes => FunctionAttributes.None;
 
     public Result<int> Matches(IType[] inputs, IType[] outputs, int line) {
         if (outputs.Length != 0) {

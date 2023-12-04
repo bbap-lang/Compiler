@@ -25,6 +25,7 @@ public static class Keywords {
     public const string New = "NEW";
     public const string Extend = "EXTEND";
     public const string This = "THIS";
+    public const string Static = "STATIC";
     
     public const string Return = "RETURN";
     

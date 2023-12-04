@@ -147,7 +147,7 @@ public class PreTranspilerState {
 
     public Result<IFunction> AddFunction(SecondStageFunctionExpression functionExpression) {
         
-        Result<IFunction> functionResult = AddFunction(functionExpression.Line, functionExpression.Name, functionExpression.Parameters.Select(x => x.Variable).ToImmutableArray(), functionExpression.ReturnVariables.Select(x => x.Variable).ToImmutableArray());
+        Result<IFunction> functionResult = AddFunction(functionExpression.Line, functionExpression.Name, functionExpression.Parameters.Select(x => x.Variable).ToImmutableArray(), functionExpression.ReturnVariables.Select(x => x.Variable).ToImmutableArray(), functionExpression.Attributes);
 
         if (!functionResult.TryGetValue(out IFunction? function)) {
             return functionResult.ToErrorResult();
@@ -158,38 +158,34 @@ public class PreTranspilerState {
         return Ok(function);
     }
 
-    private Result<IFunction> AddFunction(int line, string name, ImmutableArray<IVariable> parameters, ImmutableArray<IVariable> returnType) {
+    private Result<IFunction> AddFunction(int line,
+        string name,
+        ImmutableArray<IVariable> parameters,
+        ImmutableArray<IVariable> returnType,
+        FunctionAttributes functionAttributes) {
         if (_functions.ContainsKey(name)) {
             return Error(line, $"The function {name} was already defined.");
         }
         
-        var newFunction = new GenericFunction(name, parameters, returnType, false);
+        var newFunction = new GenericFunction(name, parameters, returnType, functionAttributes);
         
         _functions.Add(name, newFunction);
         return Ok<IFunction>(newFunction);
     }
 
     public record GetFunctionResponse(IFunction Function, IVariable? FirstParameter);
-    public Result<GetFunctionResponse> GetFunction(string name, int line) {
+    public Result<IFunction> GetFunction(string name, int line) {
         string[] splittedName = name.Split('.');
 
 
         IType? type = null;
-        IVariable? firstParameter = null;
         if(splittedName.Length > 1) {
-            IVariable variable = new Variable(new UnknownType(), splittedName[0]);
-            
-            for (int i = 1; i < splittedName.Length - 1; i++) {
-                variable = new FieldVariable(new UnknownType(), splittedName[i], variable);
-            }
+            string typeName = splittedName[0];
 
-            Result<IVariable> functionVariableResult = GetVariable(variable, line);
-            if (!functionVariableResult.TryGetValue(out IVariable? functionVariable)) {
-                return functionVariableResult.ToErrorResult();
+            Result<IType> typeResult = Types.Get(line, typeName);
+            if (!typeResult.TryGetValue(out type)) {
+                throw new UnreachableException();
             }
-
-            type = functionVariable.Unwrap().Last().Type;
-            firstParameter = functionVariable;
 
             name = splittedName[^1];
         }
@@ -197,7 +193,7 @@ public class PreTranspilerState {
         do { 
             string fullName = type is null ? name : $"{type.Name}_{name}";
             if (_functions.TryGetValue(fullName, out IFunction? function) && (function.IsMethod == type is not null)) {
-                return Ok(new GetFunctionResponse(function, firstParameter));
+                return Ok(function);
             }
 
             type = type?.InheritsFrom;

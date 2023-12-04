@@ -24,7 +24,8 @@ public class ParserState {
                 if (error is not InvalidTokenError invalidTokenError) {
                     throw new UnreachableException();
                 }
-                return Error(invalidTokenError.Line, $"Invalid token {invalidTokenError.Token}, expected {typeof(T).Name}");
+
+                return Error(invalidTokenError with { CorrectToken = typeof(T) });
             }
 
             if (token is not T typeToken) {

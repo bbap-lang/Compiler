@@ -11,7 +11,7 @@ using BBAP.Types;
 namespace BBAP.Functions;
 
 public record GenericFunction
-    (string Name, ImmutableArray<IVariable> Parameters, ImmutableArray<IVariable> ReturnTypes, bool IsMethod) : IFunction {
+    (string Name, ImmutableArray<IVariable> Parameters, ImmutableArray<IVariable> ReturnTypes, FunctionAttributes Attributes) : IFunction {
     public bool IsSingleTypeOutput => ReturnTypes.Length == 1;
     public IType SingleType => ReturnTypes.FirstOrDefault()?.Type ?? new UnknownType();
 

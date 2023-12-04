@@ -38,7 +38,7 @@ public class Concatenate : IFunction{
 
     public bool IsSingleTypeOutput => true;
 
-    public bool IsMethod => false;
+    public FunctionAttributes Attributes => FunctionAttributes.None;
 
     public void Render(AbapBuilder builder, IEnumerable<VariableExpression> inputs, IEnumerable<VariableExpression> outputs) {
         builder.Append("CONCATENATE ");

@@ -17,97 +17,166 @@ namespace BBAP.Parser.SubParsers;
 
 public static class UnknownWordParser {
     public static Result<IExpression> RunRoot(ParserState state, UnknownWordToken unknownWordToken) {
+        Result<CombinedWord> combinedWordResult = ParseWord(state, unknownWordToken);
+        if (!combinedWordResult.TryGetValue(out CombinedWord? combinedWord)) {
+            return combinedWordResult.ToErrorResult();
+        }
+
+        Result<IToken> nextTokenResult;
         IToken? nextToken;
-        
-        List<UnknownWordToken> wordList = new();
-        do {
-            if (wordList.Count == 0) {
-                wordList.Add(unknownWordToken);
-            } else {
-                Result<UnknownWordToken> nextWordResult = state.Next<UnknownWordToken>();
+        if (combinedWord.GetCombinedWordType() == CombinedWordType.VariableOrFunction) {
+            nextTokenResult = state.Next(typeof(OpeningGenericBracketToken), typeof(SetToken),
+                                             typeof(PlusEqualsToken), typeof(MinusEqualsToken),
+                                             typeof(MultiplyEqualsToken), typeof(DivideEqualsToken),
+                                             typeof(ModuloEqualsToken), typeof(IncrementToken), typeof(DecrementToken));
 
-                if (!nextWordResult.TryGetValue(out UnknownWordToken? nextWord)) {
-                    return nextWordResult.ToErrorResult();
-                }
-                
-                wordList.Add(nextWord);
-            }
-            
-            Result<IToken> nextTokenResult = state.Next(typeof(OpeningGenericBracketToken), typeof(SetToken),
-                                                        typeof(PlusEqualsToken), typeof(MinusEqualsToken), typeof(MultiplyEqualsToken),
-                                                        typeof(DivideEqualsToken), typeof(ModuloEqualsToken), typeof(IncrementToken),
-                                                        typeof(DecrementToken), typeof(DotToken));
-
-            if (!nextTokenResult.TryGetValue(out nextToken) && nextTokenResult.Error is not InvalidTokenError) {
+            if(!nextTokenResult.TryGetValue(out nextToken)) {
                 return nextTokenResult.ToErrorResult();
             }
 
-        } while (nextToken is DotToken);
-
-        var words = wordList.ToImmutableArray();
-
-        Result<IExpression> result = nextToken switch {
-            OpeningGenericBracketToken openingGenericBracket => FunctionCallParser.Run(state, words),
-            SetToken setToken => SetParser.Run(state, words, SetType.Generic),
-            PlusEqualsToken setToken => SetParser.Run(state, words, SetType.Plus),
-            MinusEqualsToken setToken => SetParser.Run(state, words, SetType.Minus),
-            MultiplyEqualsToken setToken => SetParser.Run(state, words, SetType.Multiplication),
-            DivideEqualsToken setToken => SetParser.Run(state, words, SetType.Devide),
-            ModuloEqualsToken setToken => SetParser.Run(state, words, SetType.Modulo),
-            IncrementToken setToken => IncrementParser.Run(state, words, IncrementType.Plus),
-            DecrementToken setToken =>
-                IncrementParser.Run(state, words, IncrementType.Minus),
-            _ => throw new UnreachableException()
-        };
-
-        if (!result.IsSuccess) {
+            if (nextToken is OpeningGenericBracketToken) {
+                Result<IExpression> functionCallResult = FunctionCallParser.Run(state, combinedWord);
+                if (!functionCallResult.IsSuccess) {
+                    return functionCallResult;
+                }
+            
+                state.SkipSemicolon();
+                return functionCallResult;
+            }
+            
+            VariableExpression variable = VariableParser.Run(combinedWord);
+            
+            Result<IExpression> result = nextToken switch {
+                SetToken => SetParser.Run(state, variable, SetType.Generic),
+                PlusEqualsToken => SetParser.Run(state, variable, SetType.Plus),
+                MinusEqualsToken => SetParser.Run(state, variable, SetType.Minus),
+                MultiplyEqualsToken => SetParser.Run(state, variable, SetType.Multiplication),
+                DivideEqualsToken => SetParser.Run(state, variable, SetType.Devide),
+                ModuloEqualsToken => SetParser.Run(state, variable, SetType.Modulo),
+                IncrementToken => IncrementParser.Run(state, variable, IncrementType.Plus),
+                DecrementToken => IncrementParser.Run(state, variable, IncrementType.Minus),
+                _ => throw new UnreachableException()
+            };
+            if (!result.IsSuccess) {
+                return result;
+            }
+            
+            state.SkipSemicolon();
             return result;
         }
 
-        state.SkipSemicolon();
+        nextTokenResult = state.Next(typeof(OpeningGenericBracketToken));
+        
+        if(!nextTokenResult.TryGetValue(out nextToken)) {
+            return nextTokenResult.ToErrorResult();
+        }
+        
+        if (nextToken is OpeningGenericBracketToken) {
+            Result<IExpression> functionCallResult = FunctionCallParser.Run(state, combinedWord);
+            if (!functionCallResult.IsSuccess) {
+                return functionCallResult;
+            }
+            state.SkipSemicolon();
+            return functionCallResult;
+        }
 
-        return result;
+        throw new UnreachableException();
     }
 
     public static Result<IExpression> RunValue(ParserState state, UnknownWordToken unknownWordToken) {
-        Result<IToken> nextTokenResult;
-        IToken? nextToken;
+        Result<CombinedWord> combinedWordResult = ParseWord(state, unknownWordToken);
+        if (!combinedWordResult.TryGetValue(out CombinedWord? combinedWord)) {
+            return combinedWordResult.ToErrorResult();
+        }
+
+        Result<OpeningGenericBracketToken> bracketOpenResult = state.Next<OpeningGenericBracketToken>();
         
-        List<UnknownWordToken> wordList = new();
+        if (!bracketOpenResult.IsSuccess && bracketOpenResult.Error is not InvalidTokenError) {
+            return bracketOpenResult.ToErrorResult();
+        }
+        
+        if (bracketOpenResult.Error is InvalidTokenError) {
+            state.Revert();
+        }
+        
+        if(bracketOpenResult.IsSuccess) {
+            return FunctionCallParser.Run(state, combinedWord);
+        }
+
+        return Ok<IExpression>(VariableParser.Run(combinedWord));
+    }
+
+    public static Result<CombinedWord> ParseWord(ParserState state, UnknownWordToken unknownWord) {
+        int line = unknownWord.Line;
+
+        List<string> nameSpace = new();
+        List<string> variables = new();
+
+        var currentStep = Step.Init;
+        IToken? nextToken;
         do {
-            if (wordList.Count == 0) {
-                wordList.Add(unknownWordToken);
-            } else {
+            if (currentStep != Step.Init) {
                 Result<UnknownWordToken> nextWordResult = state.Next<UnknownWordToken>();
 
-                if (!nextWordResult.TryGetValue(out UnknownWordToken? nextWord)) {
+                if (!nextWordResult.TryGetValue(out unknownWord)) {
                     return nextWordResult.ToErrorResult();
                 }
-                
-                wordList.Add(nextWord);
             }
-            
-            nextTokenResult = state.Next(typeof(OpeningGenericBracketToken), typeof(DotToken));
+
+            Result<IToken> nextTokenResult = state.Next(typeof(DotToken), typeof(DoubleColonToken));
 
             if (!nextTokenResult.TryGetValue(out nextToken) && nextTokenResult.Error is not InvalidTokenError) {
                 return nextTokenResult.ToErrorResult();
             }
 
-        } while (nextToken is DotToken);
-        
-        ImmutableArray<UnknownWordToken> words = wordList.ToImmutableArray();
+            if (nextToken is DotToken) {
+                variables.Add(unknownWord.Value);
+                if (currentStep == Step.Init || currentStep == Step.Namespace) {
+                    currentStep = Step.Variable;
+                }
+            } else if (nextToken is DoubleColonToken) {
+                if (currentStep == Step.Init) {
+                    currentStep = Step.Namespace;
+                }
 
-        if (nextTokenResult.Error is InvalidTokenError) {
-            state.Revert();
+                if (currentStep == Step.Variable) {
+                    return Error(nextToken.Line, "A double colon can only be used for namespaces");
+                }
+
+                nameSpace.Add(unknownWord.Value);
+            } else {
+                if (currentStep == Step.Init) {
+                    currentStep = Step.Variable;
+                }
+
+                if (currentStep == Step.Variable) {
+                    variables.Add(unknownWord.Value);
+                }
+
+                if (currentStep == Step.Namespace) {
+                    nameSpace.Add(unknownWord.Value);
+                }
+
+                state.Revert();
+                break;
+            }
+        } while (nextToken is DotToken or DoubleColonToken);
+
+        return Ok(new CombinedWord(line, nameSpace.ToImmutableArray(), variables.ToImmutableArray()));
+    }
+
+    private enum Step {
+        Init,
+        Namespace,
+        Variable
+    }
+
+    public static Result<CombinedWord> ParseWord(ParserState state) {
+        Result<UnknownWordToken> unknownWordTokenResult = state.Next<UnknownWordToken>();
+        if (!unknownWordTokenResult.TryGetValue(out UnknownWordToken? unknownWordToken)) {
+            return unknownWordTokenResult.ToErrorResult();
         }
-
-        Result<IExpression> result = nextToken switch {
-            OpeningGenericBracketToken openingGenericBracket => FunctionCallParser.Run(state, words),
-            
-            _ => Ok<IExpression>(VariableParser.Run(words))
-            
-        };
-
-        return result;
+        
+        return ParseWord(state, unknownWordToken);
     }
 }

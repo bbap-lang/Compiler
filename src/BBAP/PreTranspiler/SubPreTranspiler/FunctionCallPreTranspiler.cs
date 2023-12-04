@@ -3,6 +3,7 @@ using System.Diagnostics;
 using BBAP.Functions;
 using BBAP.Parser.Expressions;
 using BBAP.Parser.Expressions.Values;
+using BBAP.Parser.SubParsers;
 using BBAP.PreTranspiler.Expressions;
 using BBAP.Results;
 using BBAP.Types;
@@ -14,33 +15,43 @@ public static class FunctionCallPreTranspiler {
         var additionalExpressions = new List<IExpression>();
         var parameters = new List<SecondStageParameterExpression>();
 
-        Result<PreTranspilerState.GetFunctionResponse> functionResult = state.GetFunction(functionCallExpression.Name, functionCallExpression.Line);
-        if (!functionResult.TryGetValue(out PreTranspilerState.GetFunctionResponse? functionResponse)) {
+        Result<string> functionNameResult = GetName(state, functionCallExpression.Name);
+        if (!functionNameResult.TryGetValue(out string? functionName)) {
+            return functionNameResult.ToErrorResult();
+        }
+
+        Result<IFunction> functionResult = state.GetFunction(functionName, functionCallExpression.Line);
+        if (!functionResult.TryGetValue(out IFunction? function)) {
             return functionResult.ToErrorResult();
         }
-        
-        (IFunction function, IVariable? firstParameter) = functionResponse;
 
-        if (firstParameter is not null) {
-            var parameterExpression = new SecondStageParameterExpression(functionCallExpression.Line,
-                                                                         new
-                                                                             VariableExpression(functionCallExpression.Line,
-                                                                              firstParameter),
-                                                                         new TypeExpression(functionCallExpression.Line,
-                                                                          firstParameter.Type));
+        if (function.IsMethod && !function.IsStatic) {
+            Result<VariableExpression> thisParameterResult = GetThisVariable(state, functionCallExpression.Name);
+            if(!thisParameterResult.TryGetValue(out VariableExpression? thisParameter)) {
+                return thisParameterResult.ToErrorResult();
+            }
+            
+            var typeExpression = new TypeExpression(thisParameter.Line, thisParameter.Variable.Type);
+            
+            var parameterExpression = new SecondStageParameterExpression(functionCallExpression.Name.Line, thisParameter, typeExpression);
             parameters.Add(parameterExpression);
         }
 
         foreach (IExpression parameter in functionCallExpression.Parameters) {
             Result<ExtractParameterResult> result = ExtractParameter(state, parameter);
-            
-            if(!result.TryGetValue(out ExtractParameterResult extractParameterResult)) {
+
+            if (!result.TryGetValue(out ExtractParameterResult extractParameterResult)) {
                 return result.ToErrorResult();
             }
-            
+
             additionalExpressions.AddRange(extractParameterResult.AdditionalExpressions);
             additionalExpressions.Add(extractParameterResult.DeclareExpression);
-            parameters.Add(new SecondStageParameterExpression(extractParameterResult.NewParameter.Line, extractParameterResult.NewParameter, new TypeExpression(extractParameterResult.NewParameter.Line, extractParameterResult.NewParameter.Variable.Type)));
+            parameters.Add(new SecondStageParameterExpression(extractParameterResult.NewParameter.Line,
+                                                              extractParameterResult.NewParameter,
+                                                              new
+                                                                  TypeExpression(extractParameterResult.NewParameter.Line,
+                                                                   extractParameterResult.NewParameter.Variable
+                                                                       .Type)));
         }
 
         IType[] parameterTypes = parameters.Select(x => x.Variable.Variable.Type).ToArray();
@@ -54,16 +65,17 @@ public static class FunctionCallPreTranspiler {
         }
 
         var newExpression
-            = new SecondStageFunctionCallExpression(functionCallExpression.Line, function, parameters.ToImmutableArray(),
-                outputVariables);
+            = new SecondStageFunctionCallExpression(functionCallExpression.Line, function,
+                                                    parameters.ToImmutableArray(),
+                                                    outputVariables);
 
         IExpression[] combined = additionalExpressions.Append(newExpression).ToArray();
 
         return Ok(combined);
     }
 
+
     public static Result<ExtractParameterResult> ExtractParameter(PreTranspilerState state, IExpression parameter) {
-        
         Result<IExpression[]> result = ValueSplitter.Run(state, parameter);
         if (!result.TryGetValue(out IExpression[]? expressions)) {
             return result.ToErrorResult();
@@ -88,4 +100,48 @@ public static class FunctionCallPreTranspiler {
         DeclareExpression DeclareExpression,
         VariableExpression NewParameter
     );
+
+    public static Result<string> GetName(PreTranspilerState state, CombinedWord words) {
+        if (words.GetCombinedWordType() == CombinedWordType.TypeOrStaticFunction) {
+            return GetStaticName(state, words);
+        }
+
+        if (words.Variable.Length == 1) {
+            return Ok(words.Variable[0]);
+        }
+
+        string functionName = words.Variable[^1];
+
+        IVariable rawVariable = VariableParser.Run(words with { Variable = words.Variable[..^1] }).Variable;
+
+        Result<IVariable> variableResult = state.GetVariable(rawVariable, words.Line);
+        if (!variableResult.TryGetValue(out IVariable? variable)) {
+            return variableResult.ToErrorResult();
+        }
+
+        return Ok($"{variable.Type.Name}.{functionName}");
+    }
+
+    public static Result<VariableExpression> GetThisVariable(PreTranspilerState state, CombinedWord words) {
+        IVariable rawVariable = VariableParser.Run(words with { Variable = words.Variable[..^1] }).Variable;
+        
+        Result<IVariable> variableResult = state.GetVariable(rawVariable, words.Line);
+        if (!variableResult.TryGetValue(out IVariable? variable)) {
+            return variableResult.ToErrorResult();
+        }
+        
+        return Ok(new VariableExpression(words.Line, variable));
+    }
+    
+    private static Result<string> GetStaticName(PreTranspilerState state, CombinedWord words) {
+        string functionName = words.NameSpace[^1];
+        string typeName = words.NameSpace[^2];
+
+        Result<IType> typeResult = state.Types.Get(words.Line, typeName);
+        if (!typeResult.TryGetValue(out IType? type)) {
+            return typeResult.ToErrorResult();
+        }
+
+        return Ok($"{type.Name}.{functionName}");
+    }
 }

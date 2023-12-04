@@ -14,16 +14,14 @@ namespace BBAP.Parser.SubParsers;
 
 public static class IncrementParser {
     public static Result<IExpression> Run(ParserState state,
-        ImmutableArray<UnknownWordToken> variableTokens,
+        VariableExpression variableExpression,
         IncrementType incrementType) {
-        int line = variableTokens.Last().Line;
+        int line = variableExpression.Line;
 
         Result<IToken> result = state.Next(typeof(SemicolonToken));
         if (!result.IsSuccess) {
             return Error(line, "Inline Incrementor are currently not supported.");
         }
-
-        VariableExpression variableExpression = VariableParser.Run(variableTokens);
         
         var incrementExpression = new IncrementExpression(line, variableExpression, incrementType);
 

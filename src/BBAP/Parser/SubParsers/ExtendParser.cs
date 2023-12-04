@@ -24,18 +24,30 @@ public class ExtendParser {
 
         var functions = new List<FunctionExpression>();
         while (true) {
+            Result<StaticToken> staticResult = state.Next<StaticToken>();
+            if (!staticResult.IsSuccess) {
+                state.Revert();
+            }
+
+            bool isStatic = staticResult.IsSuccess;
+            
             Result<FunctionToken> functionTokenResult = state.Next<FunctionToken>();
             if (!functionTokenResult.TryGetValue(out FunctionToken? functionToken)) {
                 return functionTokenResult.ToErrorResult();
             }
 
-            var functionResult = FunctionParser.Run(state, functionToken.Line);
+            Result<IExpression> functionResult = FunctionParser.Run(state, functionToken.Line);
             if (!functionResult.TryGetValue(out IExpression? functionExpression)) {
                 return functionResult.ToErrorResult();
             }
             
             if(functionExpression is not FunctionExpression function) {
                 throw new UnreachableException();
+            }
+
+            if (isStatic) {
+                function = new StaticFunctionExpression(function.Line, function.Name, function.Parameters,
+                                                        function.OutputTypes, function.BlockContent);
             }
             
             functions.Add(function);

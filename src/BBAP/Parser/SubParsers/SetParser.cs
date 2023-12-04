@@ -12,9 +12,7 @@ using BBAP.Types;
 namespace BBAP.Parser.SubParsers; 
 
 public static class SetParser {
-    public static Result<IExpression> Run(ParserState state, ImmutableArray<UnknownWordToken> variableToken, SetType setType) {
-        VariableExpression? variableExpression = VariableParser.Run(variableToken);
-        
+    public static Result<IExpression> Run(ParserState state, VariableExpression variableExpression, SetType setType) {
         Result<IToken> checkNewResult = state.Next(typeof(NewToken));
         if (checkNewResult.IsSuccess) {
             return SetStructParser.Run(state, variableExpression);

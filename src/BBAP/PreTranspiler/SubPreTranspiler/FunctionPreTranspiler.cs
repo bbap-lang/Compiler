@@ -18,7 +18,15 @@ public static class FunctionPreTranspiler {
         var stackName = state.StackIn();
         var parameters = new List<VariableExpression>();
 
+        var attributes = FunctionAttributes.None;
         if (extendForType is not null) {
+            attributes |= FunctionAttributes.Method;
+        }
+        if (functionExpression is StaticFunctionExpression) {
+            attributes |= FunctionAttributes.Static;
+        }
+        
+        if (attributes.Is(FunctionAttributes.Method) && !attributes.Is(FunctionAttributes.Static)) {
             Result<string> firstParameterVariableResult = state.CreateVar(Keywords.This, extendForType, functionExpression.Line);
             if (!firstParameterVariableResult.TryGetValue(out string? firstParameterVariable)) {
                 return firstParameterVariableResult.ToErrorResult();
@@ -80,7 +88,7 @@ public static class FunctionPreTranspiler {
         var newFunctionExpression = new SecondStageFunctionExpression(functionExpression.Line, functionName,
                                                                       parameters.ToImmutableArray(),
                                                                       returnVariables.ToImmutableArray(),
-                                                                      ImmutableArray<IExpression>.Empty, stackName);
+                                                                      ImmutableArray<IExpression>.Empty, stackName, attributes);
 
         state.StackOut();
         return Ok(newFunctionExpression);

@@ -265,12 +265,10 @@ public static class ValueSplitter {
 
             ISecondStageValue newExpression;
             if (newType == TypeCollection.StringType) {
-                Result<PreTranspilerState.GetFunctionResponse> concatFunctionResult = state.GetFunction("CONCATENATE", expression.Line);
-                if (!concatFunctionResult.TryGetValue(out PreTranspilerState.GetFunctionResponse? getFunctionResponse)) {
+                Result<IFunction> concatFunctionResult = state.GetFunction("CONCATENATE", expression.Line);
+                if (!concatFunctionResult.TryGetValue(out IFunction? concatFunction)) {
                     throw new UnreachableException();
                 }
-                
-                IFunction? concatFunction = getFunctionResponse.Function;
 
                 VariableExpression newVar = state.CreateRandomNewVar(expression.Line, TypeCollection.StringType);
                 if(leftValue is not SecondStageValueExpression leftValueExpression || leftValueExpression.Value is not VariableExpression leftVariableExpression) {

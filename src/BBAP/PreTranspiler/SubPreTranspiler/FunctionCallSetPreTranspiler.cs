@@ -28,20 +28,25 @@ public static class FunctionCallSetPreTranspiler {
         var parameters = new List<SecondStageParameterExpression>();
         var newTree = new List<IExpression>();
 
-        Result<PreTranspilerState.GetFunctionResponse> functionResult = state.GetFunction(functionCallSetExpression.Name, functionCallSetExpression.Line);
-        if (!functionResult.TryGetValue(out PreTranspilerState.GetFunctionResponse? functionResponse)) {
-            return functionResult.ToErrorResult();
+        Result<string> functionNameResult = FunctionCallPreTranspiler.GetName(state, functionCallSetExpression.Name);
+        if (!functionNameResult.TryGetValue(out string? functionName)) {
+            return functionNameResult.ToErrorResult();
         }
         
-        (IFunction function, IVariable? firstParameter) = functionResponse;
+        var functionResult = state.GetFunction(functionName, functionCallSetExpression.Line);
+        if (!functionResult.TryGetValue(out var function)) {
+            return functionResult.ToErrorResult();
+        }
 
-        if (firstParameter is not null) {
-            var parameterExpression = new SecondStageParameterExpression(functionCallSetExpression.Line,
-                                                                         new
-                                                                             VariableExpression(functionCallSetExpression.Line,
-                                                                              firstParameter),
-                                                                         new TypeExpression(functionCallSetExpression.Line,
-                                                                          firstParameter.Type));
+        
+        if (function.IsMethod && !function.IsStatic) {
+            Result<VariableExpression> thisParameterResult = FunctionCallPreTranspiler.GetThisVariable(state, functionCallSetExpression.Name);
+            if(!thisParameterResult.TryGetValue(out VariableExpression? thisParameter)) {
+                return thisParameterResult.ToErrorResult();
+            }
+            var typeExpression = new TypeExpression(thisParameter.Line, thisParameter.Variable.Type);
+            
+            var parameterExpression = new SecondStageParameterExpression(functionCallSetExpression.Name.Line, thisParameter, typeExpression);
             parameters.Add(parameterExpression);
         }
 

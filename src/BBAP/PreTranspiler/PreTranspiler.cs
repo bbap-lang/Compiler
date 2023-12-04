@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics;
+using BBAP.Functions;
 using BBAP.Lexer.Tokens.Keywords;
 using BBAP.Parser.Expressions;
 using BBAP.Parser.Expressions.Blocks;
@@ -72,7 +73,7 @@ public class PreTranspiler {
                 return expressionResult.ToErrorResult();
             }
 
-            foreach (var expression in expressions) {
+            foreach (SecondStageFunctionExpression expression in expressions) {
                 state.AddFunction(expression);
             }
         }

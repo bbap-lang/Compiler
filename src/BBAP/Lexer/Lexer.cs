@@ -94,7 +94,7 @@ public class Lexer {
                     break;
 
                 case ':':
-                    tokens.Add(new ColonToken(state.Line));
+                    tokens.Add(ParseColon(state));
                     break;
 
                 case '.':
@@ -125,6 +125,19 @@ public class Lexer {
         }
 
         return Ok(tokens.Where(x => x is not EmptyToken).ToImmutableArray());
+    }
+
+    private static IToken ParseColon(LexerState state) {
+        if (!state.TryNext(out char nextChar)) {
+            return new ColonToken(state.Line);
+        }
+        
+        if (nextChar == ':') {
+            return new DoubleColonToken(state.Line);
+        }
+        
+        state.Revert();
+        return new ColonToken(state.Line);
     }
 
     private Result<IToken> EqualsOperator(LexerState state) {

@@ -2,4 +2,4 @@
 
 namespace BBAP.Parser.Expressions.Values; 
 
-public record FunctionCallExpression(int Line, string Name, ImmutableArray<IExpression> Parameters): IExpression;
+public record FunctionCallExpression(int Line, CombinedWord Name, ImmutableArray<IExpression> Parameters): IExpression;

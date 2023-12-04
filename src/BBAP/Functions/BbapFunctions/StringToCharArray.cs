@@ -8,6 +8,14 @@ namespace BBAP.Functions.BbapFunctions;
 
 public class StringToCharArray: IFunction{
     public Result<int> Matches(IType[] inputs, IType[] outputs, int line) {
+        if (inputs.Length != 1) {
+            return Error(line, "String.ToCharArray takes exactly one parameter or must be called as a method.");
+        }
+        
+        if(outputs.Length > 1) {
+            return Error(line, "String.ToCharArray can only return one value.");
+        }
+        
         IType? output = outputs.FirstOrDefault();
         IType input = inputs.First();
 
@@ -28,7 +36,7 @@ public class StringToCharArray: IFunction{
 
     public bool IsSingleTypeOutput => true;
 
-    public bool IsMethod => true;
+    public FunctionAttributes Attributes => FunctionAttributes.Method;
 
     public void Render(AbapBuilder builder, IEnumerable<VariableExpression> inputs, IEnumerable<VariableExpression> outputs) {
         VariableExpression? output = outputs.FirstOrDefault();

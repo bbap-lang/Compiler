@@ -14,9 +14,7 @@ using BBAP.Types;
 namespace BBAP.Parser.SubParsers;
 
 public static class FunctionCallParser {
-    public static Result<IExpression> Run(ParserState state, ImmutableArray<UnknownWordToken> names) {
-        int line = names.Last().Line;
-        string functionName = string.Join('.', names.Select(x => x.Value));
+    public static Result<IExpression> Run(ParserState state, CombinedWord names) {
         var parameters = new List<IExpression>();
 
         IToken? lastToken = null;
@@ -41,7 +39,7 @@ public static class FunctionCallParser {
             parameters.Add(parameter);
         }
 
-        return Ok<IExpression>(new FunctionCallExpression(line, functionName, parameters.ToImmutableArray()));
+        return Ok<IExpression>(new FunctionCallExpression(names.Line, names, parameters.ToImmutableArray()));
     }
 
     public static Result<IExpression> RunFull(ParserState state, int valueLine) {
@@ -76,22 +74,10 @@ public static class FunctionCallParser {
 
         var nameTokenList = new List<UnknownWordToken>();
 
-        while (true) {
-            Result<UnknownWordToken> functionNameResult = state.Next<UnknownWordToken>();
-            if (!functionNameResult.TryGetValue(out UnknownWordToken? nameToken)) {
-                return functionNameResult.ToErrorResult();
-            }
-
-            nameTokenList.Add(nameToken);
-
-            Result<DotToken> dotTokenResult = state.Next<DotToken>();
-            if (!dotTokenResult.IsSuccess) {
-                state.Revert();
-                break;
-            }
+        Result<CombinedWord> combinedNameResult = UnknownWordParser.ParseWord(state);
+        if(!combinedNameResult.TryGetValue(out CombinedWord? nameTokens)) {
+            return combinedNameResult.ToErrorResult();
         }
-
-        ImmutableArray<UnknownWordToken> nameTokens = nameTokenList.ToImmutableArray();
 
         tempResult = state.Next(typeof(OpeningGenericBracketToken));
         if (!tempResult.IsSuccess) {
@@ -111,7 +97,7 @@ public static class FunctionCallParser {
         }
 
         var newFunctionCall
-            = new FunctionCallSetExpression(functionCallExpression.Line, functionCallExpression.Name,
+            = new FunctionCallSetExpression(functionCallExpression.Line, nameTokens,
                                             functionCallExpression.Parameters, variables.ToImmutableArray());
 
         state.SkipSemicolon();

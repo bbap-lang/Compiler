@@ -9,10 +9,16 @@ extend TestType{
     func testFunc(){
         printLine(this.field1);
     }
+    
+    static func staticTestFunc(){
+        printLine("Static test");
+    }
 }
 
 let testvar: TestType;
 
+
+TestType::staticTestFunc();
 
 testVar = new TestType{
     field1 = 1,
