@@ -5,6 +5,7 @@
 
 # Rider
 .idea
+qodana.yaml
 
 # User-specific files
 *.rsuser

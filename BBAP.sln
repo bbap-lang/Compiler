@@ -9,13 +9,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{BA
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "primes", "primes", "{6387EF94-D4D6-475B-AD0E-01FBA0DF837E}"
 	ProjectSection(SolutionItems) = preProject
-		examples\primes\primes.bbap = examples\primes\primes.bbap
 		examples\primes\config.json = examples\primes\config.json
+		examples\primes\primes.bbap = examples\primes\primes.bbap
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "abap", "abap", "{C9080D61-8560-450D-9D6E-B093C4288572}"
 	ProjectSection(SolutionItems) = preProject
 		examples\primes\abap\vbak.bbap = examples\primes\abap\vbak.bbap
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4C9C28B7-5DCF-4C1D-9853-AB6C6689B356}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
 	EndProjectSection
 EndProject
 Global
