@@ -1,0 +1,9 @@
+public alias VBELN_VA: char[10];
+
+struct VbakData {
+    VBELN: VBELN_VA
+}
+
+ALIAS VBAK: TABLE<VBAK>;
+
+let VBAK: VBAK;

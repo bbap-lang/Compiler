@@ -1,5 +1,11 @@
 alias number: int;
 
+public alias text: string;
+
+let textTest: text = "Hello World!";
+
+let vbakTable: Table<VBAK>;
+
 struct TestType{
     field1: int,
     field2: int
@@ -105,3 +111,9 @@ func test2(param1: int): (long, int){
     
     return (1, 0);
 }
+
+let selected_vbeln: TABLE<VBELN_VA>;
+
+selected_vbeln = SELECT vbak.vbeln 
+        FROM VBAK
+        WHERE vbak.vbeln == "123";

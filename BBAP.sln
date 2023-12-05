@@ -10,6 +10,12 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "primes", "primes", "{6387EF94-D4D6-475B-AD0E-01FBA0DF837E}"
 	ProjectSection(SolutionItems) = preProject
 		examples\primes\primes.bbap = examples\primes\primes.bbap
+		examples\primes\config.json = examples\primes\config.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "abap", "abap", "{C9080D61-8560-450D-9D6E-B093C4288572}"
+	ProjectSection(SolutionItems) = preProject
+		examples\primes\abap\vbak.bbap = examples\primes\abap\vbak.bbap
 	EndProjectSection
 EndProject
 Global
@@ -28,6 +34,7 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{6387EF94-D4D6-475B-AD0E-01FBA0DF837E} = {BA731AC9-1512-4C8C-BB6B-F9CA28B51FFD}
+		{C9080D61-8560-450D-9D6E-B093C4288572} = {6387EF94-D4D6-475B-AD0E-01FBA0DF837E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9518C12A-5BEE-46BB-9C7D-78CE9A49A18B}

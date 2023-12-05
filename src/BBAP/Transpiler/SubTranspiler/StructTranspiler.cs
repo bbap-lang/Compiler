@@ -13,8 +13,7 @@ public static class StructTranspiler {
         state.Builder.AddIntend();
         foreach (VariableExpression field in structExpression.Fields) {
             state.Builder.Append(field.Variable.Name);
-            state.Builder.Append(" TYPE ");
-            state.Builder.Append(field.Variable.Type.AbapName);
+            TypeTranspiler.Run(field.Variable.Type, state.Builder);
             state.Builder.AppendLine(',');
         }
         state.Builder.RemoveIntend();

@@ -8,7 +8,7 @@ using BBAP.Results;
 namespace BBAP.Parser.SubParsers; 
 
 public class AliasParser {
-    public static Result<IExpression> Run(ParserState state) {
+    public static Result<IExpression> Run(ParserState state, bool isPublic) {
         Result<UnknownWordToken> nameResult = state.Next<UnknownWordToken>();
         if (!nameResult.TryGetValue(out UnknownWordToken? name)) {
             return nameResult.ToErrorResult();
@@ -27,7 +27,7 @@ public class AliasParser {
             return typeResult.ToErrorResult();
         }
         
-        var aliasExpression = new AliasExpression(name.Line, name.Value, typeExpression);
+        var aliasExpression = new AliasExpression(name.Line, name.Value, typeExpression, isPublic);
 
         state.SkipSemicolon();
         

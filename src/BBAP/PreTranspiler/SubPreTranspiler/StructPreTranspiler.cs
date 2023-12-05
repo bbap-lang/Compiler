@@ -17,7 +17,7 @@ public static class StructPreTranspiler {
             return addTypeResult.ToErrorResult();
         }
         
-        return Ok(0);
+        return Ok();
     }
     
     public static Result<int> PostCreate(StructExpression structExpression, PreTranspilerState state) {var fields = new List<VariableExpression>();
@@ -45,7 +45,7 @@ public static class StructPreTranspiler {
             throw new UnreachableException();
         }
         
-        return Ok(0);
+        return Ok();
     }
 
     public static Result<IExpression[]> Replace(StructExpression structExpression, PreTranspilerState state) {

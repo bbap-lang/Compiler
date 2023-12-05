@@ -46,8 +46,11 @@ public class Parser {
 
     public static Result<IExpression> ParseNextStatement(ParserState state) {
         Result<IToken> tokenResult = state.Next(typeof(UnknownWordToken), typeof(IfToken), typeof(ForToken),
-            typeof(WhileToken),
-            typeof(DoToken), typeof(LetToken), typeof(FunctionToken), typeof(ReturnToken), typeof(OpeningGenericBracketToken), typeof(AliasToken), typeof(StructToken), typeof(ExtendToken));
+                                                typeof(WhileToken),
+                                                typeof(DoToken), typeof(LetToken), typeof(FunctionToken),
+                                                typeof(ReturnToken), typeof(OpeningGenericBracketToken),
+                                                typeof(AliasToken), typeof(StructToken), typeof(ExtendToken),
+                                                typeof(PublicToken));
 
         if (!tokenResult.TryGetValue(out IToken? token)) {
             return tokenResult.ToErrorResult();
@@ -61,17 +64,18 @@ public class Parser {
             DoToken => DoParser.Run(state),
             FunctionToken => FunctionParser.Run(state, token.Line),
             ReturnToken => ReturnParser.Run(state, token.Line),
-            
-            AliasToken => AliasParser.Run(state),
+            PublicToken => PublicParser.Run(state),
+
+            AliasToken => AliasParser.Run(state, false),
             StructToken => StructParser.Run(state, token.Line),
             ExtendToken => ExtendParser.Run(state, token.Line),
-            
+
             LetToken => DeclareParser.Run(state),
             OpeningGenericBracketToken => FunctionCallParser.RunFull(state, token.Line),
             _ => throw new UnreachableException()
         };
 
-         return result;
+        return result;
     }
 
     public static Result<ImmutableArray<IExpression>> ParseBlock(ParserState state, bool includeOpeningBracket) {
@@ -83,8 +87,8 @@ public class Parser {
                 return result.ToErrorResult();
             }
         }
-        
-        while(true) {
+
+        while (true) {
             Result<IExpression> expressionResult = ParseNextStatement(state);
 
             if (!expressionResult.TryGetValue(out IExpression? expression)) {

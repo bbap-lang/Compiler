@@ -2,6 +2,7 @@
 
 namespace BBAP.Results;
 
+
 public readonly struct Result<T> {
     public static implicit operator Result<T>(Result<ErrorResult> result) {
         return new Result<T>(result.Error);

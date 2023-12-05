@@ -27,7 +27,10 @@ public class Transpiler {
         state.Builder.Append("DATA:\t");
         state.Builder.AddIntend();
         foreach (DeclareExpression declaration in declarations) {
-            state.Builder.AppendLine($"{declaration.Variable.Variable.Name} {declaration.Type.Type.DeclareKeyWord} {declaration.Type.Type.AbapName}");
+            state.Builder.Append(declaration.Variable.Variable.Name);
+            state.Builder.Append(' ');
+            TypeTranspiler.Run(declaration.Type, state.Builder);
+            state.Builder.AppendLine();
         }
         state.Builder.RemoveIntend();
 
@@ -67,6 +70,9 @@ public class Transpiler {
                     break;
                 case SecondStageSelectExpression selectExpression:
                     SelectTranspiler.Run(selectExpression, state);
+                    break;
+                case AliasExpression aliasExpression:
+                    AliasTranspiler.Run(aliasExpression, state);
                     break;
                 
                 // expressions to skip
