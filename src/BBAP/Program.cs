@@ -81,7 +81,7 @@ internal class Program {
             }
         }
 
-        preTranspilerState.FinishInitialization(config.UseStack);
+        preTranspilerState.FinishInitialization(config.UseScopes);
         var preTranspiler = new PreTranspiler.PreTranspiler();
         Result<ImmutableArray<IExpression>> preTranspiledTreeResult = preTranspiler.Run(tree, preTranspilerState);
         if (!preTranspiledTreeResult.TryGetValue(out ImmutableArray<IExpression> preTranspiledTree)) {

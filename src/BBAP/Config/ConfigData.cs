@@ -8,6 +8,6 @@ public record ConfigData(
     string StartFile = "main.bbap",
     [property: JsonPropertyName("abap-defaults")]
     string[]? AbapDefaults = null,
-    [property: JsonPropertyName("use-stack")]
-    bool UseStack = true
+    [property: JsonPropertyName("use-scopes")]
+    bool UseScopes = true
 );
