@@ -110,7 +110,7 @@ public static class SqlPreTranspiler {
             return variableResult.ToErrorResult();
         }
 
-        if (variable.Type is not TableType) {
+        if (variable.Type is not TableType && !(variable.Type is AliasType aliasType && aliasType.GetRealType() is TableType)) {
             return Error(variableExpression.Line, $"The variable '{variable.Name}' is not a table type.");
         }
         
@@ -168,7 +168,7 @@ public static class SqlPreTranspiler {
         IVariable variable;
         
         InsertType insertType;
-        if (topVariable.Type is TableType tableType) {
+        if (GetTableType(topVariable) is TableType tableType){
             if (!tables.Contains(topVariable)) {
                 return Error(variableExpression.Line,
                              $"The select statement does not include the table '{topVariable.Name}'.");
@@ -181,7 +181,10 @@ public static class SqlPreTranspiler {
             }
 
             IType currentType = tableType.ContentType;
-
+            if (currentType is AliasType aliasTypeTemp) {
+                currentType = aliasTypeTemp.GetRealType();
+            }
+            
             variable = topVariable;
             foreach (IVariable localVariable in variableChain.Skip(1)) {
                 if (currentType is not StructType structType) {
@@ -193,8 +196,13 @@ public static class SqlPreTranspiler {
                     return Error(variableExpression.Line, $"The struct type '{structType.Name}' does not contain the field '{localVariable.Name}'.");
                 }
 
-                variable = new FieldVariable(currentField.Type, currentField.Name, variable);
-                currentType = variable.Type;
+                currentType = currentField.Type;
+                if (currentType is AliasType aliasType) {
+                    currentType = aliasType.GetRealType();
+                }
+                
+                variable = new FieldVariable(currentType, currentField.Name, variable);
+                
             }
 
             type = currentType;
@@ -215,6 +223,18 @@ public static class SqlPreTranspiler {
         var newExpression = new SecondStageSqlVariableExpression(variableExpression.Line, typeExpression, insertType,
                                                                  variableExpression with { Variable = variable });
         return Ok<ISecondStageSqlValueExpression>(newExpression);
+    }
+
+    private static IType GetTableType(IVariable topVariable) {
+        if (topVariable.Type is TableType tableType) {
+            return tableType;
+        }
+
+        if (topVariable.Type is AliasType topAliasType && topAliasType.GetRealType() is TableType tableTypeTemp) {
+            return tableTypeTemp;
+        }
+
+        return topVariable.Type;
     }
 
     private static Result<ISecondStageSqlValueExpression> RunComparisonExpression(PreTranspilerState state, ComparisonExpression comparisonExpression, IVariable[] tables) {

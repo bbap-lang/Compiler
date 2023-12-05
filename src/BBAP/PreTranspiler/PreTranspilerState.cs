@@ -15,12 +15,14 @@ namespace BBAP.PreTranspiler;
 
 public class PreTranspilerState {
 
-    private readonly Dictionary<string, IType> _internalVariables = new();
+    private readonly Dictionary<string, IType> _variables = new();
 
     private ulong _currentStackCount = 0;
     private readonly DefaultClasses.Stack<string> _stack = new();
     
     private readonly DefaultClasses.Stack<IVariable[]> _returnVariables = new();
+
+    private bool _useStack = false;
 
     private readonly Dictionary<string, IFunction> _functions = new() {
         { "PRINT", new Print() },
@@ -40,12 +42,12 @@ public class PreTranspilerState {
     public Result<IVariable> GetVariable(string name, int line) {
         foreach (string layer in _stack) {
             string variableName = $"{name}_{layer}";
-            if (_internalVariables.TryGetValue(variableName, out IType? type)) {
+            if (_variables.TryGetValue(variableName, out IType? type)) {
                 return Ok<IVariable>(new Variable(type, variableName));
             }
         }
 
-        if (_internalVariables.TryGetValue(name, out IType? varType)) {
+        if (_variables.TryGetValue(name, out IType? varType)) {
             return Ok<IVariable>(new Variable(varType, name));
         }
         
@@ -62,7 +64,12 @@ public class PreTranspilerState {
         
         IVariable? lastVariable = topVariable;
         foreach (IVariable currentVariable in variableTree.Skip(1)) {
-            if (lastVariable.Type is not StructType structType) {
+            var currentType = lastVariable.Type;
+            if (currentType is AliasType aliasType) {
+                currentType = aliasType.GetRealType();
+            }
+            
+            if (currentType is not StructType structType) {
                 return Error(line, $"The type of {lastVariable.Name} is not a struct.");
             }
 
@@ -96,12 +103,12 @@ public class PreTranspilerState {
     }
 
     public Result<string> CreateVar(string name, IType type, int line) {
-        string variableName = $"{name}_{_stack.Peek()}";
-        if (_internalVariables.ContainsKey(variableName)) {
+        string variableName = _useStack ? $"{name}_{_stack.Peek()}": name;
+        if (_variables.ContainsKey(variableName)) {
             return Error(line, $"The variable '{name}' does already exists in this context.");
         }
         
-        _internalVariables.Add(variableName, type);
+        _variables.Add(variableName, type);
         
         return Ok(variableName);
     }
@@ -114,9 +121,9 @@ public class PreTranspilerState {
 
         do {
             newName = "INTERNAL_" + GenerateRandomString(5);
-        } while (_internalVariables.ContainsKey(newName));
+        } while (_variables.ContainsKey(newName));
         
-        _internalVariables.Add(newName, type);
+        _variables.Add(newName, type);
         return newName;
     }
     
@@ -220,5 +227,18 @@ public class PreTranspilerState {
     
     public void GoOutOfFunction() {
         _returnVariables.Pop();
+    }
+
+    public void FinishInitialization(bool useStack) {
+        _useStack = useStack;
+    }
+    
+    public void ReplaceType(IType oldType, IType newType) {
+        Types.Replace(oldType, newType);
+
+        string[] variablesToReplace = _variables.Where(x => x.Value == oldType).Select(x => x.Key).ToArray();
+        foreach (string variable in variablesToReplace) {
+            _variables[variable] = newType;
+        }
     }
 }

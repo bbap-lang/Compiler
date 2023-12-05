@@ -4,6 +4,6 @@ struct VbakData {
     VBELN: VBELN_VA
 }
 
-ALIAS VBAK: TABLE<VBAK>;
+ALIAS VBAK: TABLE<VbakData>;
 
 let VBAK: VBAK;

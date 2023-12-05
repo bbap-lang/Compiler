@@ -1,4 +1,6 @@
-﻿namespace BBAP.Types; 
+﻿using BBAP.Parser.Expressions;
+
+namespace BBAP.Types; 
 
 public record AliasType(string Name, IType SourceType, bool Public) : IType {
     public string AbapName => Public ? Name : SourceType.AbapName;
@@ -8,4 +10,12 @@ public record AliasType(string Name, IType SourceType, bool Public) : IType {
     public SupportedOperator SupportedOperators => SourceType.SupportedOperators;
 
     public string DeclareKeyWord => SourceType.DeclareKeyWord;
+
+    public IType GetRealType() {
+        if (SourceType is AliasType aliasType) {
+            return aliasType.GetRealType();
+        }
+        
+        return SourceType;
+    }
 }

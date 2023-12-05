@@ -39,11 +39,8 @@ public static class StructPreTranspiler {
         if(!oldTypeResult.TryGetValue(out IType? oldType)) {
             throw new UnreachableException();
         }
-        state.Types.Remove(oldType);
-        Result<int> addTypeResult = state.Types.Add(structType, structExpression.Line);
-        if (!addTypeResult.IsSuccess) {
-            throw new UnreachableException();
-        }
+        
+        state.ReplaceType(oldType, structType);
         
         return Ok();
     }

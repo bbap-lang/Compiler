@@ -20,8 +20,7 @@ public static class AliasPreTranspiler {
     public static Result<int> PostCreate(AliasExpression aliasExpression, PreTranspilerState state) {
         IType sourceType = aliasExpression.SourceType.Type;
 
-        Result<IType> sourceTypeResult
-            = TypePreTranspiler.Run(aliasExpression.SourceType.Type, state, aliasExpression.SourceType.Line);
+        Result<IType> sourceTypeResult = TypePreTranspiler.Run(sourceType, state, aliasExpression.SourceType.Line);
 
         if (!sourceTypeResult.TryGetValue(out IType? newSourceType)) {
             return sourceTypeResult.ToErrorResult();
@@ -32,13 +31,9 @@ public static class AliasPreTranspiler {
             throw new UnreachableException();
         }
         
-        state.Types.Remove(oldType);
-        
         var aliasType = new AliasType(aliasExpression.Name, newSourceType , aliasExpression.IsPublic);
-        Result<int> addTypeResult = state.Types.Add(aliasType, aliasExpression.Line);
-        if (!addTypeResult.IsSuccess) {
-            throw new UnreachableException();
-        }
+        
+        state.ReplaceType(oldType, aliasType);
         
         return Ok();
     }
