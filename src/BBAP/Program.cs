@@ -65,7 +65,7 @@ internal class Program {
             return 1;
         }
 
-        string[] abapIncludePaths = config.AbapDefaults ?? Array.Empty<string>();
+        string[] abapIncludePaths = config.AbapDependencies ?? Array.Empty<string>();
         abapIncludePaths = abapIncludePaths
                            .Select(path => Path.HasExtension(path) ? path : path + ".bbap")
                            .Select(path => Path.IsPathRooted(path) ? path : Path.Combine(sourceDirectory, path))
