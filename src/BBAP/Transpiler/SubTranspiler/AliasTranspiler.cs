@@ -1,6 +1,6 @@
 ﻿using BBAP.Parser.Expressions;
 
-namespace BBAP.Transpiler.SubTranspiler; 
+namespace BBAP.Transpiler.SubTranspiler;
 
 public class AliasTranspiler {
     public static void Run(AliasExpression aliasExpression, TranspilerState state) {

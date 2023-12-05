@@ -1,6 +1,5 @@
 ﻿using BBAP.Parser.Expressions.Values;
-using BBAP.Parser.SubParsers;
 
-namespace BBAP.Parser.Expressions.Calculations; 
+namespace BBAP.Parser.Expressions.Calculations;
 
-public record IncrementExpression(int Line, VariableExpression Variable, IncrementType IncrementType): IExpression;
+public record IncrementExpression(int Line, VariableExpression Variable, IncrementType IncrementType) : IExpression;

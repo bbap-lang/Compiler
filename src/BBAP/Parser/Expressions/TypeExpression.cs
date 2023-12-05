@@ -1,5 +1,5 @@
 ﻿using BBAP.Types;
 
-namespace BBAP.Parser.Expressions; 
+namespace BBAP.Parser.Expressions;
 
-public record TypeExpression(int Line, IType Type): IExpression;
+public record TypeExpression(int Line, IType Type) : IExpression;

@@ -1,11 +1,9 @@
 ﻿using BBAP.Lexer.Tokens;
-using BBAP.Lexer.Tokens.Others;
 using BBAP.Lexer.Tokens.Sql;
 using BBAP.Parser.Expressions.Sql;
-using BBAP.Parser.SubParsers.SqlParser;
 using BBAP.Results;
 
-namespace BBAP.Parser.SubParsers;
+namespace BBAP.Parser.SubParsers.SqlParser;
 
 public class WhereParser {
     public static Result<SqlFilterExpression?> Run(ParserState state, out IToken lastToken, Type[] endTokensTypes) {
@@ -15,12 +13,12 @@ public class WhereParser {
             lastToken = null;
             return Ok<SqlFilterExpression?>(null);
         }
-        
-        Result<SqlFilterExpression> filterResult = FilterParser.Run(state, out lastToken, endTokensTypes.Append(typeof(OrderToken)).Append(typeof(LimitToken)).ToArray());
-        if (!filterResult.TryGetValue(out SqlFilterExpression? filterExpression)) {
-            return filterResult.ToErrorResult();
-        }
-        
+
+        Result<SqlFilterExpression> filterResult = FilterParser.Run(state, out lastToken,
+                                                                    endTokensTypes.Append(typeof(OrderToken))
+                                                                        .Append(typeof(LimitToken)).ToArray());
+        if (!filterResult.TryGetValue(out SqlFilterExpression? filterExpression)) return filterResult.ToErrorResult();
+
         return Ok<SqlFilterExpression?>(filterExpression);
     }
 }

@@ -1,11 +1,8 @@
 ﻿using System.Collections.Immutable;
-using System.Text;
 using BBAP.Parser.Expressions;
 using BBAP.Parser.Expressions.Blocks;
-using BBAP.Parser.Expressions.Values;
 using BBAP.PreTranspiler.Expressions;
 using BBAP.PreTranspiler.Expressions.Sql;
-using BBAP.PreTranspiler.SubPreTranspiler;
 using BBAP.Results;
 using BBAP.Transpiler.SubTranspiler;
 
@@ -14,7 +11,7 @@ namespace BBAP.Transpiler;
 public class Transpiler {
     public Result<string> Run(ImmutableArray<IExpression> expressions) {
         var state = new TranspilerState();
-        
+
         IEnumerable<StructExpression> structDeclarations = GetAllOfType<StructExpression>(expressions);
         IEnumerable<DeclareExpression> declarations = GetAllOfType<DeclareExpression>(expressions);
 
@@ -23,6 +20,7 @@ public class Transpiler {
         foreach (StructExpression structExpression in structDeclarations) {
             StructTranspiler.Run(structExpression, state);
         }
+
         state.Builder.AppendLine();
         state.Builder.Append("DATA:\t");
         state.Builder.AddIntend();
@@ -32,15 +30,16 @@ public class Transpiler {
             TypeTranspiler.Run(declaration.Type, state.Builder);
             state.Builder.AppendLine();
         }
+
         state.Builder.RemoveIntend();
 
         state.Builder.AppendLine(".");
 
         state.Builder.AppendLine();
         state.Builder.AppendLine();
-        
+
         TranspileBlock(expressions, state);
-        
+
         return Ok(state.Builder.ToString());
     }
 
@@ -51,9 +50,7 @@ public class Transpiler {
                     SetTranspiler.Run(setExpression, state);
                     break;
                 case DeclareExpression declareExpression:
-                    if (declareExpression.SetExpression is null) {
-                        break;
-                    }
+                    if (declareExpression.SetExpression is null) break;
                     SetTranspiler.Run(declareExpression.SetExpression, state);
                     break;
                 case WhileExpression whileExpression:
@@ -74,10 +71,10 @@ public class Transpiler {
                 case AliasExpression aliasExpression:
                     AliasTranspiler.Run(aliasExpression, state);
                     break;
-                
+
                 // expressions to skip
                 case StructExpression:
-                    
+
                     break;
                 default:
                     state.Builder.Append("\" ");
@@ -86,9 +83,8 @@ public class Transpiler {
             }
         }
     }
-    
-    
-    
+
+
     private static IEnumerable<T> GetAllOfType<T>(ImmutableArray<IExpression> expressions) {
         foreach (IExpression expression in expressions) {
             switch (expression) {
@@ -114,5 +110,4 @@ public class Transpiler {
             }
         }
     }
-    
 }

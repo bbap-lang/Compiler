@@ -1,3 +1,3 @@
-﻿namespace BBAP.Parser.Expressions.Values; 
+﻿namespace BBAP.Parser.Expressions.Values;
 
-public record StringExpression(int Line, string Value): IExpression;
+public record StringExpression(int Line, string Value) : IExpression;

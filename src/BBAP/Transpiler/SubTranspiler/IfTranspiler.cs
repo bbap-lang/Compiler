@@ -2,13 +2,11 @@
 using BBAP.Parser.Expressions;
 using BBAP.Parser.Expressions.Blocks;
 
-namespace BBAP.Transpiler.SubTranspiler; 
+namespace BBAP.Transpiler.SubTranspiler;
 
 public static class IfTranspiler {
     public static void Run(IfExpression ifExpression, TranspilerState state, bool isElse = false) {
-        if (!isElse) {
-            state.Builder.AppendLine();
-        }
+        if (!isElse) state.Builder.AppendLine();
 
         state.Builder.Append("IF ");
         ValueTranspiler.Run(ifExpression.Condition, state);
@@ -16,13 +14,10 @@ public static class IfTranspiler {
         state.Builder.AddIntend();
         Transpiler.TranspileBlock(ifExpression.BlockContent, state);
         state.Builder.RemoveIntend();
-        if (ifExpression.ElseExpression is not null) {
-            RunElse(ifExpression.ElseExpression, state);
-        }
+        if (ifExpression.ElseExpression is not null) RunElse(ifExpression.ElseExpression, state);
 
-        if (isElse) 
-            return;
-        
+        if (isElse) return;
+
         state.Builder.AppendLine("ENDIF.");
         state.Builder.AppendLine();
     }
@@ -34,10 +29,8 @@ public static class IfTranspiler {
             return;
         }
 
-        if (expression is not ElseExpression elseExpression) {
-            throw new UnreachableException();
-        }
-        
+        if (expression is not ElseExpression elseExpression) throw new UnreachableException();
+
         state.Builder.AppendLine("ELSE.");
         state.Builder.AddIntend();
         Transpiler.TranspileBlock(elseExpression.BlockContent, state);

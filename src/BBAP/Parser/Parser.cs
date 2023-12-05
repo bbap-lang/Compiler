@@ -1,15 +1,11 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Drawing;
-using System.Runtime.InteropServices.JavaScript;
 using BBAP.Lexer.Tokens;
 using BBAP.Lexer.Tokens.Grouping;
 using BBAP.Lexer.Tokens.Keywords;
 using BBAP.Lexer.Tokens.Others;
-using BBAP.Lexer.Tokens.Setting;
 using BBAP.Lexer.Tokens.Values;
 using BBAP.Parser.Expressions;
-using BBAP.Parser.ExtensionMethods;
 using BBAP.Parser.SubParsers;
 using BBAP.Results;
 
@@ -24,14 +20,12 @@ public class Parser {
             Result<IExpression> result = ParseNextStatement(state);
 
             if (!result.TryGetValue(out IExpression? expression)) {
-                if (result.Error is NoMoreDataError) {
-                    break;
-                }
+                if (result.Error is NoMoreDataError) break;
 
                 if (result.Error is null) {
                     state.Revert();
-                    Result<IToken> token = state.Next(typeof(EmptyToken));
-                    return Error(token.Error.Line,
+                    Result<EmptyToken> tokenResult = state.Next<EmptyToken>();
+                    return Error(tokenResult.Error.Line,
                                  "Unknown error, the line is only a approximation (maybe a bug in the parser. If so, please report on github)");
                 }
 
@@ -52,9 +46,7 @@ public class Parser {
                                                 typeof(AliasToken), typeof(StructToken), typeof(ExtendToken),
                                                 typeof(PublicToken));
 
-        if (!tokenResult.TryGetValue(out IToken? token)) {
-            return tokenResult.ToErrorResult();
-        }
+        if (!tokenResult.TryGetValue(out IToken? token)) return tokenResult.ToErrorResult();
 
         Result<IExpression> result = token switch {
             UnknownWordToken unknownWordToken => UnknownWordParser.RunRoot(state, unknownWordToken),
@@ -82,19 +74,15 @@ public class Parser {
         var blockContent = new List<IExpression>();
 
         if (includeOpeningBracket) {
-            Result<IToken> result = state.Next(typeof(OpeningCurlyBracketToken));
-            if (!result.IsSuccess) {
-                return result.ToErrorResult();
-            }
+            Result<OpeningCurlyBracketToken> openingCurlyBracketResult = state.Next<OpeningCurlyBracketToken>();
+            if (!openingCurlyBracketResult.IsSuccess) return openingCurlyBracketResult.ToErrorResult();
         }
 
         while (true) {
             Result<IExpression> expressionResult = ParseNextStatement(state);
 
             if (!expressionResult.TryGetValue(out IExpression? expression)) {
-                if (expressionResult.Error is InvalidTokenError { Token: ClosingCurlyBracketToken }) {
-                    break;
-                }
+                if (expressionResult.Error is InvalidTokenError { Token: ClosingCurlyBracketToken }) break;
 
                 return expressionResult.ToErrorResult();
             }

@@ -1,3 +1,3 @@
-﻿namespace BBAP.Parser.Expressions.Calculations; 
+﻿namespace BBAP.Parser.Expressions.Calculations;
 
-public record BooleanExpression(int Line, BooleanType BooleanType, IExpression Left, IExpression Right): IExpression;
+public record BooleanExpression(int Line, BooleanType BooleanType, IExpression Left, IExpression Right) : IExpression;

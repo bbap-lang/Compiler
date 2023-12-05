@@ -14,7 +14,7 @@ public class LexerState {
 
     public bool TryNext(out char nextChar) {
         _position++;
-        
+
         if (_position >= _text.Length) {
             nextChar = '\0';
             AtEnd = true;

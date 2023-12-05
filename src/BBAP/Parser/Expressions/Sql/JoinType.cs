@@ -3,6 +3,6 @@
 public enum JoinType {
     Outer,
     Inner,
-    Left, 
+    Left,
     Right
 }

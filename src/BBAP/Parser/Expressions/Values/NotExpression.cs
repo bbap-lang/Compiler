@@ -1,3 +1,3 @@
-﻿namespace BBAP.Parser.Expressions.Values; 
+﻿namespace BBAP.Parser.Expressions.Values;
 
-public record NotExpression(int Line, IExpression Inner): IExpression;
+public record NotExpression(int Line, IExpression Inner) : IExpression;

@@ -1,6 +1,4 @@
-﻿using BBAP.Results;
-
-namespace BBAP.Parser.ExtensionMethods;
+﻿namespace BBAP.Parser.ExtensionMethods;
 
 public static class ResultExtensions {
     /*

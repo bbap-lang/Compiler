@@ -2,7 +2,6 @@
 
 namespace BBAP.Results;
 
-
 public readonly struct Result<T> {
     public static implicit operator Result<T>(Result<ErrorResult> result) {
         return new Result<T>(result.Error);
@@ -24,7 +23,7 @@ public readonly struct Result<T> {
     }
 
 
-    public bool TryGetValue([NotNullWhen(true)]out T? value) {
+    public bool TryGetValue([NotNullWhen(true)] out T? value) {
         if (IsSuccess) {
             value = _value;
             return true;
@@ -33,7 +32,8 @@ public readonly struct Result<T> {
         value = default;
         return false;
     }
-    public bool TryGetValue([NotNullWhen(true)]out T? value, out Error error) {
+
+    public bool TryGetValue([NotNullWhen(true)] out T? value, out Error error) {
         if (IsSuccess) {
             value = _value;
             error = default;

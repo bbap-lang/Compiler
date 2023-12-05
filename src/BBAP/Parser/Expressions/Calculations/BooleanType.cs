@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using BBAP.Types;
 
-namespace BBAP.Parser.Expressions.Calculations; 
+namespace BBAP.Parser.Expressions.Calculations;
 
 public enum BooleanType {
     And,

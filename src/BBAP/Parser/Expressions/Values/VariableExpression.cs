@@ -1,6 +1,5 @@
-﻿using BBAP.PreTranspiler;
-using BBAP.Types;
+﻿using BBAP.PreTranspiler.Variables;
 
-namespace BBAP.Parser.Expressions.Values; 
+namespace BBAP.Parser.Expressions.Values;
 
-public record VariableExpression(int Line, IVariable Variable): IExpression;
+public record VariableExpression(int Line, IVariable Variable) : IExpression;

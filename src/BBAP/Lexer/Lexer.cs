@@ -7,9 +7,7 @@ using BBAP.Lexer.Tokens.Grouping;
 using BBAP.Lexer.Tokens.Operators;
 using BBAP.Lexer.Tokens.Others;
 using BBAP.Lexer.Tokens.Setting;
-using BBAP.Lexer.Tokens.Sql;
 using BBAP.Results;
-using NotToken = BBAP.Lexer.Tokens.Boolean.NotToken;
 
 namespace BBAP.Lexer;
 
@@ -128,14 +126,10 @@ public class Lexer {
     }
 
     private static IToken ParseColon(LexerState state) {
-        if (!state.TryNext(out char nextChar)) {
-            return new ColonToken(state.Line);
-        }
-        
-        if (nextChar == ':') {
-            return new DoubleColonToken(state.Line);
-        }
-        
+        if (!state.TryNext(out char nextChar)) return new ColonToken(state.Line);
+
+        if (nextChar == ':') return new DoubleColonToken(state.Line);
+
         state.Revert();
         return new ColonToken(state.Line);
     }
@@ -223,6 +217,6 @@ public class Lexer {
                 throw new UnreachableException("Something went really wrong!");
         }
 
-        return Ok<IToken>(new EmptyToken());
+        return Ok<IToken>(new EmptyToken(state.Line));
     }
 }

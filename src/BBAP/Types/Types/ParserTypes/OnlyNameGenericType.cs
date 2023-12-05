@@ -1,4 +1,4 @@
-﻿namespace BBAP.Types; 
+﻿namespace BBAP.Types.Types.ParserTypes;
 
 public record OnlyNameGenericType(string Name, OnlyNameType GenericType) : IType {
     public string AbapName => "INVALID";

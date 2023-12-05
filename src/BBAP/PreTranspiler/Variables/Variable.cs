@@ -1,5 +1,5 @@
 ﻿using BBAP.Types;
 
-namespace BBAP.PreTranspiler; 
+namespace BBAP.PreTranspiler.Variables;
 
-public record class Variable(IType Type, string Name): IVariable;
+public record Variable(IType Type, string Name) : IVariable;

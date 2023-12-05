@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using BBAP.Types;
 
-namespace BBAP.PreTranspiler.Expressions; 
+namespace BBAP.PreTranspiler.Expressions;
 
 public enum SecondStageCalculationType {
     Plus,
@@ -11,14 +11,14 @@ public enum SecondStageCalculationType {
     Modulo,
     BitwiseAnd,
     BitwiseOr,
-    
+
     Equals,
     NotEquals,
     GreaterThen,
     SmallerThen,
     GreaterThenOrEquals,
     SmallerThenOrEquals,
-    
+
     And,
     Or,
     Xor
@@ -38,7 +38,7 @@ public static class SecondStageCalculationTypeExtensions {
             _ => false
         };
     }
-    
+
     public static bool IsComparison(this SecondStageCalculationType type) {
         return type switch {
             SecondStageCalculationType.Equals => true,
@@ -67,7 +67,7 @@ public static class SecondStageCalculationTypeExtensions {
             SecondStageCalculationType.GreaterThenOrEquals => SupportedOperator.GreaterThenOrEquals,
             SecondStageCalculationType.SmallerThen => SupportedOperator.SmallerThen,
             SecondStageCalculationType.SmallerThenOrEquals => SupportedOperator.SmallerThenOrEquals,
-            
+
             _ => throw new UnreachableException()
         };
     }

@@ -1,4 +1,4 @@
-﻿namespace BBAP.Parser.Expressions.Calculations; 
+﻿namespace BBAP.Parser.Expressions.Calculations;
 
 public enum IncrementType {
     Plus,

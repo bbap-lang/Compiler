@@ -1,10 +1,12 @@
 ﻿using System.Text;
 
-namespace BBAP.Transpiler; 
+namespace BBAP.Transpiler;
 
 public class AbapBuilder {
-    int depth = 0;
-    private StringBuilder _builder = new();
+    private readonly StringBuilder _builder = new();
+
+    private bool _newLine = true;
+    private int depth;
 
     public void Append(string str) {
         Intend();
@@ -15,7 +17,7 @@ public class AbapBuilder {
         Intend();
         _builder.Append(c);
     }
-    
+
     public void Append(int value) {
         Intend();
         _builder.Append(value);
@@ -26,14 +28,12 @@ public class AbapBuilder {
         _builder.Append(value);
     }
 
-    private bool _newLine = true;
-
     public void AppendLine(string str) {
         Intend();
         _builder.Append(str);
         AppendLine();
     }
-    
+
     public void AppendLine(char c) {
         Intend();
         _builder.Append(c);
@@ -48,7 +48,9 @@ public class AbapBuilder {
         depth--;
     }
 
-    public override string ToString() => _builder.ToString();
+    public override string ToString() {
+        return _builder.ToString();
+    }
 
     public void AppendLine() {
         _builder.AppendLine();
@@ -60,8 +62,8 @@ public class AbapBuilder {
             for (int i = 0; i < depth; i++) {
                 _builder.Append('\t');
             }
+
             _newLine = false;
         }
     }
-
 }

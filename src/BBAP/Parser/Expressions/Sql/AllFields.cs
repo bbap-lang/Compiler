@@ -1,5 +1,6 @@
-﻿using BBAP.PreTranspiler;
+﻿using BBAP.PreTranspiler.Variables;
 using BBAP.Types;
+using BBAP.Types.Types.ParserTypes;
 
 namespace BBAP.Parser.Expressions.Sql;
 

@@ -1,7 +1,6 @@
-﻿using System.Text;
-using BBAP.Parser.Expressions.Blocks;
+﻿using BBAP.Parser.Expressions.Blocks;
 
-namespace BBAP.Transpiler.SubTranspiler; 
+namespace BBAP.Transpiler.SubTranspiler;
 
 public static class WhileTranspiler {
     public static void Run(WhileExpression whileExpression, TranspilerState state) {

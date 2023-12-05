@@ -2,7 +2,6 @@
 using BBAP.Functions;
 using BBAP.Parser.Expressions;
 using BBAP.Parser.Expressions.Values;
-using BBAP.Types;
 
 namespace BBAP.PreTranspiler.Expressions;
 
@@ -11,5 +10,5 @@ public record SecondStageFunctionCallExpression(int Line,
     IFunction Function,
     ImmutableArray<SecondStageParameterExpression> Parameters,
     ImmutableArray<VariableExpression> Outputs) : ISecondStageValue {
-    public TypeExpression Type => new TypeExpression(Line, Function.SingleType);
+    public TypeExpression Type => new(Line, Function.SingleType);
 }

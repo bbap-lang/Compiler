@@ -2,13 +2,14 @@
 
 namespace BBAP.Lexer.Tokens.Values;
 
-public class UnknownWordToken: IToken {
+public class UnknownWordToken : IToken {
     [SetsRequiredMembers]
     public UnknownWordToken(string value, int line) {
         Value = value;
         Line = line;
     }
 
-    public int Line { get; }
     public string Value { get; init; }
+
+    public int Line { get; }
 }

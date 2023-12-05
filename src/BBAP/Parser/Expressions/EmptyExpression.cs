@@ -1,3 +1,3 @@
-﻿namespace BBAP.Parser.Expressions; 
+﻿namespace BBAP.Parser.Expressions;
 
-public record EmptyExpression(int Line): IExpression;
+public record EmptyExpression(int Line) : IExpression;

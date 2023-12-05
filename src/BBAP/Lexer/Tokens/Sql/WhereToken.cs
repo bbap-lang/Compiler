@@ -1,3 +1,3 @@
-﻿namespace BBAP.Lexer.Tokens.Sql; 
+﻿namespace BBAP.Lexer.Tokens.Sql;
 
 public record WhereToken(int Line) : IToken;

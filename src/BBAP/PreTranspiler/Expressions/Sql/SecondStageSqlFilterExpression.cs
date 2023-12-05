@@ -1,8 +1,12 @@
 ﻿using BBAP.Parser.Expressions;
 
-namespace BBAP.PreTranspiler.Expressions.Sql; 
+namespace BBAP.PreTranspiler.Expressions.Sql;
 
-public record SecondStageSqlFilterExpression(int Line, TypeExpression Type, SqlFilterOperator Operator, ISecondStageSqlValueExpression Left, ISecondStageSqlValueExpression Right) : ISecondStageSqlValueExpression;
+public record SecondStageSqlFilterExpression(int Line,
+    TypeExpression Type,
+    SqlFilterOperator Operator,
+    ISecondStageSqlValueExpression Left,
+    ISecondStageSqlValueExpression Right) : ISecondStageSqlValueExpression;
 
 public enum SqlFilterOperator {
     Plus,
@@ -10,14 +14,14 @@ public enum SqlFilterOperator {
     Divide,
     Multiply,
     Modulo,
-    
+
     Equals,
     NotEquals,
     GreaterThan,
     SmallerThan,
     GreaterThanOrEquals,
     SmallerThanOrEquals,
-    
+
     And,
-    Or,
+    Or
 }

@@ -1,11 +1,11 @@
 ﻿using BBAP.Parser.Expressions.Values;
-using BBAP.PreTranspiler;
+using BBAP.PreTranspiler.Variables;
 
-namespace BBAP.Transpiler.SubTranspiler; 
+namespace BBAP.Transpiler.SubTranspiler;
 
 public class VariableTranspiler {
     public static void Run(VariableExpression variableExpression, AbapBuilder builder) {
-        var startVariable = variableExpression.Variable;
+        IVariable startVariable = variableExpression.Variable;
         List<IVariable> variables = new() { startVariable };
 
         while (startVariable is FieldVariable fieldVariable) {
@@ -17,11 +17,10 @@ public class VariableTranspiler {
 
         bool first = true;
         foreach (IVariable variable in variables) {
-            if (first) {
+            if (first)
                 first = false;
-            } else {
+            else
                 builder.Append('-');
-            }
 
             builder.Append(variable.Name);
         }

@@ -7,9 +7,9 @@ using BBAP.Lexer.Tokens.Setting;
 using BBAP.Lexer.Tokens.Values;
 using BBAP.Parser.Expressions;
 using BBAP.Parser.Expressions.Values;
-using BBAP.PreTranspiler;
+using BBAP.PreTranspiler.Variables;
 using BBAP.Results;
-using BBAP.Types;
+using BBAP.Types.Types.ParserTypes;
 
 namespace BBAP.Parser.SubParsers;
 
@@ -24,14 +24,10 @@ public static class FunctionCallParser {
                                                                              typeof(ClosingGenericBracketToken),
                                                                              typeof(CommaToken));
 
-            if (!parameterResult.TryGetValue(out IExpression? parameter)) {
-                return parameterResult;
-            }
+            if (!parameterResult.TryGetValue(out IExpression? parameter)) return parameterResult;
 
             if (parameter is EmptyExpression) {
-                if (lastToken is CommaToken) {
-                    return Error(lastToken.Line, "Unexpected Symbol ',' expected ')'");
-                }
+                if (lastToken is CommaToken) return Error(lastToken.Line, "Unexpected Symbol ',' expected ')'");
 
                 break;
             }
@@ -47,54 +43,36 @@ public static class FunctionCallParser {
 
         IToken endToken;
         do {
-            Result<IToken> nameResult = state.Next(typeof(UnknownWordToken));
-            if (!nameResult.TryGetValue(out IToken? nameToken)) {
-                return nameResult.ToErrorResult();
-            }
+            Result<UnknownWordToken> nameResult = state.Next<UnknownWordToken>();
+            if (!nameResult.TryGetValue(out UnknownWordToken? nameToken)) return nameResult.ToErrorResult();
 
-            if (nameToken is not UnknownWordToken wordToken) {
-                throw new UnreachableException();
-            }
-
-            var newVariable = new VariableExpression(nameToken.Line, new Variable(new UnknownType(), wordToken.Value));
+            var newVariable = new VariableExpression(nameToken.Line, new Variable(new UnknownType(), nameToken.Value));
             variables.Add(newVariable);
 
             Result<IToken> commaResult = state.Next(typeof(CommaToken), typeof(ClosingGenericBracketToken));
-            if (!commaResult.TryGetValue(out endToken)) {
-                return commaResult.ToErrorResult();
-            }
+            if (!commaResult.TryGetValue(out endToken)) return commaResult.ToErrorResult();
         } while (endToken is not ClosingGenericBracketToken);
 
-        Result<IToken> tempResult = state.Next(typeof(SetToken));
+        Result<SetToken> setTokenResult = state.Next<SetToken>();
 
-        if (!tempResult.IsSuccess) {
-            return tempResult.ToErrorResult();
-        }
+        if (!setTokenResult.IsSuccess) return setTokenResult.ToErrorResult();
 
 
         var nameTokenList = new List<UnknownWordToken>();
 
         Result<CombinedWord> combinedNameResult = UnknownWordParser.ParseWord(state);
-        if(!combinedNameResult.TryGetValue(out CombinedWord? nameTokens)) {
-            return combinedNameResult.ToErrorResult();
-        }
+        if (!combinedNameResult.TryGetValue(out CombinedWord? nameTokens)) return combinedNameResult.ToErrorResult();
 
-        tempResult = state.Next(typeof(OpeningGenericBracketToken));
-        if (!tempResult.IsSuccess) {
-            return tempResult.ToErrorResult();
-        }
+        Result<OpeningGenericBracketToken> openingBracketResult = state.Next<OpeningGenericBracketToken>();
+        if (!openingBracketResult.IsSuccess) return openingBracketResult.ToErrorResult();
 
         Result<IExpression> functionCallResult = Run(state, nameTokens);
 
-        if (!functionCallResult.TryGetValue(out IExpression? tempExpression)) {
-            return functionCallResult.ToErrorResult();
-        }
+        if (!functionCallResult.TryGetValue(out IExpression? tempExpression)) return functionCallResult.ToErrorResult();
 
-        var res = state.SkipSemicolon();
+        bool res = state.SkipSemicolon();
 
-        if (tempExpression is not FunctionCallExpression functionCallExpression) {
-            throw new UnreachableException();
-        }
+        if (tempExpression is not FunctionCallExpression functionCallExpression) throw new UnreachableException();
 
         var newFunctionCall
             = new FunctionCallSetExpression(functionCallExpression.Line, nameTokens,

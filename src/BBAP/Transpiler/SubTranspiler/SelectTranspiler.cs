@@ -1,18 +1,16 @@
 ﻿using BBAP.PreTranspiler.Expressions.Sql;
 
-namespace BBAP.Transpiler.SubTranspiler; 
+namespace BBAP.Transpiler.SubTranspiler;
 
 public static class SelectTranspiler {
-    
     public static void Run(SecondStageSelectExpression selectExpression, TranspilerState state) {
         state.Builder.Append("SELECT ");
         state.Builder.AddIntend();
-        for(int i = 0; i < selectExpression.OutputFields.Length; i++) {
+        for (int i = 0; i < selectExpression.OutputFields.Length; i++) {
             RunField(selectExpression.OutputFields[i], state.Builder);
-            if (i != selectExpression.OutputFields.Length - 1) {
-                state.Builder.Append(", ");
-            }
+            if (i != selectExpression.OutputFields.Length - 1) state.Builder.Append(", ");
         }
+
         state.Builder.AppendLine();
         state.Builder.Append("FROM ");
         VariableTranspiler.Run(selectExpression.From, state.Builder);
@@ -25,10 +23,11 @@ public static class SelectTranspiler {
 
         if (selectExpression.OrderBy.Length > 0) {
             state.Builder.Append("ORDER BY ");
-            foreach (var orderByField in selectExpression.OrderBy) {
+            foreach (SecondStageSqlVariableExpression orderByField in selectExpression.OrderBy) {
                 RunField(orderByField, state.Builder);
                 state.Builder.Append(' ');
             }
+
             state.Builder.AppendLine();
         }
 
@@ -48,20 +47,18 @@ public static class SelectTranspiler {
     }
 
     private static void RunField(SecondStageSqlVariableExpression field, AbapBuilder builder) {
-        if (field.InsertType == InsertType.FromCode) {
-            builder.Append('@');
-        }
+        if (field.InsertType == InsertType.FromCode) builder.Append('@');
         VariableTranspiler.Run(field.Variable, builder);
     }
-    
+
     private static void RunFilter(SecondStageSqlFilterExpression filterExpression, TranspilerState state) {
         ISecondStageSqlValueExpression left = filterExpression.Left;
         RunValue(left, state);
-        
+
         state.Builder.Append(' ');
         PrintOperator(filterExpression.Operator, state.Builder);
         state.Builder.Append(' ');
-        
+
         ISecondStageSqlValueExpression right = filterExpression.Right;
         RunValue(right, state);
     }
@@ -89,17 +86,17 @@ public static class SelectTranspiler {
             SqlFilterOperator.Multiply => "*",
             SqlFilterOperator.Divide => "/",
             SqlFilterOperator.Modulo => "MOD",
-            
+
             SqlFilterOperator.Equals => "EQ",
             SqlFilterOperator.NotEquals => "NE",
             SqlFilterOperator.GreaterThan => "GT",
             SqlFilterOperator.GreaterThanOrEquals => "GE",
             SqlFilterOperator.SmallerThan => "LT",
             SqlFilterOperator.SmallerThanOrEquals => "LE",
-            
+
             SqlFilterOperator.And => "AND",
             SqlFilterOperator.Or => "OR",
-            
+
             _ => throw new ArgumentOutOfRangeException(nameof(filterExpressionOperator), filterExpressionOperator, null)
         });
     }

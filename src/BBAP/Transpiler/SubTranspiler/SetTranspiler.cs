@@ -1,11 +1,7 @@
 ﻿using System.Diagnostics;
-using System.Text;
 using BBAP.Parser.Expressions;
-using BBAP.PreTranspiler;
-using BBAP.PreTranspiler.Expressions;
-using BBAP.Transpiler.SubTranspiler;
 
-namespace BBAP.Transpiler;
+namespace BBAP.Transpiler.SubTranspiler;
 
 public static class SetTranspiler {
     public static void Run(SetExpression setExpression, TranspilerState state) {

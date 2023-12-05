@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace BBAP.Lexer.Tokens.Values;
+﻿namespace BBAP.Lexer.Tokens.Values;
 
 public class FloatValueToken : IToken {
     public FloatValueToken(double value, int line) {
@@ -8,6 +6,7 @@ public class FloatValueToken : IToken {
         Line = line;
     }
 
-    public int Line { get; }
     public double Value { get; init; }
+
+    public int Line { get; }
 }

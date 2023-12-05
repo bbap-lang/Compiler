@@ -1,6 +1,4 @@
-﻿using System.Security.AccessControl;
-
-namespace BBAP; 
+﻿namespace BBAP;
 
 public static class Keywords {
     public const string Double = "DOUBLE";
@@ -11,7 +9,7 @@ public static class Keywords {
     public const string String = "STRING";
     public const string Boolean = "BOOL";
     public const string Char = "CHAR";
-    
+
     public const string Do = "DO";
     public const string For = "FOR";
     public const string If = "IF";
@@ -27,18 +25,18 @@ public static class Keywords {
     public const string This = "THIS";
     public const string Static = "STATIC";
     public const string Public = "PUBLIC";
-    
+
     public const string Return = "RETURN";
-    
+
     public const string True = "TRUE";
     public const string False = "FALSE";
 
     public const string Select = "SELECT";
     public const string From = "FROM";
-    
+
     public const string Where = "WHERE";
     public const string Not = "NOT";
-    
+
     public const string Join = "JOIN";
     public const string Full = "FULL";
     public const string Outer = "OUTER";
@@ -46,7 +44,7 @@ public static class Keywords {
     public const string Left = "LEFT";
     public const string Right = "RIGHT";
     public const string On = "ON";
-    
+
     public const string Order = "ORDER";
     public const string By = "BY";
     public const string Ascending = "ASC";
@@ -54,6 +52,6 @@ public static class Keywords {
 
     public const string Like = "LIKE";
     public const string NOT = "NOT";
-    
+
     public const string Limit = "LIMIT";
 }

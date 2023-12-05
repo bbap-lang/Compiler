@@ -4,28 +4,23 @@ using BBAP.Transpiler;
 using BBAP.Transpiler.SubTranspiler;
 using BBAP.Types;
 
-namespace BBAP.Functions.BbapFunctions; 
+namespace BBAP.Functions.BbapFunctions;
 
-public class StringToCharArray: IFunction{
+public class StringToCharArray : IFunction {
     public Result<int> Matches(IType[] inputs, IType[] outputs, int line) {
-        if (inputs.Length != 1) {
+        if (inputs.Length != 1)
             return Error(line, "String.ToCharArray takes exactly one parameter or must be called as a method.");
-        }
-        
-        if(outputs.Length > 1) {
-            return Error(line, "String.ToCharArray can only return one value.");
-        }
-        
+
+        if (outputs.Length > 1) return Error(line, "String.ToCharArray can only return one value.");
+
         IType? output = outputs.FirstOrDefault();
         IType input = inputs.First();
 
-        if (output is not null && !TypeCollection.BaseCharType.IsCastableTo(output)) {
+        if (output is not null && !TypeCollection.BaseCharType.IsCastableTo(output))
             return Error(line, "The return type is not castable to CHAR in the function call of 'String.ToCharArray'.");
-        }
 
-        if (!input.IsCastableTo(TypeCollection.StringType)) {
+        if (!input.IsCastableTo(TypeCollection.StringType))
             return Error(line, "The parameter is not castable to STRING in the function call of 'String.ToCharArray'.");
-        }
 
         return Ok();
     }
@@ -38,14 +33,14 @@ public class StringToCharArray: IFunction{
 
     public FunctionAttributes Attributes => FunctionAttributes.Method;
 
-    public void Render(AbapBuilder builder, IEnumerable<VariableExpression> inputs, IEnumerable<VariableExpression> outputs) {
+    public void Render(AbapBuilder builder,
+        IEnumerable<VariableExpression> inputs,
+        IEnumerable<VariableExpression> outputs) {
         VariableExpression? output = outputs.FirstOrDefault();
         VariableExpression input = inputs.First();
 
-        if (output is null) {
-            return;
-        }
-        
+        if (output is null) return;
+
         VariableTranspiler.Run(output, builder);
         builder.Append(" = ");
         VariableTranspiler.Run(input, builder);

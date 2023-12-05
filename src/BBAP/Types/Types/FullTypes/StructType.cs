@@ -1,7 +1,7 @@
 ﻿using System.Collections.Immutable;
-using BBAP.PreTranspiler;
+using BBAP.PreTranspiler.Variables;
 
-namespace BBAP.Types; 
+namespace BBAP.Types.Types.FullTypes;
 
 public record StructType(string Name, ImmutableArray<Variable> Fields) : IType {
     public SupportedOperator SupportedOperators => SupportedOperator.None;

@@ -1,11 +1,10 @@
 ﻿using System.Collections.Immutable;
+using System.Text.Json;
 using BBAP.Config;
 using BBAP.Lexer.Tokens;
 using BBAP.Parser.Expressions;
 using BBAP.PreTranspiler;
 using BBAP.Results;
-using Newtonsoft.Json;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace BBAP;
 
@@ -50,7 +49,7 @@ internal class Program {
 
         string inputString = File.ReadAllText(inputPath);
 
-        var startTime = Environment.TickCount64;
+        long startTime = Environment.TickCount64;
 
         var lexer = new Lexer.Lexer();
         Result<ImmutableArray<IToken>> tokensResult = lexer.Run(inputString);
@@ -71,11 +70,11 @@ internal class Program {
                            .Select(path => Path.HasExtension(path) ? path : path + ".bbap")
                            .Select(path => Path.IsPathRooted(path) ? path : Path.Combine(sourceDirectory, path))
                            .ToArray();
-        
+
         var preTranspilerState = new PreTranspilerState();
-        foreach (var path in abapIncludePaths) {
-            var includeResult = RunAbapInclude(path, preTranspilerState);
-            
+        foreach (string path in abapIncludePaths) {
+            Result<int> includeResult = RunAbapInclude(path, preTranspilerState);
+
             if (!includeResult.IsSuccess) {
                 PrintError(includeResult, config, path);
                 return 1;
@@ -99,8 +98,8 @@ internal class Program {
 
         Console.WriteLine(output);
 
-        var compileTimeMs = Environment.TickCount64 - startTime;
-        var compileTime = TimeSpan.FromMilliseconds(compileTimeMs);
+        long compileTimeMs = Environment.TickCount64 - startTime;
+        TimeSpan compileTime = TimeSpan.FromMilliseconds(compileTimeMs);
 
         Console.WriteLine();
         Console.WriteLine($"In {compileTime.Hours:00}:{compileTime.Minutes:00}:{compileTime.Seconds:00}.{compileTime.Milliseconds:000}");
@@ -115,35 +114,27 @@ internal class Program {
     }
 
     private static Result<int> RunAbapInclude(string path, PreTranspilerState state) {
-        if (!File.Exists(path)) {
-            return Error(0, $"The file '{path}' does not exist.");
-        }
+        if (!File.Exists(path)) return Error(0, $"The file '{path}' does not exist.");
 
         string inputString = File.ReadAllText(path);
 
         var lexer = new Lexer.Lexer();
         Result<ImmutableArray<IToken>> tokensResult = lexer.Run(inputString);
-        if (!tokensResult.TryGetValue(out ImmutableArray<IToken> tokens)) {
-            return tokensResult.ToErrorResult();
-        }
+        if (!tokensResult.TryGetValue(out ImmutableArray<IToken> tokens)) return tokensResult.ToErrorResult();
 
         var parser = new Parser.Parser();
         Result<ImmutableArray<IExpression>> treeResult = parser.Run(tokens);
-        if (!treeResult.TryGetValue(out ImmutableArray<IExpression> tree)) {
-            return treeResult.ToErrorResult();
-        }
+        if (!treeResult.TryGetValue(out ImmutableArray<IExpression> tree)) return treeResult.ToErrorResult();
 
         var preTranspiler = new PreTranspiler.PreTranspiler();
         Result<ImmutableArray<IExpression>> preTranspiledTreeResult = preTranspiler.Run(tree, state);
-        if (!preTranspiledTreeResult.TryGetValue(out ImmutableArray<IExpression> preTranspiledTree)) {
-            return preTranspiledTreeResult.ToErrorResult();
-        }
+        if (!preTranspiledTreeResult.TryGetValue(out _)) return preTranspiledTreeResult.ToErrorResult();
 
         return Ok();
     }
 
     private static ConfigData CreateDefaultConfig() {
-        return new ConfigData(false, "main.bbap");
+        return new ConfigData();
     }
 
     private static void PrintHelp() {

@@ -3,7 +3,6 @@ using BBAP.ExtensionMethods;
 using BBAP.Lexer.Tokens;
 using BBAP.Lexer.Tokens.Boolean;
 using BBAP.Lexer.Tokens.Keywords;
-using BBAP.Lexer.Tokens.Setting;
 using BBAP.Lexer.Tokens.Sql;
 using BBAP.Lexer.Tokens.Values;
 using BBAP.Results;
@@ -37,19 +36,19 @@ public static class WordLexer {
             Keywords.Let => new LetToken(state.Line),
             Keywords.While => new WhileToken(state.Line),
             Keywords.Function => new FunctionToken(state.Line),
-            
+
             Keywords.Alias => new AliasToken(state.Line),
             Keywords.Struct => new StructToken(state.Line),
             Keywords.New => new NewToken(state.Line),
             Keywords.Extend => new ExtendToken(state.Line),
             Keywords.Static => new StaticToken(state.Line),
             Keywords.Public => new PublicToken(state.Line),
-            
+
             Keywords.Return => new ReturnToken(state.Line),
 
             Keywords.True => new BooleanValueToken(state.Line, true),
             Keywords.False => new BooleanValueToken(state.Line, false),
-            
+
             Keywords.Not => new NotToken(state.Line),
 
             Keywords.Select => new SelectToken(state.Line),
@@ -68,7 +67,7 @@ public static class WordLexer {
             Keywords.Descending => new DescendingToken(state.Line),
             Keywords.Limit => new LimitToken(state.Line),
             Keywords.Like => new LikeToken(state.Line),
-            
+
             _ => new UnknownWordToken(word, state.Line)
         };
 

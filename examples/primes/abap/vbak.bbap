@@ -1,7 +1,11 @@
 public alias VBELN_VA: char[10];
+public alias ERNAM: CHAR[12];
+public alias AUART: CHAR[4];
 
 struct VbakData {
-    VBELN: VBELN_VA
+    VBELN: VBELN_VA,
+    ERNAM: ERNAM,
+    AUART: AUART
 }
 
 ALIAS VBAK: TABLE<VbakData>;

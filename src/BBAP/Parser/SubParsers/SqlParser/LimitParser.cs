@@ -2,7 +2,7 @@
 using BBAP.Lexer.Tokens.Values;
 using BBAP.Results;
 
-namespace BBAP.Parser.SubParsers;
+namespace BBAP.Parser.SubParsers.SqlParser;
 
 public class LimitParser {
     public static Result<long?> Run(ParserState state) {
@@ -11,11 +11,9 @@ public class LimitParser {
             state.Revert();
             return Ok<long?>(null);
         }
-        
+
         Result<IntValueToken> numberResult = state.Next<IntValueToken>();
-        if (!numberResult.TryGetValue(out IntValueToken? numberToken)) {
-            return numberResult.ToErrorResult();
-        }
+        if (!numberResult.TryGetValue(out IntValueToken? numberToken)) return numberResult.ToErrorResult();
 
         return Ok<long?>(numberToken.Value);
     }

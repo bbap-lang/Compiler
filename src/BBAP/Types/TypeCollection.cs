@@ -1,13 +1,13 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics;
-using BBAP.Parser.Expressions;
-using BBAP.PreTranspiler;
+using BBAP.PreTranspiler.Variables;
 using BBAP.Results;
+using BBAP.Types.Types.FullTypes;
 
 namespace BBAP.Types;
 
 public partial class TypeCollection {
-    private Dictionary<string, IType> _types;
+    private readonly Dictionary<string, IType> _types;
 
     public TypeCollection() {
         var typeAny = new AnyType();
@@ -29,7 +29,7 @@ public partial class TypeCollection {
 
         var typeBool = new DefaultType(Keywords.Boolean, "ABAP_BOOL", null, SupportedOperator.AllBoolean);
 
-        _types = new Dictionary<string, IType>() {
+        _types = new Dictionary<string, IType> {
             { "ANY", typeAny },
             { Keywords.String, typeString },
             { Keywords.Char, typeBaseChar },
@@ -37,42 +37,34 @@ public partial class TypeCollection {
             { Keywords.Float, typeFloat },
             { Keywords.Long, typeLong },
             { Keywords.Int, typeInt },
-            { Keywords.Boolean, typeBool },
+            { Keywords.Boolean, typeBool }
         };
     }
 
     public Result<IType> GetTableType(int line, string tableName, string genericTypeName) {
         Result<IType> genericTypeResult = Get(line, genericTypeName);
-        if (!genericTypeResult.TryGetValue(out IType? genericType)) {
-            return genericTypeResult;
-        }
+        if (!genericTypeResult.TryGetValue(out IType? genericType)) return genericTypeResult;
 
         Result<TableTypes> tableTypeResult = tableName switch {
             "TABLE" or "STANDARDTABLE" => Ok(TableTypes.StandardTable),
             "HASHEDTABLE" => Ok(TableTypes.HashedTable),
             "SORTEDTABLE" => Ok(TableTypes.SortedTable),
-            _ => Error(line, $"Unknown table type {tableName}"),
+            _ => Error(line, $"Unknown table type {tableName}")
         };
 
-        if (!tableTypeResult.TryGetValue(out TableTypes tableType)) {
-            return tableTypeResult.ToErrorResult();
-        }
+        if (!tableTypeResult.TryGetValue(out TableTypes tableType)) return tableTypeResult.ToErrorResult();
 
         return Ok<IType>(new TableType(genericType, tableType));
     }
 
     public Result<IType> Get(int line, string name) {
-        if (_types.TryGetValue(name, out IType? type)) {
-            return Ok(type);
-        }
+        if (_types.TryGetValue(name, out IType? type)) return Ok(type);
 
         return Error(line, $"Type {name} was not defined");
     }
 
     public Result<int> Add(IType type, int line) {
-        if (_types.ContainsKey(type.Name)) {
-            return Error(line, $"The type {type.Name} already exists.");
-        }
+        if (_types.ContainsKey(type.Name)) return Error(line, $"The type {type.Name} already exists.");
 
         _types.Add(type.Name, type);
 
@@ -80,13 +72,9 @@ public partial class TypeCollection {
     }
 
     public void Replace(IType oldType, IType newType) {
-        if (newType is TableType) {
-            return;
-        }
-        
-        if (!_types.ContainsKey(oldType.Name) && newType is not TableType) {
-            throw new UnreachableException();
-        }
+        if (newType is TableType) return;
+
+        if (!_types.ContainsKey(oldType.Name) && newType is not TableType) throw new UnreachableException();
 
         ReplaceAliases(oldType, newType);
         ReplaceStructs(oldType, newType);
@@ -116,20 +104,19 @@ public partial class TypeCollection {
                     continue;
             }
 
-            if (fieldType is null) {
-                continue;
-            }
+            if (fieldType is null) continue;
 
             Variable newField = field with { Type = newType };
             fieldsToReplace.Add(newField);
         }
 
-        if (fieldsToReplace.Count == 0) {
-            return null;
-        }
+        if (fieldsToReplace.Count == 0) return null;
 
         ImmutableArray<Variable> newFields = structType.Fields
-                                                       .Select(field => fieldsToReplace.FirstOrDefault(x => x.Name == field.Name) ?? field)
+                                                       .Select(field
+                                                                   => fieldsToReplace.FirstOrDefault(x => x.Name
+                                                                       == field.Name)
+                                                                   ?? field)
                                                        .ToImmutableArray();
 
         StructType newStruct = structType with { Fields = newFields };
@@ -138,7 +125,7 @@ public partial class TypeCollection {
     }
 
     private IType? ReplaceAlias(AliasType alias, IType oldType, IType? newType) {
-        if (alias.SourceType != oldType) {
+        if (alias.SourceType != oldType)
             switch (alias.SourceType) {
                 case AliasType aliasType:
                     newType = ReplaceAlias(aliasType, oldType, newType);
@@ -152,11 +139,8 @@ public partial class TypeCollection {
                 default:
                     return null;
             }
-        }
 
-        if (newType is null) {
-            return null;
-        }
+        if (newType is null) return null;
 
         AliasType newAlias = alias with { SourceType = newType };
         Replace(newAlias, newAlias);
@@ -176,7 +160,7 @@ public partial class TypeCollection {
     }
 
     private IType? ReplaceTableType(TableType tableType, IType oldType, IType? newType) {
-        if (tableType.ContentType != oldType) {
+        if (tableType.ContentType != oldType)
             switch (tableType.ContentType) {
                 case AliasType aliasType:
                     newType = ReplaceAlias(aliasType, oldType, newType);
@@ -187,11 +171,8 @@ public partial class TypeCollection {
                 default:
                     return null;
             }
-        }
 
-        if (newType is null) {
-            return null;
-        }
+        if (newType is null) return null;
 
         TableType newTable = tableType with { ContentType = newType };
         Replace(tableType, newTable);

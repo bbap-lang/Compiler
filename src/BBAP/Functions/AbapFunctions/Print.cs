@@ -1,14 +1,14 @@
-﻿using System.Text;
-using BBAP.Parser.Expressions.Values;
-using BBAP.PreTranspiler;
+﻿using BBAP.Parser.Expressions.Values;
 using BBAP.Results;
 using BBAP.Transpiler;
 using BBAP.Types;
+using BBAP.Types.Types.ParserTypes;
 
-namespace BBAP.Functions.AbapFunctions; 
+namespace BBAP.Functions.AbapFunctions;
 
 // ABAP: WRITE
-public class Print: IFunction {
+public class Print : IFunction {
+    public IType? ReturnType => null;
 
     public string Name => "PRINT";
     public IType SingleType => new UnknownType();
@@ -17,30 +17,27 @@ public class Print: IFunction {
     public FunctionAttributes Attributes => FunctionAttributes.None;
 
     public Result<int> Matches(IType[] inputs, IType[] outputs, int line) {
-        if (outputs.Length != 0) {
-            return Error(line, "'Print' has no return value.");
+        if (outputs.Length != 0) return Error(line, "'Print' has no return value.");
+
+        if (inputs.Length < 1)
+            return Error(line, "At least one parameter is required in the function call of 'Print'.");
+
+        foreach ((IType type, int index) in inputs.Select((t, i) => (t, i))) {
+            if (!type.IsCastableTo(TypeCollection.StringType))
+                return Error(line,
+                             $"The parameter type {type.Name}  is not castable to {TypeCollection.StringType} in the function call of 'Print'.");
         }
 
-        if (inputs.Length < 1) {
-            return Error(line, "At least one parameter is required in the function call of 'Print'.");
-        }
-        
-        foreach ((IType type, int index) in inputs.Select((t, i) =>(t, i))) {
-            if (!type.IsCastableTo(TypeCollection.StringType)) {
-                return Error(line, $"The parameter type {type.Name}  is not castable to {TypeCollection.StringType} in the function call of 'Print'.");
-            }
-        }
-        
         return Ok();
     }
 
-    public void Render(AbapBuilder builder, IEnumerable<VariableExpression> inputs, IEnumerable<VariableExpression> outputs) {
+    public void Render(AbapBuilder builder,
+        IEnumerable<VariableExpression> inputs,
+        IEnumerable<VariableExpression> outputs) {
         foreach (VariableExpression input in inputs) {
             builder.Append("WRITE ");
             builder.Append(input.Variable.Name);
             builder.AppendLine(".");
         }
     }
-
-    public IType? ReturnType => null;
 }

@@ -1,3 +1,3 @@
-﻿namespace BBAP.Lexer.Tokens.Keywords; 
+﻿namespace BBAP.Lexer.Tokens.Keywords;
 
-public record ElseToken(int Line): IToken;
+public record ElseToken(int Line) : IToken;

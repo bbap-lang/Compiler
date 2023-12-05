@@ -1,4 +1,4 @@
-﻿namespace BBAP.Parser.Expressions; 
+﻿namespace BBAP.Parser.Expressions;
 
 public enum SetType {
     Generic,

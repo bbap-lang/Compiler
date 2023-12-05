@@ -1,6 +1,6 @@
 ﻿using BBAP.Types;
 
-namespace BBAP.PreTranspiler; 
+namespace BBAP.PreTranspiler.Variables;
 
 public interface IVariable {
     public IType Type { get; }
@@ -16,7 +16,7 @@ public static class VariableMethods {
 
         return topVariable;
     }
-    
+
     public static IVariable[] Unwrap(this IVariable variable) {
         List<IVariable> variables = new();
         IVariable currentVariable = variable;
