@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using BBAP.ExtensionMethods;
 using BBAP.Parser.Expressions;
 using BBAP.Parser.Expressions.Blocks;
 using BBAP.Parser.Expressions.Calculations;
@@ -73,17 +74,17 @@ public class PreTranspiler {
 
     public static Result<ImmutableArray<IExpression>> RunBlock(PreTranspilerState state,
         ImmutableArray<IExpression> expressions) {
-        var newTree = new List<IExpression>();
+        IArrayBuilderBlock<IExpression> newTree = ArrayBuilder<IExpression>.Concat(Array.Empty<IExpression>());
         foreach (IExpression expression in expressions) {
             Result<IExpression[]> result = RunExpression(state, expression);
 
             if (!result.TryGetValue(out IExpression[]? newExpression)) return result.ToErrorResult();
 
-            newTree.AddRange(newExpression);
+            newTree = newTree.Concat(newExpression);
         }
 
 
-        return Ok(newTree.ToImmutableArray());
+        return Ok(newTree.BuildImmutable());
     }
 
     public static Result<IExpression[]> RunExpression(PreTranspilerState state, IExpression expression) {

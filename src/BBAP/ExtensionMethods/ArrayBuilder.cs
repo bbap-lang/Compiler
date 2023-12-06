@@ -1,8 +1,8 @@
-﻿namespace BBAP.ExtensionMethods;
+﻿using System.Collections.Immutable;
+
+namespace BBAP.ExtensionMethods;
 
 public class ArrayBuilder<T> {
-    private int _length;
-
     public static IArrayBuilderBlock<T> Append(T element) {
         return new ArrayBuilderElement<T>(1, null, element);
     }
@@ -56,6 +56,29 @@ public static class IArrayBuilderMethods {
         }
 
         return array;
+    }
+
+    public static ImmutableArray<T> BuildImmutable<T>(this IArrayBuilderBlock<T> currentBlock) {
+        int length = 0;
+        IArrayBuilderBlock<T>? block = currentBlock;
+        while (block is not null) {
+            length += block.Length;
+            block = block.Parent;
+        }
+
+        ImmutableArray<T>.Builder builder = ImmutableArray.CreateBuilder<T>(length);
+        block = currentBlock;
+        while (block is not null) {
+            if (block is ArrayBuilderElement<T> element) {
+                builder.Add(element.Element);
+            } else if (block is ArrayBuilderCollection<T> collection) {
+                builder.AddRange(collection.Collection);
+            }
+
+            block = block.Parent;
+        }
+
+        return builder.ToImmutable();
     }
 }
 
