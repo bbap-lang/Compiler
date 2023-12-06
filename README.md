@@ -6,7 +6,7 @@ used to write programs for a SAP-System.
 
 ## Installation
 
-You can download the current version of the BBAP compiler from the [releases page](releases).
+You can download the current version of the BBAP compiler from the [releases page](/releases/latest).
 
 ## Usage
 
@@ -18,4 +18,4 @@ bbap <input file/path> <output file>
 
 ## Getting Started
 
-To get started with BBAP, you can read the [documentation](https://bbap-lang.org/).
+To get started with BBAP, you can read the [documentation](https://docs.bbap-lang.org/) or look at the [examples](examples).
