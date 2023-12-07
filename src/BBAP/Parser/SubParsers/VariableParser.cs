@@ -11,6 +11,18 @@ public class VariableParser {
         VariableExpression? variableExpression = null;
         IVariable variable = null;
 
+        if(combinedWord.Variable.Length == 0) {
+            if (combinedWord.NameSpace.Length != 2) {
+                throw new NotImplementedException("Namespace support is not implemented yet.");
+            }
+            
+            string typeName = combinedWord.NameSpace[0];
+            string variableName = combinedWord.NameSpace[1];
+            
+            variable = new StaticVariable(new UnknownType(), variableName, new OnlyNameType(typeName));
+            return new VariableExpression(combinedWord.Line, variable);
+        }
+        
         foreach (string wordToken in combinedWord.Variable) {
             if (variable is not null)
                 variable = new FieldVariable(new UnknownType(), wordToken, variable);

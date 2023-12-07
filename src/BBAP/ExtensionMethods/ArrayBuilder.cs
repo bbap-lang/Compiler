@@ -59,26 +59,7 @@ public static class IArrayBuilderMethods {
     }
 
     public static ImmutableArray<T> BuildImmutable<T>(this IArrayBuilderBlock<T> currentBlock) {
-        int length = 0;
-        IArrayBuilderBlock<T>? block = currentBlock;
-        while (block is not null) {
-            length += block.Length;
-            block = block.Parent;
-        }
-
-        ImmutableArray<T>.Builder builder = ImmutableArray.CreateBuilder<T>(length);
-        block = currentBlock;
-        while (block is not null) {
-            if (block is ArrayBuilderElement<T> element) {
-                builder.Add(element.Element);
-            } else if (block is ArrayBuilderCollection<T> collection) {
-                builder.AddRange(collection.Collection);
-            }
-
-            block = block.Parent;
-        }
-
-        return builder.ToImmutable();
+        return ImmutableArray.Create(currentBlock.Build());
     }
 }
 

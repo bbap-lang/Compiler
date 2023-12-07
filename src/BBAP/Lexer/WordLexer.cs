@@ -43,6 +43,7 @@ public static class WordLexer {
             Keywords.Extend => new ExtendToken(state.Line),
             Keywords.Static => new StaticToken(state.Line),
             Keywords.Public => new PublicToken(state.Line),
+            Keywords.Enum => new EnumToken(state.Line),
 
             Keywords.Return => new ReturnToken(state.Line),
 

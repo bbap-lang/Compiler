@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics;
 using BBAP.Functions;
+using BBAP.Lexer.Tokens.Keywords;
 using BBAP.Parser.Expressions;
 using BBAP.Parser.Expressions.Blocks;
 using BBAP.Parser.Expressions.Calculations;
@@ -11,6 +12,7 @@ using BBAP.PreTranspiler.Expressions.Sql;
 using BBAP.PreTranspiler.Variables;
 using BBAP.Results;
 using BBAP.Types;
+using BBAP.Types.Types.FullTypes;
 
 namespace BBAP.PreTranspiler.SubPreTranspiler;
 
@@ -151,12 +153,33 @@ public static class ValueSplitter {
     }
 
     private static Result<IExpression> CreateVarExpression(PreTranspilerState state, VariableExpression expression) {
+        if (expression.Variable is StaticVariable staticVariable) {
+            return ParseStaticVariable(state, staticVariable, expression.Line);
+        }
+        
         Result<IVariable> variableResult = state.GetVariable(expression.Variable, expression.Line);
 
         if (!variableResult.TryGetValue(out IVariable variable)) return variableResult.ToErrorResult();
 
         VariableExpression newVariableExpression = expression with { Variable = variable };
         return CreateExpression(state, expression.Line, variable.Type.Name, newVariableExpression);
+    }
+
+    private static Result<IExpression> ParseStaticVariable(PreTranspilerState state, StaticVariable staticVariable, int expressionLine) {
+        Result<IType> typeResult = state.Types.Get(expressionLine, staticVariable.SourceType.Name);
+        if (!typeResult.TryGetValue(out IType? type)) return typeResult.ToErrorResult();
+
+        if (type is not EnumType enumType) {
+            return Error(expressionLine, "Currently static variables are only supported for enums.");
+        }
+        
+        if(!enumType.Values.TryGetValue(staticVariable.Name, out SecondStageValueExpression? value)) {
+            return Error(expressionLine, $"Enum '{enumType.Name}' does not have a value '{staticVariable.Name}'.");
+        }
+        
+        SecondStageValueExpression currentValue = value with { Line = expressionLine };
+        
+        return Ok<IExpression>(currentValue);
     }
 
     private static Result<IExpression[]> SplitMathCalculation(PreTranspilerState state,

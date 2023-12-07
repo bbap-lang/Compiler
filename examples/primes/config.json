@@ -1,6 +1,6 @@
 ﻿{
   "debug": true,
-  "abap-defaults": [
+  "abap-dependencies": [
     "abap/vbak"
   ]
 }

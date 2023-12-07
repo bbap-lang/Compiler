@@ -25,6 +25,7 @@ public static class Keywords {
     public const string This = "THIS";
     public const string Static = "STATIC";
     public const string Public = "PUBLIC";
+    public const string Enum = "ENUM";
 
     public const string Return = "RETURN";
 

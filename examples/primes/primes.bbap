@@ -1,3 +1,13 @@
+enum TestEnum: string{
+    test1 = "One",
+    test2 = "Two",
+    test3 = "Three"
+}
+
+let testEnumValue1 = TestEnum::test1;
+let testEnumValue2 = TestEnum::test2;
+let testEnumValue3 = TestEnum::test3;
+
 alias number: int;
 
 public alias text: string;
@@ -5,6 +15,7 @@ public alias text: string;
 let textTest: text = "Hello World!";
 
 let vbakTable: Table<VBAK>;
+
 
 struct TestType{
     field1: int,

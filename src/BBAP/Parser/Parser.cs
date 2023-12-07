@@ -44,7 +44,7 @@ public class Parser {
                                                 typeof(DoToken), typeof(LetToken), typeof(FunctionToken),
                                                 typeof(ReturnToken), typeof(OpeningGenericBracketToken),
                                                 typeof(AliasToken), typeof(StructToken), typeof(ExtendToken),
-                                                typeof(PublicToken));
+                                                typeof(PublicToken), typeof(EnumToken));
 
         if (!tokenResult.TryGetValue(out IToken? token)) return tokenResult.ToErrorResult();
 
@@ -57,6 +57,7 @@ public class Parser {
             FunctionToken => FunctionParser.Run(state, token.Line),
             ReturnToken => ReturnParser.Run(state, token.Line),
             PublicToken => PublicParser.Run(state),
+            EnumToken => EnumParser.Run(state, token.Line),
 
             AliasToken => AliasParser.Run(state, false),
             StructToken => StructParser.Run(state, token.Line),

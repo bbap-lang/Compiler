@@ -103,6 +103,7 @@ public class PreTranspiler {
                 FunctionCallSetPreTranspiler.Run(functionCallSetExpression, state),
             FunctionCallExpression fc => FunctionCallPreTranspiler.Run(state, fc),
             ReturnExpression re => ReturnPreTranspiler.Run(re, state),
+            EnumExpression enumExpression => EnumPreTranspiler.Create(state, enumExpression),
 
             AliasExpression aliasExpression => AliasPreTranspiler.Replace(aliasExpression, state),
             StructExpression structExpression => StructPreTranspiler.Replace(structExpression, state),
