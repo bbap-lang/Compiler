@@ -25,7 +25,7 @@ jobs:
       - name: Pack
         run: dotnet pack /p:Version=${{ github.ref_name }} -c Release --no-build --output .
       - name: Push To NuGet
-        run: dotnet nuget push "*.nupkg" --api-key ${{ secrets.nuget_api_key }} --source https://api.nuget.org/v3/index.json
+        run: dotnet nuget push "*.nupkg" --api-key ${{ secrets.nuget_api_key }} --source https://api.nuget.org/v3/index.json --skip-duplicate
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
