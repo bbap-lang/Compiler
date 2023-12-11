@@ -1,5 +1,5 @@
 ﻿{
-  "debug": true,
+  "debug": false,
   "abap-dependencies": [
     "abap/vbak"
   ]

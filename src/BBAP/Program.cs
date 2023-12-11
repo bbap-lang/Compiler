@@ -18,6 +18,8 @@ internal class Program {
         string inputPath = Path.GetFullPath(args[0]);
         string outputPath = Path.GetFullPath(args[1]);
 
+        outputPath = InitOutputPath(outputPath);
+        
         string sourceDirectory;
 
         ConfigData config;
@@ -95,16 +97,27 @@ internal class Program {
             PrintError(outputResult, config, inputPath);
             return 1;
         }
-
-        Console.WriteLine(output);
-
+        
         long compileTimeMs = Environment.TickCount64 - startTime;
         TimeSpan compileTime = TimeSpan.FromMilliseconds(compileTimeMs);
 
-        Console.WriteLine();
-        Console.WriteLine($"In {compileTime.Hours:00}:{compileTime.Minutes:00}:{compileTime.Seconds:00}.{compileTime.Milliseconds:000}");
+        Console.WriteLine($"Successfully compiled In {compileTime.Hours:00}:{compileTime.Minutes:00}:{compileTime.Seconds:00}.{compileTime.Milliseconds:000}");
+
+        if (config.Debug) {
+            Console.WriteLine(output);
+        } else {
+            File.WriteAllText(outputPath, output);
+        }
 
         return 0;
+    }
+
+    private static string InitOutputPath(string outputPath) {
+        var directory = new DirectoryInfo(Path.GetDirectoryName(outputPath)!);
+        
+        if (!directory.Exists) directory.Create();
+        
+        return outputPath;
     }
 
     private static void PrintError<T>(Result<T> errorResult, ConfigData config, string path) {

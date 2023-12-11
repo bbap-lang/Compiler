@@ -1,6 +1,8 @@
 ﻿namespace BBAP.Results;
 
 public static class Result {
+    private static Queue<Warning> _warnings = new();
+    
     public static Result<T> Ok<T>(T value) {
         return new Result<T>(value);
     }
@@ -17,6 +19,20 @@ public static class Result {
     public static Result<ErrorResult> Error(int line, string text) {
         string stack = GetStack();
         return new Result<ErrorResult>(new Error(line, text, stack));
+    }
+
+    public static void Warn(int line, string text) {
+        _warnings.Enqueue(new Warning(line, text));
+    }
+    
+    public static bool TryGetNextWarning(out Warning? warning) {
+        if (_warnings.Count == 0) {
+            warning = null;
+            return false;
+        }
+
+        warning = _warnings.Dequeue();
+        return true;
     }
 
     private static string GetStack() {
