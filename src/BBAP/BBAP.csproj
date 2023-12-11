@@ -9,10 +9,14 @@
         <Version>$(Version)</Version>
         <Authors>bbap-lang</Authors>
         <Copyright>bbap-lang</Copyright>
+        
         <PackageProjectUrl>https://docs.bbap-lang.org/</PackageProjectUrl>
         <PackageLicenseUrl>https://github.com/bbap-lang/Compiler/blob/main/LICENSE</PackageLicenseUrl>
         <RepositoryUrl>https://github.com/bbap-lang/Compiler</RepositoryUrl>
         <PackageTags>bbap</PackageTags>
+        <PackAsTool>true</PackAsTool>
+        <ToolCommandName>bbap</ToolCommandName>
+        <Title>BBAP</Title>
     </PropertyGroup>
 
     <ItemGroup>
