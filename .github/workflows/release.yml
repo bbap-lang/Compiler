@@ -28,7 +28,7 @@ jobs:
         run: dotnet nuget push "*.nupkg" --api-key ${{ secrets.nuget_api_key }} --source https://api.nuget.org/v3/index.json
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
+        uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.ref }}
           name: ${{ github.ref_name }}
