@@ -6,7 +6,11 @@ used to write programs for a SAP-System.
 
 ## Installation
 
-You can download the current version of the BBAP compiler from the [releases page](/releases/latest).
+You can install the [bbap compiler](https://www.nuget.org/packages/bbap/) using [dotnet tools](https://dotnet.microsoft.com/en-us/download):
+
+```bash
+dotnet tool install -g bbap
+```
 
 ## Usage
 
