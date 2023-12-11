@@ -49,4 +49,10 @@ public class Concatenate : IFunction {
         VariableTranspiler.Run(outputs.First(), builder);
         builder.AppendLine('.');
     }
+
+    public Result<IType[]> GetReturnTypes(int length, int line) {
+        if(length > 1) return Error(line, "Concatenate can only return one value.");
+        
+        return length == 0 ? Ok(Array.Empty<IType>()) :  Ok(new[] {TypeCollection.StringType});
+    }
 }

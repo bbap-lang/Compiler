@@ -14,7 +14,7 @@ using BBAP.Types.Types.ParserTypes;
 namespace BBAP.Parser.SubParsers;
 
 public static class FunctionCallParser {
-    public static Result<IExpression> Run(ParserState state, CombinedWord names) {
+    public static Result<FunctionCallExpression> Run(ParserState state, CombinedWord names) {
         var parameters = new List<IExpression>();
 
         IToken? lastToken = null;
@@ -24,7 +24,7 @@ public static class FunctionCallParser {
                                                                              typeof(ClosingGenericBracketToken),
                                                                              typeof(CommaToken));
 
-            if (!parameterResult.TryGetValue(out IExpression? parameter)) return parameterResult;
+            if (!parameterResult.TryGetValue(out IExpression? parameter)) return parameterResult.ToErrorResult();
 
             if (parameter is EmptyExpression) {
                 if (lastToken is CommaToken) return Error(lastToken.Line, "Unexpected Symbol ',' expected ')'");
@@ -35,7 +35,7 @@ public static class FunctionCallParser {
             parameters.Add(parameter);
         }
 
-        return Ok<IExpression>(new FunctionCallExpression(names.Line, names, parameters.ToImmutableArray()));
+        return Ok(new FunctionCallExpression(names.Line, names, parameters.ToImmutableArray()));
     }
 
     public static Result<IExpression> RunFull(ParserState state, int valueLine) {
@@ -66,13 +66,11 @@ public static class FunctionCallParser {
         Result<OpeningGenericBracketToken> openingBracketResult = state.Next<OpeningGenericBracketToken>();
         if (!openingBracketResult.IsSuccess) return openingBracketResult.ToErrorResult();
 
-        Result<IExpression> functionCallResult = Run(state, nameTokens);
+        Result<FunctionCallExpression> functionCallResult = Run(state, nameTokens);
 
-        if (!functionCallResult.TryGetValue(out IExpression? tempExpression)) return functionCallResult.ToErrorResult();
+        if (!functionCallResult.TryGetValue(out FunctionCallExpression? functionCallExpression)) return functionCallResult.ToErrorResult();
 
         bool res = state.SkipSemicolon();
-
-        if (tempExpression is not FunctionCallExpression functionCallExpression) throw new UnreachableException();
 
         var newFunctionCall
             = new FunctionCallSetExpression(functionCallExpression.Line, nameTokens,

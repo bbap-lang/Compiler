@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using BBAP.Functions;
 using BBAP.Parser.Expressions;
 using BBAP.Parser.Expressions.Values;
@@ -77,5 +78,57 @@ public static class FunctionCallSetPreTranspiler {
 
         newTree.Add(newExpression);
         return Ok(newTree.ToArray());
+    }
+
+
+    public static Result<IExpression[]> RunDeclare(DeclareFunctionCallSetExpression decFunctionCallSetExpression,
+        PreTranspilerState state) {
+        
+        Result<string> functionNameResult = FunctionCallPreTranspiler.GetName(state, decFunctionCallSetExpression.Name);
+        if (!functionNameResult.TryGetValue(out string? functionName)) return functionNameResult.ToErrorResult();
+        
+        Result<IFunction> functionResult = state.GetFunction(functionName, decFunctionCallSetExpression.Line);
+        if (!functionResult.TryGetValue(out IFunction? function)) return functionResult.ToErrorResult();
+
+
+        Result<IType[]> returnVariableTypesResult = function.GetReturnTypes(decFunctionCallSetExpression.ReturnVariables.Length, decFunctionCallSetExpression.Line);
+        if (!returnVariableTypesResult.TryGetValue(out IType[]? returnVariableTypes))
+            return returnVariableTypesResult.ToErrorResult();
+        
+        
+        var returnVariables = new List<VariableExpression>();
+        foreach ((VariableExpression returnVariable, int index) in decFunctionCallSetExpression.ReturnVariables.Select((x, i) => (x, i))) {
+            IType returnType = returnVariableTypes[index];
+
+            Result<string> newVarResult = state.CreateVar(returnVariable.Variable.Name, returnType, returnVariable.Line);
+            if (!newVarResult.TryGetValue(out string? newVariableName)) return newVarResult.ToErrorResult();
+
+            Result<IVariable> newVariableResult = state.GetVariable(newVariableName, decFunctionCallSetExpression.Line);
+            if (!newVariableResult.TryGetValue(out IVariable? newVariable)) throw new UnreachableException();
+            
+            VariableExpression newVariableExpression = returnVariable with { Variable = newVariable };
+
+            returnVariables.Add(newVariableExpression);
+        }
+
+        var allExpressions = new List<IExpression>();
+
+        foreach (VariableExpression returnVariable in returnVariables) {
+            var typeExpression = new TypeExpression(returnVariable.Line, returnVariable.Variable.Type);
+            var declareExpression = new DeclareExpression(returnVariable.Line, returnVariable, typeExpression, null);
+            allExpressions.Add(declareExpression);
+        }
+
+        var functionCallSetExpression = new FunctionCallSetExpression(decFunctionCallSetExpression.Line,
+                                                                      decFunctionCallSetExpression.Name,
+                                                                      decFunctionCallSetExpression.Parameters,
+                                                                      decFunctionCallSetExpression.ReturnVariables);
+
+        Result<IExpression[]> result = Run(functionCallSetExpression, state);
+        if (!result.TryGetValue(out IExpression[]? additionalExpressions)) return result.ToErrorResult();
+
+        allExpressions.AddRange(additionalExpressions);
+
+        return Ok(allExpressions.ToArray());
     }
 }

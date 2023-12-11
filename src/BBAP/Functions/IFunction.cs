@@ -1,4 +1,6 @@
 ﻿using BBAP.Parser.Expressions.Values;
+using BBAP.PreTranspiler;
+using BBAP.PreTranspiler.Variables;
 using BBAP.Results;
 using BBAP.Transpiler;
 using BBAP.Types;
@@ -18,6 +20,7 @@ public interface IFunction {
     public void Render(AbapBuilder builder,
         IEnumerable<VariableExpression> inputs,
         IEnumerable<VariableExpression> outputs);
+    public Result<IType[]> GetReturnTypes(int length, int line);
 }
 
 [Flags]

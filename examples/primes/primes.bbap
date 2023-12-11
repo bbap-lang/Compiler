@@ -112,6 +112,8 @@ let returnTwo: int;
 
 (returnOne, returnTwo) = test2(5);
 
+let (declareReturnOne, declareReturnTwo) = test2(5);
+
 
 func test(param1: int): (int){
     return 1;

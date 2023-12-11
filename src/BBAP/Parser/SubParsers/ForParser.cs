@@ -13,14 +13,20 @@ public static class ForParser {
         if (!openingBracketResult.TryGetValue(out OpeningGenericBracketToken? openingBracket))
             return openingBracketResult.ToErrorResult();
 
-        Result<IExpression> initExpressionResult = Parser.ParseNextStatement(state);
-        if (!initExpressionResult.TryGetValue(out IExpression? initExpression)) return initExpressionResult;
+        Result<IExpression[]> initExpressionResult = Parser.ParseNextStatement(state);
+        if (!initExpressionResult.TryGetValue(out IExpression[]? initExpressionArray)) return initExpressionResult.ToErrorResult();
+        
+        if(initExpressionArray.Length != 1) return Error(initExpressionArray[1].Line, "Can't declare multiple variables in a for for head.");
+        IExpression initExpression = initExpressionArray[0];
 
         Result<IExpression> conditionResult = BooleanParser.Run(state, out _, typeof(SemicolonToken));
         if (!conditionResult.TryGetValue(out IExpression? condition)) return conditionResult;
 
-        Result<IExpression> runningExpressionResult = Parser.ParseNextStatement(state);
-        if (!runningExpressionResult.TryGetValue(out IExpression? runningExpression)) return runningExpressionResult;
+        Result<IExpression[]> runningExpressionResult = Parser.ParseNextStatement(state);
+        if (!runningExpressionResult.TryGetValue(out IExpression[]? runningExpressionArray)) return runningExpressionResult.ToErrorResult();
+        
+        if(runningExpressionArray.Length != 1) return Error(runningExpressionArray[1].Line, "Can't declare multiple variables in a for for head.");
+        IExpression runningExpression = runningExpressionArray[0];
 
         Result<ClosingGenericBracketToken> closingBracketResult = state.Next<ClosingGenericBracketToken>();
         if (!closingBracketResult.IsSuccess) return closingBracketResult.ToErrorResult();

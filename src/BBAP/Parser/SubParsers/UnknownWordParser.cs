@@ -28,11 +28,11 @@ public static class UnknownWordParser {
             if (!nextTokenResult.TryGetValue(out nextToken)) return nextTokenResult.ToErrorResult();
 
             if (nextToken is OpeningGenericBracketToken) {
-                Result<IExpression> functionCallResult = FunctionCallParser.Run(state, combinedWord);
-                if (!functionCallResult.IsSuccess) return functionCallResult;
+                Result<FunctionCallExpression> functionCallResult = FunctionCallParser.Run(state, combinedWord);
+                if (!functionCallResult.TryGetValue(out FunctionCallExpression? functionCall)) return functionCallResult.ToErrorResult();
 
                 state.SkipSemicolon();
-                return functionCallResult;
+                return Ok<IExpression>(functionCall);
             }
 
             VariableExpression variable = VariableParser.Run(combinedWord);
@@ -59,10 +59,10 @@ public static class UnknownWordParser {
         if (!nextTokenResult.TryGetValue(out nextToken)) return nextTokenResult.ToErrorResult();
 
         if (nextToken is OpeningGenericBracketToken) {
-            Result<IExpression> functionCallResult = FunctionCallParser.Run(state, combinedWord);
-            if (!functionCallResult.IsSuccess) return functionCallResult;
+            Result<FunctionCallExpression> functionCallResult = FunctionCallParser.Run(state, combinedWord);
+            if (!functionCallResult.TryGetValue(out var functionCall)) return functionCallResult.ToErrorResult();
             state.SkipSemicolon();
-            return functionCallResult;
+            return Ok<IExpression>(functionCall);
         }
 
         throw new UnreachableException();
@@ -79,7 +79,12 @@ public static class UnknownWordParser {
 
         if (bracketOpenResult.Error is InvalidTokenError) state.Revert();
 
-        if (bracketOpenResult.IsSuccess) return FunctionCallParser.Run(state, combinedWord);
+        if (bracketOpenResult.IsSuccess) {
+            Result<FunctionCallExpression> functionCallResult = FunctionCallParser.Run(state, combinedWord);
+            if (!functionCallResult.TryGetValue(out FunctionCallExpression? functionCall)) return functionCallResult.ToErrorResult();
+            
+            return Ok<IExpression>(functionCall);
+        }
 
         return Ok<IExpression>(VariableParser.Run(combinedWord));
     }

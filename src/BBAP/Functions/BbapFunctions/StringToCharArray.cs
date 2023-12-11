@@ -46,4 +46,10 @@ public class StringToCharArray : IFunction {
         VariableTranspiler.Run(input, builder);
         builder.AppendLine(".");
     }
+
+    public Result<IType[]> GetReturnTypes(int length, int line) {
+        if(length > 1) return Error(line, "String.ToCharArray can only return one value.");
+        
+        return length == 0 ? Ok(Array.Empty<IType>()) :  Ok(new[] {TypeCollection.BaseCharType});
+    }
 }

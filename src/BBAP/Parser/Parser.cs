@@ -17,9 +17,9 @@ public class Parser {
 
         var state = new ParserState(tokens);
         while (true) {
-            Result<IExpression> result = ParseNextStatement(state);
+            Result<IExpression[]> result = ParseNextStatement(state);
 
-            if (!result.TryGetValue(out IExpression? expression)) {
+            if (!result.TryGetValue(out IExpression[]? expression)) {
                 if (result.Error is NoMoreDataError) break;
 
                 if (result.Error is null) {
@@ -32,13 +32,13 @@ public class Parser {
                 return result.ToErrorResult();
             }
 
-            expressions.Add(expression);
+            expressions.AddRange(expression);
         }
 
         return Ok(expressions.ToImmutableArray());
     }
 
-    public static Result<IExpression> ParseNextStatement(ParserState state) {
+    public static Result<IExpression[]> ParseNextStatement(ParserState state) {
         Result<IToken> tokenResult = state.Next(typeof(UnknownWordToken), typeof(IfToken), typeof(ForToken),
                                                 typeof(WhileToken),
                                                 typeof(DoToken), typeof(LetToken), typeof(FunctionToken),
@@ -48,7 +48,7 @@ public class Parser {
 
         if (!tokenResult.TryGetValue(out IToken? token)) return tokenResult.ToErrorResult();
 
-        Result<IExpression> result = token switch {
+        Result<IExpression>? result = token switch {
             UnknownWordToken unknownWordToken => UnknownWordParser.RunRoot(state, unknownWordToken),
             IfToken => IfParser.Run(state, token.Line),
             ForToken => ForParser.Run(state),
@@ -63,12 +63,24 @@ public class Parser {
             StructToken => StructParser.Run(state, token.Line),
             ExtendToken => ExtendParser.Run(state, token.Line),
 
-            LetToken => DeclareParser.Run(state),
+            LetToken => DeclareParser.Run(state, token.Line),
             OpeningGenericBracketToken => FunctionCallParser.RunFull(state, token.Line),
-            _ => throw new UnreachableException()
+            _ => null
         };
 
-        return result;
+        if (result is not null) {
+            if (result.Value.TryGetValue(out var value)) {
+                return Ok(new[] {value});
+            }
+            
+            return result.Value.ToErrorResult();
+        }
+        
+        Result<IExpression[]> arrayResult = token switch {
+            _ => throw new UnreachableException()
+        };
+        
+        return arrayResult;
     }
 
     public static Result<ImmutableArray<IExpression>> ParseBlock(ParserState state, bool includeOpeningBracket) {
@@ -80,15 +92,15 @@ public class Parser {
         }
 
         while (true) {
-            Result<IExpression> expressionResult = ParseNextStatement(state);
+            Result<IExpression[]> expressionResult = ParseNextStatement(state);
 
-            if (!expressionResult.TryGetValue(out IExpression? expression)) {
+            if (!expressionResult.TryGetValue(out IExpression[]? expression)) {
                 if (expressionResult.Error is InvalidTokenError { Token: ClosingCurlyBracketToken }) break;
 
                 return expressionResult.ToErrorResult();
             }
 
-            blockContent.Add(expression);
+            blockContent.AddRange(expression);
         }
 
         return Ok(blockContent.ToImmutableArray());

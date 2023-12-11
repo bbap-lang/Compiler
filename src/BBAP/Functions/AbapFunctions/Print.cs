@@ -40,4 +40,11 @@ public class Print : IFunction {
             builder.AppendLine(".");
         }
     }
+    
+    
+    public Result<IType[]> GetReturnTypes(int length, int line) {
+        if(length > 0) return Error(line, "'PrintLine' has no return value.");
+        
+        return Ok(Array.Empty<IType>());
+    }
 }

@@ -8,8 +8,8 @@ using BBAP.Types.Types.ParserTypes;
 
 namespace BBAP.Functions;
 
-public record GenericFunction
-(string Name,
+public record GenericFunction(
+    string Name,
     ImmutableArray<IVariable> Parameters,
     ImmutableArray<IVariable> ReturnTypes,
     FunctionAttributes Attributes) : IFunction {
@@ -25,8 +25,8 @@ public record GenericFunction
         if (Parameters.Length > 0) {
             builder.Append("\tUSING ");
             foreach ((VariableExpression input, IVariable parameter) in inputs.Select((x, i) => (x, Parameters[i]))) {
-                builder.Append(parameter.Name);
-                builder.Append(' ');
+                // builder.Append(parameter.Name);
+                // builder.Append( " = ");
                 builder.Append(input.Variable.Name);
                 builder.Append(' ');
             }
@@ -37,14 +37,20 @@ public record GenericFunction
             builder.Append("\tCHANGING ");
             foreach ((VariableExpression output, IVariable returnVar) in
                      outputs.Select((x, i) => (x, ReturnTypes[i]))) {
-                builder.Append(returnVar.Name);
-                builder.Append(' ');
+                // builder.Append(returnVar.Name);
+                // builder.Append( " = ");
                 builder.Append(output.Variable.Name);
                 builder.Append(' ');
             }
         }
 
         builder.AppendLine('.');
+    }
+
+    public Result<IType[]> GetReturnTypes(int length, int line) {
+        if (length > ReturnTypes.Length) return Error(line, "The number of return variables is too large.");
+
+        return Ok(ReturnTypes.Select(x => x.Type).Take(length).ToArray());
     }
 
     public Result<int> Matches(IType[] inputs, IType[] outputs, int line) {
