@@ -23,24 +23,24 @@ jobs:
         
       - name: Build Lib
         run: dotnet build -c Release
-        working-directory: src/bbap
+        working-directory: src/BBAP
       - name: Build Compiler
         run: dotnet build -c Release
-        working-directory: src/compiler
+        working-directory: src/Compiler
         
       - name: Test Lib
         run: dotnet test -c Release --no-build
-        working-directory: src/bbap
+        working-directory: src/BBAP
       - name: Test Compiler
         run: dotnet test -c Release --no-build
-        working-directory: src/compiler
+        working-directory: src/Compiler
         
       - name: Pack Lib
         run: dotnet pack /p:Version=${{ github.ref_name }} -c Release --no-build --output .
-        working-directory: src/bbap
+        working-directory: src/BBAP
       - name: Pack Compiler
         run: dotnet pack /p:Version=${{ github.ref_name }} -c Release --no-build --output .
-        working-directory: src/compiler
+        working-directory: src/Compiler
           
       - name: Push To NuGet
         run: dotnet nuget push "*.nupkg" --api-key ${{ secrets.nuget_api_key }}
