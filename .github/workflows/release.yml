@@ -15,9 +15,11 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.x'
         
       - name: Build Lib
         run: dotnet build ./src/bbap/bbap.csproj -c Release
@@ -25,17 +27,17 @@ jobs:
         run: dotnet build ./src/compiler/compiler.csproj -c Release
         
       - name: Test Lib
-        run: dotnet test ./src/bbap -c Release --no-build
+        run: dotnet test ./src/bbap/bbap.csproj -c Release --no-build
       - name: Test Compiler
         run: dotnet test ./src/compiler/compiler.csproj -c Release --no-build
         
       - name: Pack Lib
-        run: dotnet pack ./src/bbap /p:Version=${{ github.ref_name }} -c Release --no-build --output .
+        run: dotnet pack ./src/bbap/bbap.csproj /p:Version=${{ github.ref_name }} -c Release --no-build --output .
       - name: Pack Compiler
         run: dotnet pack ./src/compiler/compiler.csproj /p:Version=${{ github.ref_name }} -c Release --no-build --output .
           
       - name: Push To NuGet
-        run: dotnet nuget push "*.nupkg" --api-key ${{ secrets.nuget_api_key }} --source https://api.nuget.org/v3/index.json
+        run: dotnet nuget push "*.nupkg" --api-key ${{ secrets.nuget_api_key }}
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
