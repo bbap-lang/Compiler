@@ -1,10 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
+        <OutputType>Exe</OutputType>
         <TargetFramework>net7.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <PackageId>bbap-lang</PackageId>
+        <PackageId>bbap</PackageId>
         <Version>$(Version)</Version>
         <Authors>bbap-lang</Authors>
         <Copyright>bbap-lang</Copyright>
@@ -12,12 +13,14 @@
         <PackageProjectUrl>https://docs.bbap-lang.org/</PackageProjectUrl>
         <PackageLicenseUrl>https://github.com/bbap-lang/Compiler/blob/main/LICENSE</PackageLicenseUrl>
         <RepositoryUrl>https://github.com/bbap-lang/Compiler</RepositoryUrl>
-        <PackageTags>bbap;bbap-lang</PackageTags>
-        <Title>BBAP Compiler Library</Title>
+        <PackageTags>bbap</PackageTags>
+        <PackAsTool>true</PackAsTool>
+        <ToolCommandName>bbap</ToolCommandName>
+        <Title>BBAP</Title>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.7.0"/>
+      <ProjectReference Include="..\BBAP\BBAP.csproj" />
     </ItemGroup>
+
 </Project>

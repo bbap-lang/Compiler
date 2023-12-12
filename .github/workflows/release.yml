@@ -19,11 +19,18 @@ jobs:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v1
       - name: Build
-        run: dotnet build -c Release
+        run: |
+          dotnet build src/bbap -c Release
+          dotnet build src/compiler -c Release
       - name: Test
-        run: dotnet test -c Release --no-build
+        run: |
+          dotnet test src/bbap -c Release --no-build
+          dotnet test src/compiler -c Release --no-build
       - name: Pack
-        run: dotnet pack /p:Version=${{ github.ref_name }} -c Release --no-build --output .
+        run: |
+          dotnet pack src/bbap /p:Version=${{ github.ref_name }} -c Release --no-build --output .
+          dotnet pack src/compiler /p:Version=${{ github.ref_name }} -c Release --no-build --output .
+          
       - name: Push To NuGet
         run: dotnet nuget push "*.nupkg" --api-key ${{ secrets.nuget_api_key }} --source https://api.nuget.org/v3/index.json
       - name: Create Release
