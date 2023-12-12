@@ -19,6 +19,7 @@ public class ParserState {
         Result<IToken> nextTokenResult = Next(typeof(T));
         if (!nextTokenResult.TryGetValue(out IToken? token)) {
             Error error = nextTokenResult.Error;
+            if (error is NoMoreDataError) return nextTokenResult.ToErrorResult();
             if (error is not InvalidTokenError invalidTokenError) throw new UnreachableException();
 
             return Error(invalidTokenError with { CorrectToken = typeof(T) });

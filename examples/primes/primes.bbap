@@ -130,3 +130,7 @@ let selected_vbeln: TABLE<VBELN_VA>;
 selected_vbeln = SELECT vbak.vbeln 
         FROM VBAK
         WHERE vbak.vbeln == "123";
+        
+if(returnOne == 1){
+    printLine("Hello Word 1!");
+}
