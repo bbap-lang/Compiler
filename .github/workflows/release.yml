@@ -18,19 +18,21 @@ jobs:
         uses: actions/checkout@v2
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v1
+        
       - name: Build Lib
-        run: dotnet build ./src/bbap -c Release
+        run: dotnet build ./src/bbap/bbap.csproj -c Release
       - name: Build Compiler
-        run: dotnet build ./src/compiler -c Release
+        run: dotnet build ./src/compiler/compiler.csproj -c Release
+        
       - name: Test Lib
         run: dotnet test ./src/bbap -c Release --no-build
       - name: Test Compiler
-        run: dotnet test ./src/compiler -c Release --no-build
+        run: dotnet test ./src/compiler/compiler.csproj -c Release --no-build
         
       - name: Pack Lib
         run: dotnet pack ./src/bbap /p:Version=${{ github.ref_name }} -c Release --no-build --output .
       - name: Pack Compiler
-        run: dotnet pack ./src/compiler /p:Version=${{ github.ref_name }} -c Release --no-build --output .
+        run: dotnet pack ./src/compiler/compiler.csproj /p:Version=${{ github.ref_name }} -c Release --no-build --output .
           
       - name: Push To NuGet
         run: dotnet nuget push "*.nupkg" --api-key ${{ secrets.nuget_api_key }} --source https://api.nuget.org/v3/index.json
