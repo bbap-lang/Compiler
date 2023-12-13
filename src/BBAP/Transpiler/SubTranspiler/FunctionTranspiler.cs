@@ -37,7 +37,7 @@ public static class FunctionTranspiler {
         builder.AppendLine();
 
         builder.AddIntend();
-        Transpiler.TranspileBlock(functionExpression.ContentBlock, state);
+        Transpiler.TranspileBlock(functionExpression.ContentBlock, state, true);
         builder.RemoveIntend();
 
         builder.AppendLine("ENDFORM.");

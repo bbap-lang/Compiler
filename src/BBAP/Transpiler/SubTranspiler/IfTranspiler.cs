@@ -12,7 +12,7 @@ public static class IfTranspiler {
         ValueTranspiler.Run(ifExpression.Condition, state);
         state.Builder.AppendLine(".");
         state.Builder.AddIntend();
-        Transpiler.TranspileBlock(ifExpression.BlockContent, state);
+        Transpiler.TranspileBlock(ifExpression.BlockContent, state, false);
         state.Builder.RemoveIntend();
         if (ifExpression.ElseExpression is not null) RunElse(ifExpression.ElseExpression, state);
 
@@ -33,7 +33,7 @@ public static class IfTranspiler {
 
         state.Builder.AppendLine("ELSE.");
         state.Builder.AddIntend();
-        Transpiler.TranspileBlock(elseExpression.BlockContent, state);
+        Transpiler.TranspileBlock(elseExpression.BlockContent, state, false);
         state.Builder.RemoveIntend();
     }
 }

@@ -9,7 +9,7 @@ public static class WhileTranspiler {
         ValueTranspiler.Run(whileExpression.Condition, state);
         state.Builder.AppendLine(".");
         state.Builder.AddIntend();
-        Transpiler.TranspileBlock(whileExpression.BlockContent, state);
+        Transpiler.TranspileBlock(whileExpression.BlockContent, state, false);
         state.Builder.RemoveIntend();
         state.Builder.AppendLine("ENDWHILE.");
         state.Builder.AppendLine();

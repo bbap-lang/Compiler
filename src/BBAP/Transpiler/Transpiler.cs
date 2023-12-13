@@ -11,39 +11,20 @@ namespace BBAP.Transpiler;
 public class Transpiler {
     public Result<string> Run(ImmutableArray<IExpression> expressions) {
         var state = new TranspilerState();
-
-        IEnumerable<StructExpression> structDeclarations = GetAllOfType<StructExpression>(expressions);
-        IEnumerable<DeclareExpression> declarations = GetAllOfType<DeclareExpression>(expressions);
-
+        
         state.Builder.AppendLine("\" --- THIS CODE IS AUTOMATICALLY GENERATED FROM BBAP ---");
         state.Builder.AppendLine();
-        foreach (StructExpression structExpression in structDeclarations) {
-            StructTranspiler.Run(structExpression, state);
-        }
 
-        state.Builder.AppendLine();
-        state.Builder.Append("DATA:\t");
-        state.Builder.AddIntend();
-        foreach (DeclareExpression declaration in declarations) {
-            state.Builder.Append(declaration.Variable.Variable.Name);
-            state.Builder.Append(' ');
-            TypeTranspiler.Run(declaration.Type, state.Builder);
-            state.Builder.AppendLine();
-        }
-
-        state.Builder.RemoveIntend();
-
-        state.Builder.AppendLine(".");
-
-        state.Builder.AppendLine();
-        state.Builder.AppendLine();
-
-        TranspileBlock(expressions, state);
+        TranspileBlock(expressions, state, true);
 
         return Ok(state.Builder.ToString());
     }
 
-    public static void TranspileBlock(ImmutableArray<IExpression> expressions, TranspilerState state) {
+    public static void TranspileBlock(ImmutableArray<IExpression> expressions, TranspilerState state, bool includeDeclarations) {
+        if (includeDeclarations) {
+            WriteDeclarations(expressions, state);
+        }
+
         foreach (IExpression expression in expressions) {
             switch (expression) {
                 case SetExpression setExpression:
@@ -84,6 +65,31 @@ public class Transpiler {
         }
     }
 
+    private static void WriteDeclarations(ImmutableArray<IExpression> expressions, TranspilerState state) {
+        IEnumerable<StructExpression> structDeclarations = GetAllOfType<StructExpression>(expressions);
+        IEnumerable<DeclareExpression> declarations = GetAllOfType<DeclareExpression>(expressions);
+        foreach (StructExpression structExpression in structDeclarations) {
+            StructTranspiler.Run(structExpression, state);
+        }
+
+        state.Builder.AppendLine();
+        state.Builder.Append("DATA:\t");
+        state.Builder.AddIntend();
+        foreach (DeclareExpression declaration in declarations) {
+            state.Builder.Append(declaration.Variable.Variable.Name);
+            state.Builder.Append(' ');
+            TypeTranspiler.Run(declaration.Type, state.Builder);
+            state.Builder.AppendLine();
+        }
+
+        state.Builder.RemoveIntend();
+
+        state.Builder.AppendLine(".");
+
+        state.Builder.AppendLine();
+        state.Builder.AppendLine();
+    }
+
 
     private static IEnumerable<T> GetAllOfType<T>(ImmutableArray<IExpression> expressions) {
         foreach (IExpression expression in expressions) {
@@ -103,6 +109,18 @@ public class Transpiler {
                 case IfExpression ifExpression: {
                     foreach (T decEx in GetAllOfType<T>(ifExpression.BlockContent)) {
                         yield return decEx;
+                    }
+                    
+                    if(ifExpression.ElseExpression is IfExpression elseIfExpression) {
+                        foreach (T decEx in GetAllOfType<T>(elseIfExpression.BlockContent)) {
+                            yield return decEx;
+                        }
+                    }
+
+                    if (ifExpression.ElseExpression is ElseExpression elseExpression) {
+                        foreach (T decEx in GetAllOfType<T>(elseExpression.BlockContent)) {
+                            yield return decEx;
+                        }
                     }
 
                     break;
