@@ -9,7 +9,7 @@ namespace BBAP.PreTranspiler.SubPreTranspiler;
 
 public static class ForPreTranspiler {
     public static Result<IExpression[]> Run(ForExpression forExpression, PreTranspilerState state) {
-        state.StackIn();
+        state.StackIn(StackType.Loop);
 
         Result<IExpression[]> initResult = PreTranspiler.RunExpression(state, forExpression.Initializer);
 

@@ -52,6 +52,17 @@ public class Transpiler {
                 case AliasExpression aliasExpression:
                     AliasTranspiler.Run(aliasExpression, state);
                     break;
+                case InfiniteLoop infiniteLoop:
+                    InfiniteLoopTranspiler.Run(infiniteLoop, state);
+                    break;
+                
+                case BreakLoopExpression:
+                    LoopAdditionTranspiler.RunBreak(state.Builder);
+                    break;
+                
+                case ContinueLoopExpression:
+                    LoopAdditionTranspiler.RunContinue(state.Builder);
+                    break;
 
                 // expressions to skip
                 case StructExpression:

@@ -98,7 +98,10 @@ public class PreTranspiler {
             IfExpression ifExpression => IfPreTranspiler.Run(ifExpression, state),
             ForExpression forExpression => ForPreTranspiler.Run(forExpression, state),
             WhileExpression whileExpression => WhilePreTranspiler.Run(whileExpression, state),
-
+            
+            BreakLoopExpression => LoopAdditionPreTranspiler.RunBreak(state, expression.Line),
+            ContinueLoopExpression => LoopAdditionPreTranspiler.RunContinue(state, expression.Line),
+            
             FunctionCallSetExpression functionCallSetExpression =>
                 FunctionCallSetPreTranspiler.Run(functionCallSetExpression, state),
             DeclareFunctionCallSetExpression declareFunctionCallSetExpression =>

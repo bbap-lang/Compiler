@@ -10,7 +10,7 @@ namespace BBAP.PreTranspiler.SubPreTranspiler;
 
 public static class IfPreTranspiler {
     public static Result<IExpression[]> Run(IfExpression ifExpression, PreTranspilerState state) {
-        state.StackIn();
+        state.StackIn(StackType.Fork);
         Result<ImmutableArray<IExpression>> blockResult = PreTranspiler.RunBlock(state, ifExpression.BlockContent);
         if (!blockResult.TryGetValue(out ImmutableArray<IExpression> block)) return blockResult.ToErrorResult();
 
@@ -53,7 +53,7 @@ public static class IfPreTranspiler {
 
         if (expression is not ElseExpression elseExpression) throw new UnreachableException();
 
-        state.StackIn();
+        state.StackIn(StackType.Fork);
         Result<ImmutableArray<IExpression>> blockResult = PreTranspiler.RunBlock(state, elseExpression.BlockContent);
         if (!blockResult.TryGetValue(out ImmutableArray<IExpression> block)) return blockResult.ToErrorResult();
 

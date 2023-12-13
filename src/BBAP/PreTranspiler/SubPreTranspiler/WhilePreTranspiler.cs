@@ -9,14 +9,17 @@ namespace BBAP.PreTranspiler.SubPreTranspiler;
 
 public static class WhilePreTranspiler {
     public static Result<IExpression[]> Run(WhileExpression whileExpression, PreTranspilerState state) {
-        state.StackIn();
+        state.StackIn(StackType.Loop);
 
         Result<ImmutableArray<IExpression>> blockResult = PreTranspiler.RunBlock(state, whileExpression.BlockContent);
         if (!blockResult.TryGetValue(out ImmutableArray<IExpression> block)) return blockResult.ToErrorResult();
 
 
         if (whileExpression.Condition is BooleanValueExpression booleanValueExpression) {
-            if (booleanValueExpression.Value) return Ok(block.ToArray());
+            if (booleanValueExpression.Value) {
+                var infiniteLoop = new InfiniteLoop(whileExpression.Line, block);
+                return Ok(new IExpression[]{infiniteLoop});
+            }
 
             return Ok(Array.Empty<IExpression>());
         }

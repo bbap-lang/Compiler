@@ -14,7 +14,7 @@ public static class FunctionPreTranspiler {
     public static Result<SecondStageFunctionExpression> Create(FunctionExpression functionExpression,
         IType? extendForType,
         PreTranspilerState state) {
-        string stackName = state.StackIn();
+        string stackName = state.StackIn(StackType.Function);
         var parameters = new List<VariableExpression>();
 
         var attributes = FunctionAttributes.None;
@@ -90,7 +90,7 @@ public static class FunctionPreTranspiler {
         SecondStageFunctionExpression declaredFunction
             = state.GetDeclaredFunction(functionName);
 
-        state.StackIn(declaredFunction.StackName);
+        state.StackIn(declaredFunction.StackName, StackType.Function);
 
         IVariable[] returnVariables = declaredFunction.ReturnVariables.Select(x => x.Variable).ToArray();
         state.GoIntoFunction(returnVariables);

@@ -140,4 +140,14 @@ if(returnOne == 1){
     printLine("Hello Word 1!");
 }
 
-test(0
+test(0);
+
+let testI = 0;
+
+while true{
+    testI++;
+    
+    if(testI == 10){
+        break;
+    }
+}

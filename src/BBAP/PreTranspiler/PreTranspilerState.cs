@@ -26,7 +26,9 @@ public class PreTranspilerState {
     };
 
     private readonly DefaultClasses.Stack<IVariable[]> _returnVariables = new();
-    private readonly DefaultClasses.Stack<string> _stack = new();
+
+    private record StackItem(string Name, StackType Type);
+    private readonly DefaultClasses.Stack<StackItem> _stack = new();
 
     private readonly Dictionary<string, IType> _variables = new();
 
@@ -35,14 +37,14 @@ public class PreTranspilerState {
     private bool _useStack;
 
     public PreTranspilerState() {
-        _stack.Push("");
+        _stack.Push(new StackItem("", StackType.None));
     }
 
     public TypeCollection Types { get; } = new();
 
     public Result<IVariable> GetVariable(string name, int line) {
-        foreach (string layer in _stack) {
-            string variableName = $"{name}_{layer}";
+        foreach (StackItem layer in _stack) {
+            string variableName = $"{name}_{layer.Name}";
             if (_variables.TryGetValue(variableName, out IType? type))
                 return Ok<IVariable>(new Variable(type, variableName));
         }
@@ -78,24 +80,28 @@ public class PreTranspilerState {
         return Ok(lastVariable);
     }
 
-    public string StackIn() {
+    public string StackIn(StackType stackType) {
         string stackName = GetNextStackName();
 
-        StackIn(stackName);
+        StackIn(stackName, stackType);
 
         return stackName;
     }
 
-    public void StackIn(string stackName) {
-        _stack.Push(stackName);
+    public void StackIn(string stackName, StackType stackType) {
+        _stack.Push(new StackItem(stackName, stackType));
     }
 
     public void StackOut() {
         _stack.Pop();
     }
+    
+    public bool IsIn(StackType stackType) {
+        return _stack.Any(layer => layer.Type == stackType);
+    }
 
     public Result<string> CreateVar(string name, IType type, int line) {
-        string variableName = _useStack ? $"{name}_{_stack.Peek()}" : name;
+        string variableName = _useStack ? $"{name}_{_stack.Peek().Name}" : name;
         if (_variables.ContainsKey(variableName))
             return Error(line, $"The variable '{name}' does already exists in this context.");
 
@@ -230,4 +236,11 @@ public class PreTranspilerState {
     }
 
     public record GetFunctionResponse(IFunction Function, IVariable? FirstParameter);
+}
+
+public enum StackType {
+    None,
+    Function,
+    Loop,
+    Fork
 }
