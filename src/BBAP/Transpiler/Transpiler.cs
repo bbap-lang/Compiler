@@ -107,24 +107,30 @@ public class Transpiler {
                 }
 
                 case IfExpression ifExpression: {
-                    foreach (T decEx in GetAllOfType<T>(ifExpression.BlockContent)) {
-                        yield return decEx;
-                    }
-                    
-                    if(ifExpression.ElseExpression is IfExpression elseIfExpression) {
-                        foreach (T decEx in GetAllOfType<T>(elseIfExpression.BlockContent)) {
-                            yield return decEx;
-                        }
-                    }
-
-                    if (ifExpression.ElseExpression is ElseExpression elseExpression) {
-                        foreach (T decEx in GetAllOfType<T>(elseExpression.BlockContent)) {
-                            yield return decEx;
-                        }
+                    foreach (T p in AddElseDeclarations<T>(ifExpression)) {
+                        yield return p;
                     }
 
                     break;
                 }
+            }
+        }
+    }
+
+    private static IEnumerable<T> AddElseDeclarations<T>(IfExpression ifExpression) {
+        foreach (T decEx in GetAllOfType<T>(ifExpression.BlockContent)) {
+            yield return decEx;
+        }
+
+        if(ifExpression.ElseExpression is IfExpression elseIfExpression) {
+            foreach (T decEx in AddElseDeclarations<T>(elseIfExpression)) {
+                yield return decEx;
+            }
+        }
+
+        if (ifExpression.ElseExpression is ElseExpression elseExpression) {
+            foreach (T decEx in GetAllOfType<T>(elseExpression.BlockContent)) {
+                yield return decEx;
             }
         }
     }
