@@ -72,6 +72,10 @@ public class Parser {
             if (result.Value.TryGetValue(out var value)) {
                 return Ok(new[] {value});
             }
+
+            if (result.Value.Error is NoMoreDataError) {
+                return Error(result.Value.Error.Line, "Unexpected end of file.");
+            }
             
             return result.Value.ToErrorResult();
         }

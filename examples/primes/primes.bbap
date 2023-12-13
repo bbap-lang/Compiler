@@ -139,3 +139,5 @@ selected_vbeln = SELECT vbak.vbeln
 if(returnOne == 1){
     printLine("Hello Word 1!");
 }
+
+test(0

@@ -1,6 +1,6 @@
 ﻿namespace BBAP.Results;
 
-public record NoMoreDataError() : Error(0, string.Empty) {
+public record NoMoreDataError(int line) : Error(line, string.Empty) {
     public override string ToString() {
         return "Unexpected end of file";
     }

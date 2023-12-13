@@ -34,7 +34,7 @@ public class ParserState {
         if (!validTokenTypes.Any(x => x.Implements(typeof(IToken)))) throw new UnreachableException();
 
         _index++;
-        if (_index >= _tokens.Length) return Error(new NoMoreDataError());
+        if (_index >= _tokens.Length) return Error(new NoMoreDataError(_tokens.Length == 0 ? 0 : _tokens[^1].Line));
 
         IToken token = _tokens[_index];
         Type tokenType = token.GetType();
