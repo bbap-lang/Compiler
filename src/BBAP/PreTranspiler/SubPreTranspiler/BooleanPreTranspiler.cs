@@ -8,11 +8,13 @@ using BBAP.Types;
 namespace BBAP.PreTranspiler.SubPreTranspiler;
 
 public class BooleanPreTranspiler {
-    public static Result<IExpression[]> Run(PreTranspilerState state, BooleanExpression booleanExpression) {
-        Result<IExpression[]> leftResult = ValueSplitter.Run(state, booleanExpression.Left);
+    public static Result<IExpression[]> Run(PreTranspilerState state,
+        BooleanExpression booleanExpression,
+        bool isInCondition) {
+        Result<IExpression[]> leftResult = ValueSplitter.Run(state, booleanExpression.Left, isInCondition);
         if (!leftResult.TryGetValue(out IExpression[]? left)) return leftResult;
 
-        Result<IExpression[]> rightResult = ValueSplitter.Run(state, booleanExpression.Right);
+        Result<IExpression[]> rightResult = ValueSplitter.Run(state, booleanExpression.Right, isInCondition);
         if (!rightResult.TryGetValue(out IExpression[]? right)) return rightResult;
 
         int line = booleanExpression.Line;

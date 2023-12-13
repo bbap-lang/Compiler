@@ -1,3 +1,7 @@
+if(1<0 && 2>1){
+    printLine("Hello Word 1!");
+}
+
 enum TestEnum: string{
     test1 = "One",
     test2 = "Two",

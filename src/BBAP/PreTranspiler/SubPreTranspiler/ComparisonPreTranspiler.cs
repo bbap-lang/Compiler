@@ -8,11 +8,13 @@ using BBAP.Types;
 namespace BBAP.PreTranspiler.SubPreTranspiler;
 
 public static class ComparisonPreTranspiler {
-    public static Result<IExpression[]> Run(PreTranspilerState state, ComparisonExpression comparisonExpression) {
-        Result<IExpression[]> leftResult = ValueSplitter.Run(state, comparisonExpression.Left);
+    public static Result<IExpression[]> Run(PreTranspilerState state,
+        ComparisonExpression comparisonExpression,
+        bool isInCondition) {
+        Result<IExpression[]> leftResult = ValueSplitter.Run(state, comparisonExpression.Left, isInCondition);
         if (!leftResult.TryGetValue(out IExpression[]? left)) return leftResult;
 
-        Result<IExpression[]> rightResult = ValueSplitter.Run(state, comparisonExpression.Right);
+        Result<IExpression[]> rightResult = ValueSplitter.Run(state, comparisonExpression.Right, isInCondition);
         if (!rightResult.TryGetValue(out IExpression[]? right)) return rightResult;
 
         int line = comparisonExpression.Line;

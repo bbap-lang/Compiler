@@ -52,9 +52,9 @@ public static class ValueSplitter {
         if (newExpressionResult.Error is not TemporaryError) return newExpressionResult.ToErrorResult();
 
         Result<IExpression[]> newExpressionsResult = expression switch {
-            MathCalculationExpression mathEx => SplitMathCalculation(state, mathEx),
-            ComparisonExpression comparisonEx => ComparisonPreTranspiler.Run(state, comparisonEx),
-            BooleanExpression booleanExpression => BooleanPreTranspiler.Run(state, booleanExpression),
+            MathCalculationExpression mathEx => SplitMathCalculation(state, mathEx, isInCondition),
+            ComparisonExpression comparisonEx => ComparisonPreTranspiler.Run(state, comparisonEx, isInCondition),
+            BooleanExpression booleanExpression => BooleanPreTranspiler.Run(state, booleanExpression, isInCondition),
             NotExpression notExpression => CreateNotExpression(state, notExpression),
             NegativeExpression negativeExpression => CreateNegativeExpression(state, negativeExpression),
 
@@ -111,7 +111,8 @@ public static class ValueSplitter {
         return Ok(combined);
     }
 
-    private static Result<IExpression[]> CreateNotExpression(PreTranspilerState state, NotExpression expression) {
+    private static Result<IExpression[]> CreateNotExpression(PreTranspilerState state,
+        NotExpression expression) {
         Result<IExpression[]> innerExpressionResult = Run(state, expression.Inner, true);
         if (!innerExpressionResult.TryGetValue(out IExpression[]? allExpressions))
             return innerExpressionResult.ToErrorResult();
@@ -183,7 +184,8 @@ public static class ValueSplitter {
     }
 
     private static Result<IExpression[]> SplitMathCalculation(PreTranspilerState state,
-        MathCalculationExpression expression) {
+        MathCalculationExpression expression,
+        bool isInCondition) {
         SecondStageCalculationType calculationType = expression.CalculationType switch {
             CalculationType.Plus => SecondStageCalculationType.Plus,
             CalculationType.Minus => SecondStageCalculationType.Minus,
@@ -196,10 +198,10 @@ public static class ValueSplitter {
             _ => throw new UnreachableException()
         };
 
-        Result<IExpression[]> leftResult = Run(state, expression.Left);
+        Result<IExpression[]> leftResult = Run(state, expression.Left, isInCondition);
         if (!leftResult.TryGetValue(out IExpression[]? left)) return leftResult;
 
-        Result<IExpression[]> rightResult = Run(state, expression.Right);
+        Result<IExpression[]> rightResult = Run(state, expression.Right, isInCondition);
         if (!rightResult.TryGetValue(out IExpression[]? right)) return rightResult;
 
         IExpression lastLeft = left.Last();
