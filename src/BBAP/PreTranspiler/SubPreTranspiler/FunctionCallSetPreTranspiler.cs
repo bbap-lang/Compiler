@@ -100,7 +100,9 @@ public static class FunctionCallSetPreTranspiler {
         foreach ((VariableExpression returnVariable, int index) in decFunctionCallSetExpression.ReturnVariables.Select((x, i) => (x, i))) {
             IType returnType = returnVariableTypes[index];
 
-            Result<string> newVarResult = state.CreateVar(returnVariable.Variable.Name, returnType, returnVariable.Line);
+            MutabilityType mutability = decFunctionCallSetExpression.Mutability == MutabilityType.Const ? MutabilityType.Immutable : MutabilityType.Mutable;
+            
+            Result<string> newVarResult = state.CreateVar(returnVariable.Variable.Name, returnType, mutability , returnVariable.Line);
             if (!newVarResult.TryGetValue(out string? newVariableName)) return newVarResult.ToErrorResult();
 
             Result<IVariable> newVariableResult = state.GetVariable(newVariableName, decFunctionCallSetExpression.Line);
@@ -115,7 +117,7 @@ public static class FunctionCallSetPreTranspiler {
 
         foreach (VariableExpression returnVariable in returnVariables) {
             var typeExpression = new TypeExpression(returnVariable.Line, returnVariable.Variable.Type);
-            var declareExpression = new DeclareExpression(returnVariable.Line, returnVariable, typeExpression, null);
+            var declareExpression = new DeclareExpression(returnVariable.Line, returnVariable, typeExpression, null, returnVariable.Variable.MutabilityType);
             allExpressions.Add(declareExpression);
         }
 

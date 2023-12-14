@@ -13,6 +13,8 @@ public static class IncrementPreTranspiler {
         Result<IVariable> variableResult
             = state.GetVariable(incrementExpression.Variable.Variable.Name, incrementExpression.Line);
         if (!variableResult.TryGetValue(out IVariable variable)) return variableResult.ToErrorResult();
+        if(variable.MutabilityType != MutabilityType.Mutable) return Error(incrementExpression.Line, $"Cannot set the value of a non mutable variable '{variable.Name}'");
+
 
         VariableExpression variableExpression = incrementExpression.Variable with { Variable = variable };
         SetType setType = incrementExpression.IncrementType switch {

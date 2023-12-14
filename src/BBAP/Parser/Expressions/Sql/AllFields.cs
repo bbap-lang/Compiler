@@ -8,4 +8,6 @@ public class AllFields : IVariable {
     public IType Type => new UnknownType();
 
     public string Name => "*";
+
+    public MutabilityType MutabilityType => MutabilityType.Mutable;
 }

@@ -166,3 +166,8 @@ switch testI{
         printline("Unknown");
     }
 }
+
+const testConst = 1;
+const testConst2 = 1 + 2;
+
+let testVariable123 = testConst2;

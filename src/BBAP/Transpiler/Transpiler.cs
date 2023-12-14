@@ -3,6 +3,7 @@ using BBAP.Parser.Expressions;
 using BBAP.Parser.Expressions.Blocks;
 using BBAP.PreTranspiler.Expressions;
 using BBAP.PreTranspiler.Expressions.Sql;
+using BBAP.PreTranspiler.Variables;
 using BBAP.Results;
 using BBAP.Transpiler.SubTranspiler;
 
@@ -83,10 +84,22 @@ public class Transpiler {
             StructTranspiler.Run(structExpression, state);
         }
 
+        IEnumerable<DeclareExpression> constDeclarations = declarations.Where(x => x.Variable.Variable.MutabilityType == MutabilityType.Const);
+        IEnumerable<DeclareExpression> notConstDeclarations = declarations.Where(x => x.Variable.Variable.MutabilityType != MutabilityType.Const);
+        
         state.Builder.AppendLine();
+        WriteDeclarations(state, notConstDeclarations, constDeclarations);
+
+        state.Builder.AppendLine();
+        state.Builder.AppendLine();
+    }
+
+    private static void WriteDeclarations(TranspilerState state,
+        IEnumerable<DeclareExpression> notConstDeclarations,
+        IEnumerable<DeclareExpression> constDeclarations) {
         state.Builder.Append("DATA:\t");
         state.Builder.AddIntend();
-        foreach (DeclareExpression declaration in declarations) {
+        foreach (DeclareExpression declaration in notConstDeclarations) {
             state.Builder.Append(declaration.Variable.Variable.Name);
             state.Builder.Append(' ');
             TypeTranspiler.Run(declaration.Type, state.Builder);
@@ -96,9 +109,21 @@ public class Transpiler {
         state.Builder.RemoveIntend();
 
         state.Builder.AppendLine(".");
+        
+        
+        state.Builder.AppendLine();
+        state.Builder.Append("CONST:\t");
+        state.Builder.AddIntend();
+        foreach (DeclareExpression declaration in constDeclarations) {
+            state.Builder.Append(declaration.Variable.Variable.Name);
+            state.Builder.Append(' ');
+            TypeTranspiler.Run(declaration.Type, state.Builder);
+            state.Builder.AppendLine();
+        }
 
-        state.Builder.AppendLine();
-        state.Builder.AppendLine();
+        state.Builder.RemoveIntend();
+
+        state.Builder.AppendLine(".");
     }
 
 

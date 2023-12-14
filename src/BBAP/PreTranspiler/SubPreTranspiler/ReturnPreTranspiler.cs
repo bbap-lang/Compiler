@@ -39,10 +39,10 @@ public static class ReturnPreTranspiler {
 
             var typeExpression = new TypeExpression(returnExpression.Line, returnVariable.Type);
             var variableExpression
-                = new VariableExpression(returnExpression.Line, new Variable(returnVariable.Type, returnVariable.Name));
+                = new VariableExpression(returnExpression.Line, new Variable(returnVariable.Type, returnVariable.Name, MutabilityType.Mutable));
             var setExpression = new SetExpression(returnExpression.Line, variableExpression, SetType.Generic, value);
             var declareExpression
-                = new DeclareExpression(returnExpression.Line, variableExpression, typeExpression, setExpression);
+                = new DeclareExpression(returnExpression.Line, variableExpression, typeExpression, setExpression, MutabilityType.Mutable);
             newExpressions.Add(declareExpression);
         }
 

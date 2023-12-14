@@ -35,7 +35,7 @@ public static class StructParser {
             Result<TypeExpression> typeResult = TypeParser.Run(state);
             if (!typeResult.TryGetValue(out TypeExpression? type)) return typeResult.ToErrorResult();
 
-            var newField = new VariableExpression(fieldName.Line, new Variable(type.Type, fieldName.Value));
+            var newField = new VariableExpression(fieldName.Line, new Variable(type.Type, fieldName.Value, MutabilityType.Mutable));
             fields.Add(newField);
 
             Result<IToken> endTokenResult = state.Next(typeof(CommaToken), typeof(ClosingCurlyBracketToken));

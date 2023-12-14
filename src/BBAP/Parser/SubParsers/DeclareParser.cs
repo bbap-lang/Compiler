@@ -14,7 +14,9 @@ using BBAP.Types.Types.ParserTypes;
 namespace BBAP.Parser.SubParsers;
 
 public static class DeclareParser {
-    public static Result<IExpression> Run(ParserState state, int line) {
+    public static Result<IExpression> Run(ParserState state, int line, bool isConst) {
+        var mutabilityType = isConst ? MutabilityType.Const : MutabilityType.Mutable;
+        
         Result<OpeningGenericBracketToken> openBracketResult = state.Next<OpeningGenericBracketToken>();
         
         ImmutableArray<UnknownWordToken> variableNames;
@@ -32,7 +34,7 @@ public static class DeclareParser {
         }
 
         if (variableNames.Length > 1) {
-            return ParseFunctionCall(state, line, variableNames);
+            return ParseFunctionCall(state, line, variableNames, mutabilityType);
         }
         UnknownWordToken variableName = variableNames[0];
         
@@ -56,8 +58,8 @@ public static class DeclareParser {
             
             if (token is SemicolonToken) {
                 variableExpression
-                    = new VariableExpression(line, new Variable(new UnknownType(), variableName.Value));
-                declareExpression = new DeclareExpression(variableName.Line, variableExpression, typeExpression, null);
+                    = new VariableExpression(line, new Variable(new UnknownType(), variableName.Value, mutabilityType));
+                declareExpression = new DeclareExpression(variableName.Line, variableExpression, typeExpression, null, mutabilityType);
                 return Ok<IExpression>(declareExpression);
             }
         } else {
@@ -68,13 +70,13 @@ public static class DeclareParser {
         if (!valueResult.TryGetValue(out IExpression? value)) return valueResult.ToErrorResult();
 
         variableExpression
-            = new VariableExpression(variableName.Line, new Variable(new UnknownType(), variableName.Value));
+            = new VariableExpression(variableName.Line, new Variable(new UnknownType(), variableName.Value, mutabilityType));
         var setExpression = new SetExpression(value.Line, variableExpression, SetType.Generic, value);
-        declareExpression = new DeclareExpression(variableName.Line, variableExpression, typeExpression, setExpression);
+        declareExpression = new DeclareExpression(variableName.Line, variableExpression, typeExpression, setExpression, mutabilityType);
         return Ok<IExpression>(declareExpression);
     }
 
-    private static Result<IExpression> ParseFunctionCall(ParserState state, int line, ImmutableArray<UnknownWordToken> variableNames) {
+    private static Result<IExpression> ParseFunctionCall(ParserState state, int line, ImmutableArray<UnknownWordToken> variableNames, MutabilityType mutabilityType) {
         Result<SetToken> setTokenResult = state.Next<SetToken>();
 
         if (!setTokenResult.IsSuccess) return setTokenResult.ToErrorResult();
@@ -91,13 +93,13 @@ public static class DeclareParser {
 
         state.SkipSemicolon();
 
-        var variableExpressions
-            = variableNames.Select(x => new VariableExpression(x.Line, new Variable(new UnknownType(), x.Value))).ToImmutableArray();
+        ImmutableArray<VariableExpression> variableExpressions
+            = variableNames.Select(x => new VariableExpression(x.Line, new Variable(new UnknownType(), x.Value, mutabilityType))).ToImmutableArray();
         
         var functionCallSetExpression = new DeclareFunctionCallSetExpression(functionCallExpression.Line,
                                                                              functionCallExpression.Name,
                                                                              functionCallExpression.Parameters,
-                                                                             variableExpressions);
+                                                                             variableExpressions, mutabilityType);
 
         
         return Ok<IExpression>(functionCallSetExpression);

@@ -24,9 +24,6 @@ public class NewStructPreTranspiler {
         var structVarExpression = new VariableExpression(structSetExpression.Line, structVar);
         var structTypeExpression = new TypeExpression(structSetExpression.Line, type);
 
-        var declareExpression
-            = new DeclareExpression(structSetExpression.Line, structVarExpression, structTypeExpression, null);
-
         List<IExpression> additionalExpressions = new();
         Result<IExpression[]> setExpressionsResults = structSetExpression.Fields.Select(x => {
             Variable? field = type.Fields.FirstOrDefault(y => y.Name == x.Variable.Variable.Name);

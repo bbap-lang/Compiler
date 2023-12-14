@@ -348,7 +348,7 @@ public static class ValueSplitter {
         var typeExpression = new TypeExpression(expression.Line, NewType);
         VariableExpression leftVar = state.CreateRandomNewVar(expression.Line, NewType);
         var leftSet = new SetExpression(lastLeft.Line, leftVar, SetType.Generic, lastLeft);
-        var newDeclareExpression = new DeclareExpression(expression.Line, leftVar, typeExpression, leftSet);
+        var newDeclareExpression = new DeclareExpression(expression.Line, leftVar, typeExpression, leftSet, MutabilityType.Mutable);
 
         var newValueExpression
             = new SecondStageValueExpression(expression.Line, new TypeExpression(expression.Line, NewType), leftVar);

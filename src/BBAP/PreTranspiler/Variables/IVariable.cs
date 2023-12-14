@@ -5,6 +5,13 @@ namespace BBAP.PreTranspiler.Variables;
 public interface IVariable {
     public IType Type { get; }
     public string Name { get; }
+    public MutabilityType MutabilityType { get; }
+}
+
+public enum MutabilityType {
+    Mutable,
+    Immutable,
+    Const
 }
 
 public static class VariableMethods {

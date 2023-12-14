@@ -45,7 +45,7 @@ public class Parser {
                                                 typeof(DoToken), typeof(LetToken), typeof(FunctionToken),
                                                 typeof(ReturnToken), typeof(OpeningGenericBracketToken),
                                                 typeof(AliasToken), typeof(StructToken), typeof(ExtendToken),
-                                                typeof(PublicToken), typeof(EnumToken), typeof(BreakToken), typeof(ContinueToken), typeof(SwitchToken));
+                                                typeof(PublicToken), typeof(EnumToken), typeof(BreakToken), typeof(ContinueToken), typeof(SwitchToken), typeof(ConstToken));
 
         if (!tokenResult.TryGetValue(out IToken? token)) return tokenResult.ToErrorResult();
 
@@ -68,7 +68,8 @@ public class Parser {
             BreakToken => LoopAdditionExpression.RunBreak(state, token.Line),
             ContinueToken => LoopAdditionExpression.RunContinue(state, token.Line),
 
-            LetToken => DeclareParser.Run(state, token.Line),
+            LetToken => DeclareParser.Run(state, token.Line, false),
+            ConstToken => DeclareParser.Run(state, token.Line, true),
             OpeningGenericBracketToken => FunctionCallParser.RunFull(state, token.Line),
             _ => null
         };

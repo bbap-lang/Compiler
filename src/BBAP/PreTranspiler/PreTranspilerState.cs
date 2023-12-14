@@ -30,7 +30,8 @@ public class PreTranspilerState {
     private record StackItem(string Name, StackType Type);
     private readonly DefaultClasses.Stack<StackItem> _stack = new();
 
-    private readonly Dictionary<string, IType> _variables = new();
+    private record VariableData(IType Type, MutabilityType MutabilityType);
+    private readonly Dictionary<string, VariableData> _variables = new();
 
     private ulong _currentStackCount;
 
@@ -45,11 +46,11 @@ public class PreTranspilerState {
     public Result<IVariable> GetVariable(string name, int line) {
         foreach (StackItem layer in _stack) {
             string variableName = $"{name}_{layer.Name}";
-            if (_variables.TryGetValue(variableName, out IType? type))
-                return Ok<IVariable>(new Variable(type, variableName));
+            if (_variables.TryGetValue(variableName, out VariableData? variable))
+                return Ok<IVariable>(new Variable(variable.Type, variableName, variable.MutabilityType));
         }
 
-        if (_variables.TryGetValue(name, out IType? varType)) return Ok<IVariable>(new Variable(varType, name));
+        if (_variables.TryGetValue(name, out var variableData)) return Ok<IVariable>(new Variable(variableData.Type, name, variableData.MutabilityType));
 
         return Error(line, $"Variable '{name}' was not defined");
     }
@@ -100,18 +101,18 @@ public class PreTranspilerState {
         return _stack.Any(layer => layer.Type == stackType);
     }
 
-    public Result<string> CreateVar(string name, IType type, int line) {
+    public Result<string> CreateVar(string name, IType type, MutabilityType mutabilityType, int line) {
         string variableName = _useStack ? $"{name}_{_stack.Peek().Name}" : name;
         if (_variables.ContainsKey(variableName))
             return Error(line, $"The variable '{name}' does already exists in this context.");
 
-        _variables.Add(variableName, type);
+        _variables.Add(variableName, new VariableData(type, mutabilityType));
 
         return Ok(variableName);
     }
 
     public VariableExpression CreateRandomNewVar(int line, IType type) {
-        return new VariableExpression(line, new Variable(type, GenerateInternalVariableName(type)));
+        return new VariableExpression(line, new Variable(type, GenerateInternalVariableName(type), MutabilityType.Immutable));
     }
 
 
@@ -122,7 +123,7 @@ public class PreTranspilerState {
             newName = "INTERNAL_" + GenerateRandomString(5);
         } while (_variables.ContainsKey(newName));
 
-        _variables.Add(newName, type);
+        _variables.Add(newName, new VariableData(type, MutabilityType.Immutable));
         return newName;
     }
 
@@ -231,7 +232,7 @@ public class PreTranspilerState {
 
         string[] variablesToReplace = _variables.Where(x => x.Value == oldType).Select(x => x.Key).ToArray();
         foreach (string variable in variablesToReplace) {
-            _variables[variable] = newType;
+            _variables[variable] = _variables[variable] with { Type = newType };
         }
     }
 

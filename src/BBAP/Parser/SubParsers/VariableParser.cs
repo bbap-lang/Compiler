@@ -19,7 +19,7 @@ public class VariableParser {
             string typeName = combinedWord.NameSpace[0];
             string variableName = combinedWord.NameSpace[1];
             
-            variable = new StaticVariable(new UnknownType(), variableName, new OnlyNameType(typeName));
+            variable = new StaticVariable(new UnknownType(), variableName, new OnlyNameType(typeName), MutabilityType.Mutable);
             return new VariableExpression(combinedWord.Line, variable);
         }
         
@@ -27,7 +27,7 @@ public class VariableParser {
             if (variable is not null)
                 variable = new FieldVariable(new UnknownType(), wordToken, variable);
             else
-                variable = new Variable(new UnknownType(), wordToken);
+                variable = new Variable(new UnknownType(), wordToken, MutabilityType.Mutable);
         }
 
         variableExpression = new VariableExpression(combinedWord.Line, variable);

@@ -15,6 +15,7 @@ public static class Keywords {
     public const string If = "IF";
     public const string Else = "ELSE";
     public const string Let = "LET";
+    public const string Const = "CONST";
     public const string While = "WHILE";
     public const string Function = "FUNC";
     public const string Switch = "SWITCH";

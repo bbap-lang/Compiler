@@ -2,4 +2,4 @@
 
 namespace BBAP.PreTranspiler.Variables; 
 
-public record StaticVariable(IType Type, string Name, IType SourceType) :IVariable;
+public record StaticVariable(IType Type, string Name, IType SourceType, MutabilityType MutabilityType) :IVariable;

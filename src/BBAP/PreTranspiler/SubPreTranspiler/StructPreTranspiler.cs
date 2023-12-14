@@ -30,7 +30,7 @@ public static class StructPreTranspiler {
             Result<IType> typeResult = state.Types.Get(field.Line, field.Variable.Type.Name);
             if (!typeResult.TryGetValue(out IType? type)) return typeResult.ToErrorResult();
 
-            VariableExpression newField = field with { Variable = new Variable(type, field.Variable.Name) };
+            VariableExpression newField = field with { Variable = new Variable(type, field.Variable.Name, MutabilityType.Mutable) };
 
             fields.Add(newField);
         }
@@ -55,7 +55,7 @@ public static class StructPreTranspiler {
             Result<IType> typeResult = state.Types.Get(field.Line, field.Variable.Type.Name);
             if (!typeResult.TryGetValue(out IType? type)) return typeResult.ToErrorResult();
 
-            VariableExpression newField = field with { Variable = new Variable(type, field.Variable.Name) };
+            VariableExpression newField = field with { Variable = new Variable(type, field.Variable.Name, MutabilityType.Mutable) };
             fields.Add(newField);
         }
 

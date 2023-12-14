@@ -20,6 +20,7 @@ public static class SetPreTranspiler {
             Result<IVariable> variableResult
                 = state.GetVariable(setExpression.Variable.Variable, setExpression.Variable.Line);
             if (!variableResult.TryGetValue(out variable)) return variableResult.ToErrorResult();
+            if(variable.MutabilityType != MutabilityType.Mutable) return Error(setExpression.Line, $"Cannot set the value of a non mutable variable '{variable.Name}'");
         } else {
             variable = setExpression.Variable.Variable;
         }

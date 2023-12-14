@@ -7,6 +7,7 @@ using BBAP.PreTranspiler.Variables;
 using BBAP.Results;
 using BBAP.Types;
 using BBAP.Types.Types.ParserTypes;
+using Error = BBAP.Results.Error;
 
 namespace BBAP.PreTranspiler.SubPreTranspiler;
 
@@ -28,12 +29,16 @@ public static class DeclarePreTranspiler {
 
             if (!typeResult.TryGetValue(out type)) return typeResult.ToErrorResult();
 
-            newVarResult = state.CreateVar(declareExpression.Variable.Variable.Name, type, declareExpression.Line);
+            if (declareExpression.MutabilityType != MutabilityType.Mutable) {
+                return Error(declareExpression.Line, "Only mutable variables can be declared without initial value.");
+            }
+            
+            newVarResult = state.CreateVar(declareExpression.Variable.Variable.Name, type, declareExpression.MutabilityType, declareExpression.Line);
 
             if (!newVarResult.TryGetValue(out newVar)) return newVarResult.ToErrorResult();
 
 
-            variableExpression = new VariableExpression(declareExpression.Line, new Variable(type, newVar));
+            variableExpression = new VariableExpression(declareExpression.Line, new Variable(type, newVar, declareExpression.MutabilityType));
             DeclareExpression newDeclareExpressionWithoutSet = declareExpression with {
                 Variable = variableExpression, Type = declareExpression.Type with { Type = type }
             };
@@ -50,14 +55,18 @@ public static class DeclarePreTranspiler {
             Result<IType> newVarTypeResultFunc = GetTypeFromValue(declareExpression, funcCall, state);
             if (!newVarTypeResultFunc.TryGetValue(out type)) return newVarTypeResultFunc.ToErrorResult();
 
-            newVarResult = state.CreateVar(declareExpression.Variable.Variable.Name, type, declareExpression.Line);
+            var mutability = declareExpression.MutabilityType == MutabilityType.Mutable
+                ? MutabilityType.Mutable
+                : MutabilityType.Immutable;
+            
+            newVarResult = state.CreateVar(declareExpression.Variable.Variable.Name, type, mutability, declareExpression.Line);
 
             if (!newVarResult.TryGetValue(out newVar)) return newVarResult.ToErrorResult();
 
-            variableExpression = new VariableExpression(declareExpression.Line, new Variable(type, newVar));
+            variableExpression = new VariableExpression(declareExpression.Line, new Variable(type, newVar, mutability));
 
             var emptyDeclare = new DeclareExpression(declareExpression.Line, variableExpression,
-                                                     new TypeExpression(funcCall.Line, type), null);
+                                                     new TypeExpression(funcCall.Line, type), null, mutability);
 
             SecondStageFunctionCallExpression newFuncCall = funcCall with {
                 Outputs = ImmutableArray.Create(variableExpression)
@@ -73,16 +82,18 @@ public static class DeclarePreTranspiler {
 
         if (setExpression.Value is not ISecondStageValue value) throw new UnreachableException();
 
+        MutabilityType mutabilityType = GetMutibility(value, declareExpression.MutabilityType);
+        
         Result<IType> newVarTypeResult = GetTypeFromValue(declareExpression, value, state);
         if (!newVarTypeResult.TryGetValue(out type)) return newVarTypeResult.ToErrorResult();
 
         additionalExpressions = splittedValue;
 
-        newVarResult = state.CreateVar(declareExpression.Variable.Variable.Name, type, declareExpression.Line);
+        newVarResult = state.CreateVar(declareExpression.Variable.Variable.Name, type, mutabilityType, declareExpression.Line);
 
         if (!newVarResult.TryGetValue(out newVar)) return newVarResult.ToErrorResult();
 
-        variableExpression = new VariableExpression(declareExpression.Line, new Variable(type, newVar));
+        variableExpression = new VariableExpression(declareExpression.Line, new Variable(type, newVar, mutabilityType));
 
         var typeExpression = new TypeExpression(value.Line, type);
 
@@ -96,6 +107,18 @@ public static class DeclarePreTranspiler {
             = additionalExpressions.Remove(setExpression).Append(newDeclareExpression).ToArray();
 
         return Ok(newExpressions);
+    }
+
+    private static MutabilityType GetMutibility(ISecondStageValue value, MutabilityType initialMutability) {
+        if (value is not SecondStageValueExpression valueExpression) {
+            return initialMutability == MutabilityType.Mutable ? MutabilityType.Mutable : MutabilityType.Immutable;
+        }
+        
+        if(valueExpression.Value is IntExpression or StringExpression or FloatExpression or BooleanValueExpression) {
+            return initialMutability == MutabilityType.Mutable ? MutabilityType.Mutable : MutabilityType.Const;
+        }
+        
+        return initialMutability == MutabilityType.Mutable ? MutabilityType.Mutable : MutabilityType.Immutable;
     }
 
     public static Result<IType> GetTypeFromValue(DeclareExpression declareExpression,

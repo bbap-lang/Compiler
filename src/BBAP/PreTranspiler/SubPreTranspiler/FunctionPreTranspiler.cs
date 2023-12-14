@@ -23,12 +23,12 @@ public static class FunctionPreTranspiler {
 
         if (attributes.Is(FunctionAttributes.Method) && !attributes.Is(FunctionAttributes.Static)) {
             Result<string> firstParameterVariableResult
-                = state.CreateVar(Keywords.This, extendForType, functionExpression.Line);
+                = state.CreateVar(Keywords.This, extendForType, MutabilityType.Mutable, functionExpression.Line);
             if (!firstParameterVariableResult.TryGetValue(out string? firstParameterVariable))
                 return firstParameterVariableResult.ToErrorResult();
 
             var firstParameter
-                = new VariableExpression(functionExpression.Line, new Variable(extendForType, firstParameterVariable));
+                = new VariableExpression(functionExpression.Line, new Variable(extendForType, firstParameterVariable, MutabilityType.Mutable));
             parameters.Add(firstParameter);
         }
 
@@ -36,11 +36,11 @@ public static class FunctionPreTranspiler {
             Result<IType> typeResult = state.Types.Get(parameter.Line, parameter.Type);
             if (!typeResult.TryGetValue(out IType? type)) return typeResult.ToErrorResult();
 
-            Result<string> variableNameResult = state.CreateVar(parameter.Name, type, parameter.Line);
+            Result<string> variableNameResult = state.CreateVar(parameter.Name, type, MutabilityType.Mutable, parameter.Line);
 
             if (!variableNameResult.TryGetValue(out string? variableName)) return variableNameResult.ToErrorResult();
 
-            var variable = new Variable(type, variableName);
+            var variable = new Variable(type, variableName, MutabilityType.Mutable);
             var variableExpression = new VariableExpression(parameter.Line, variable);
 
             parameters.Add(variableExpression);

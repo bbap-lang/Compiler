@@ -46,7 +46,7 @@ public static class FunctionCallParser {
             Result<UnknownWordToken> nameResult = state.Next<UnknownWordToken>();
             if (!nameResult.TryGetValue(out UnknownWordToken? nameToken)) return nameResult.ToErrorResult();
 
-            var newVariable = new VariableExpression(nameToken.Line, new Variable(new UnknownType(), nameToken.Value));
+            var newVariable = new VariableExpression(nameToken.Line, new Variable(new UnknownType(), nameToken.Value, MutabilityType.Mutable));
             variables.Add(newVariable);
 
             Result<IToken> commaResult = state.Next(typeof(CommaToken), typeof(ClosingGenericBracketToken));

@@ -34,6 +34,7 @@ public static class WordLexer {
             Keywords.If => new IfToken(state.Line),
             Keywords.Else => new ElseToken(state.Line),
             Keywords.Let => new LetToken(state.Line),
+            Keywords.Const => new ConstToken(state.Line),
             Keywords.While => new WhileToken(state.Line),
             Keywords.Function => new FunctionToken(state.Line),
             Keywords.Switch => new SwitchToken(state.Line),

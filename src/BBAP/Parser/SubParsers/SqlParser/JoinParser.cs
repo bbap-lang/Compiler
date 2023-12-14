@@ -43,7 +43,7 @@ public static class JoinParser {
             Result<UnknownWordToken> tableResult = state.Next<UnknownWordToken>();
             if (!tableResult.TryGetValue(out UnknownWordToken? tableToken)) return tableResult.ToErrorResult();
 
-            var table = new VariableExpression(tableToken.Line, new Variable(new UnknownType(), tableToken.Value));
+            var table = new VariableExpression(tableToken.Line, new Variable(new UnknownType(), tableToken.Value, MutabilityType.Mutable));
 
             Result<OnToken> onResult = state.Next<OnToken>();
             if (!onResult.IsSuccess) return onResult.ToErrorResult();

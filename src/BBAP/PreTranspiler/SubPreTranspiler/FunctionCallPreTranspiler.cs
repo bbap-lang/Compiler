@@ -79,7 +79,7 @@ public static class FunctionCallPreTranspiler {
         VariableExpression newVar = state.CreateRandomNewVar(last.Line, last.Type.Type);
         var setExpression = new SetExpression(last.Line, newVar, SetType.Generic, last);
         var typeExpression = new TypeExpression(last.Line, last.Type.Type);
-        var declareExpression = new DeclareExpression(last.Line, newVar, typeExpression, setExpression);
+        var declareExpression = new DeclareExpression(last.Line, newVar, typeExpression, setExpression, MutabilityType.Mutable);
 
         return Ok(new ExtractParameterResult(expressions.Remove(last), declareExpression, newVar));
     }
