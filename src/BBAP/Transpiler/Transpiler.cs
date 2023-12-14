@@ -112,7 +112,7 @@ public class Transpiler {
         
         
         state.Builder.AppendLine();
-        state.Builder.Append("CONST:\t");
+        state.Builder.Append("CONSTANTS:\t");
         state.Builder.AddIntend();
         foreach (DeclareExpression declaration in constDeclarations) {
             state.Builder.Append(declaration.Variable.Variable.Name);
