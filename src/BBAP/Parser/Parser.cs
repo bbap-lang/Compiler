@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq.Expressions;
 using BBAP.Lexer.Tokens;
 using BBAP.Lexer.Tokens.Grouping;
 using BBAP.Lexer.Tokens.Keywords;
@@ -44,7 +45,7 @@ public class Parser {
                                                 typeof(DoToken), typeof(LetToken), typeof(FunctionToken),
                                                 typeof(ReturnToken), typeof(OpeningGenericBracketToken),
                                                 typeof(AliasToken), typeof(StructToken), typeof(ExtendToken),
-                                                typeof(PublicToken), typeof(EnumToken), typeof(BreakToken), typeof(ContinueToken));
+                                                typeof(PublicToken), typeof(EnumToken), typeof(BreakToken), typeof(ContinueToken), typeof(SwitchToken));
 
         if (!tokenResult.TryGetValue(out IToken? token)) return tokenResult.ToErrorResult();
 
@@ -58,6 +59,7 @@ public class Parser {
             ReturnToken => ReturnParser.Run(state, token.Line),
             PublicToken => PublicParser.Run(state),
             EnumToken => EnumParser.Run(state, token.Line),
+            SwitchToken => SwitchParser.Run(state),
 
             AliasToken => AliasParser.Run(state, false),
             StructToken => StructParser.Run(state, token.Line),

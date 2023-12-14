@@ -151,3 +151,18 @@ while true{
         break;
     }
 }
+
+switch testI{
+    case 1{
+        printline("One");
+    }
+    case 2{
+        printline("Two");
+    }
+    case 3{
+        printline("Three");
+    }
+    default{
+        printline("Unknown");
+    }
+}
