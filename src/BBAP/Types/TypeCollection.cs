@@ -58,6 +58,14 @@ public partial class TypeCollection {
     }
 
     public Result<IType> Get(int line, string name) {
+        if (name.Contains('<')) {
+            string[] splittedName = name.Split('<');
+            string genericTypeName = splittedName[1].TrimEnd('>').ToUpper();
+            string tableName = splittedName[0].ToUpper();
+            
+            return GetTableType(line, tableName, genericTypeName);
+        }
+        
         if (_types.TryGetValue(name, out IType? type)) return Ok(type);
 
         return Error(line, $"Type {name} was not defined");

@@ -22,15 +22,20 @@ public class PreTranspilerState {
         { "PRINT", new Print() },
         { "PRINTLINE", new PrintLine() },
         { "CONCATENATE", new Concatenate() },
-        { "STRING_TOCHARARRAY", new StringToCharArray() }
+        { "STRING_TOCHARARRAY", new StringToCharArray() },
+        { "STANDARDTABLE_APPEND", new TableAppend() },
+        { "SORTEDTABLE_APPEND", new TableAppend() },
+        { "HASHEDTABLE_APPEND", new TableAppend() },
     };
 
     private readonly DefaultClasses.Stack<IVariable[]> _returnVariables = new();
 
     private record StackItem(string Name, StackType Type);
+
     private readonly DefaultClasses.Stack<StackItem> _stack = new();
 
     private record VariableData(IType Type, MutabilityType MutabilityType);
+
     private readonly Dictionary<string, VariableData> _variables = new();
 
     private ulong _currentStackCount;
@@ -50,7 +55,8 @@ public class PreTranspilerState {
                 return Ok<IVariable>(new Variable(variable.Type, variableName, variable.MutabilityType));
         }
 
-        if (_variables.TryGetValue(name, out var variableData)) return Ok<IVariable>(new Variable(variableData.Type, name, variableData.MutabilityType));
+        if (_variables.TryGetValue(name, out var variableData))
+            return Ok<IVariable>(new Variable(variableData.Type, name, variableData.MutabilityType));
 
         return Error(line, $"Variable '{name}' was not defined");
     }
@@ -96,7 +102,7 @@ public class PreTranspilerState {
     public void StackOut() {
         _stack.Pop();
     }
-    
+
     public bool IsIn(StackType stackType) {
         return _stack.Any(layer => layer.Type == stackType);
     }
@@ -112,7 +118,8 @@ public class PreTranspilerState {
     }
 
     public VariableExpression CreateRandomNewVar(int line, IType type) {
-        return new VariableExpression(line, new Variable(type, GenerateInternalVariableName(type), MutabilityType.Immutable));
+        return new VariableExpression(line,
+                                      new Variable(type, GenerateInternalVariableName(type), MutabilityType.Immutable));
     }
 
 
@@ -194,7 +201,7 @@ public class PreTranspilerState {
         }
 
         do {
-            string fullName = type is null ? name : $"{type.Name}_{name}";
+            string fullName = type is null ? name : $"{GetTypeName(type)}_{name}";
             if (_functions.TryGetValue(fullName, out IFunction? function) && function.IsMethod == type is not null)
                 return Ok(function);
 
@@ -202,6 +209,18 @@ public class PreTranspilerState {
         } while (type is not null);
 
         return Error(line, $"Function '{name}' is not defined.");
+    }
+
+    private string GetTypeName(IType type) {
+        if(type is TableType tableType) return tableType.Type switch {
+            TableTypes.StandardTable => $"STANDARDTABLE",
+            TableTypes.SortedTable => $"SORTEDTABLE",
+            TableTypes.HashedTable => $"HASHEDTABLE",
+            
+            _ => throw new UnreachableException()
+        };
+        
+        return type.Name;
     }
 
     public SecondStageFunctionExpression GetDeclaredFunction(string functionName) {

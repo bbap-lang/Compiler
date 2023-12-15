@@ -1,4 +1,5 @@
-﻿using BBAP.Parser.Expressions.Values;
+﻿using System.Diagnostics;
+using BBAP.Parser.Expressions.Values;
 using BBAP.Results;
 using BBAP.Transpiler;
 using BBAP.Types;
@@ -8,7 +9,7 @@ namespace BBAP.Functions.AbapFunctions;
 
 public class PrintLine : IFunction {
     public IType? ReturnType => null;
-    public IType SingleType => new UnknownType();
+    public IType SingleType => throw new UnreachableException();
     public bool IsSingleTypeOutput => false;
 
     public FunctionAttributes Attributes => FunctionAttributes.None;

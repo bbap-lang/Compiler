@@ -171,3 +171,7 @@ const testConst = 1;
 const testConst2 = 1 + 2;
 
 let testVariable123 = testConst2;
+
+let testTable: TABLE<int>;
+
+testTable.Append(1);
