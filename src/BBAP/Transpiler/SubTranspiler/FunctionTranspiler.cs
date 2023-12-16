@@ -12,13 +12,14 @@ public static class FunctionTranspiler {
         builder.Append("FORM ");
         builder.Append(functionExpression.Name);
 
-        bool hasThis = functionExpression.Attributes.Is(FunctionAttributes.Method)
-                    && !functionExpression.Attributes.Is(FunctionAttributes.Static);
-        
-        if (functionExpression.Parameters.Length > (hasThis ? 1 : 0)) {
+        bool hasMutThis = functionExpression.Attributes.Is(FunctionAttributes.Method)
+                       && !functionExpression.Attributes.Is(FunctionAttributes.Static)
+                       && !functionExpression.Attributes.Is(FunctionAttributes.ReadOnly);
+
+        if (functionExpression.Parameters.Length > (hasMutThis ? 1 : 0)) {
             builder.AppendLine();
             builder.Append("\tUSING ");
-            foreach (VariableExpression variable in functionExpression.Parameters.Skip(hasThis ? 1 : 0)) {
+            foreach (VariableExpression variable in functionExpression.Parameters.Skip(hasMutThis ? 1 : 0)) {
                 VariableTranspiler.Run(variable, state.Builder);
                 builder.Append(" TYPE ");
                 builder.Append(variable.Variable.Type.AbapName);
@@ -26,15 +27,15 @@ public static class FunctionTranspiler {
             }
         }
 
-        if (functionExpression.ReturnVariables.Length > 0 || hasThis) {
+        if (functionExpression.ReturnVariables.Length > 0 || hasMutThis) {
             builder.AppendLine();
             builder.Append("\tCHANGING ");
-            if (hasThis) {
+            if (hasMutThis) {
                 builder.Append(" TYPE ");
                 builder.Append(functionExpression.Parameters.First().Variable.Type.AbapName);
                 builder.Append(' ');
             }
-            
+
             foreach (VariableExpression returnVariable in functionExpression.ReturnVariables) {
                 VariableTranspiler.Run(returnVariable, state.Builder);
                 builder.Append(" TYPE ");

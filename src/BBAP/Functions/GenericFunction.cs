@@ -3,6 +3,7 @@ using BBAP.Parser.Expressions.Values;
 using BBAP.PreTranspiler.Variables;
 using BBAP.Results;
 using BBAP.Transpiler;
+using BBAP.Transpiler.SubTranspiler;
 using BBAP.Types;
 using BBAP.Types.Types.ParserTypes;
 
@@ -19,27 +20,35 @@ public record GenericFunction(
     public void Render(AbapBuilder builder,
         IEnumerable<VariableExpression> inputs,
         IEnumerable<VariableExpression> outputs) {
+        bool hasMutThis = Attributes.Is(FunctionAttributes.Method) && !Attributes.Is(FunctionAttributes.Static) && !Attributes.Is(FunctionAttributes.ReadOnly);
+        
         builder.Append("PERFORM ");
         builder.AppendLine(Name);
 
-        if (Parameters.Length > 0) {
+        if (Parameters.Length > (hasMutThis ? 1 : 0)) {
             builder.Append("\tUSING ");
-            foreach ((VariableExpression input, IVariable parameter) in inputs.Select((x, i) => (x, Parameters[i]))) {
+            foreach ((VariableExpression input, IVariable parameter) in inputs.Select((x, i) => (x, Parameters[i])).Skip(hasMutThis ? 1 : 0)) {
                 // builder.Append(parameter.Name);
                 // builder.Append( " = ");
-                builder.Append(input.Variable.Name);
+                VariableTranspiler.Run(input, builder);
                 builder.Append(' ');
             }
         }
 
-        if (ReturnTypes.Length > 0) {
+        if (ReturnTypes.Length > 0 || hasMutThis) {
             builder.AppendLine();
             builder.Append("\tCHANGING ");
+
+            if (hasMutThis) {
+                builder.Append(inputs.First().Variable.Name);
+                builder.Append(' ');
+            }
+
             foreach ((VariableExpression output, IVariable returnVar) in
                      outputs.Select((x, i) => (x, ReturnTypes[i]))) {
                 // builder.Append(returnVar.Name);
                 // builder.Append( " = ");
-                builder.Append(output.Variable.Name);
+                VariableTranspiler.Run(output, builder);
                 builder.Append(' ');
             }
         }

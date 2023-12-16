@@ -31,7 +31,7 @@ public class StringToCharArray : IFunction {
 
     public bool IsSingleTypeOutput => true;
 
-    public FunctionAttributes Attributes => FunctionAttributes.Method;
+    public FunctionAttributes Attributes => FunctionAttributes.Method | FunctionAttributes.ReadOnly;
 
     public void Render(AbapBuilder builder,
         IEnumerable<VariableExpression> inputs,
