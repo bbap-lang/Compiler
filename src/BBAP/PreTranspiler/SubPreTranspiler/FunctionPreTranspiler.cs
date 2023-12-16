@@ -41,11 +41,11 @@ public static class FunctionPreTranspiler {
             Result<IType> typeResult = state.Types.Get(parameter.Line, parameter.Type);
             if (!typeResult.TryGetValue(out IType? type)) return typeResult.ToErrorResult();
 
-            Result<string> variableNameResult = state.CreateVar(parameter.Name, type, parameterMutability, parameter.Line);
+            Result<string> variableNameResult = state.CreateVar(parameter.Name, type, MutabilityType.Mutable, parameter.Line);
 
             if (!variableNameResult.TryGetValue(out string? variableName)) return variableNameResult.ToErrorResult();
 
-            var variable = new Variable(type, variableName, parameterMutability);
+            var variable = new Variable(type, variableName, MutabilityType.Mutable);
             var variableExpression = new VariableExpression(parameter.Line, variable);
 
             parameters.Add(variableExpression);
