@@ -40,6 +40,7 @@ public static class WordLexer {
             Keywords.Switch => new SwitchToken(state.Line),
             Keywords.Case => new CaseToken(state.Line),
             Keywords.Default => new DefaultToken(state.Line),
+            Keywords.ReadOnly => new ReadOnlyToken(state.Line),
             
             Keywords.Break => new BreakToken(state.Line),
             Keywords.Continue => new ContinueToken(state.Line),

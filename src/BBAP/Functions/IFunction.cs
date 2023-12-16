@@ -15,6 +15,7 @@ public interface IFunction {
 
     public bool IsMethod => (Attributes & FunctionAttributes.Method) == FunctionAttributes.Method;
     public bool IsStatic => (Attributes & FunctionAttributes.Static) == FunctionAttributes.Static;
+    bool IsReadOnly => (Attributes & FunctionAttributes.ReadOnly) == FunctionAttributes.ReadOnly;
     public Result<int> Matches(IType[] inputs, IType[] outputs, int line);
 
     public void Render(AbapBuilder builder,
@@ -27,7 +28,8 @@ public interface IFunction {
 public enum FunctionAttributes {
     None = 0,
     Method = 1 << 0,
-    Static = 1 << 1
+    Static = 1 << 1,
+    ReadOnly = 1 << 2,
 }
 
 public static class FunctionAttributesExtension {

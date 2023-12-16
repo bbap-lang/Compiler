@@ -24,6 +24,7 @@ public class PreTranspilerState {
         { "CONCATENATE", new Concatenate() },
         { "STRING_TOCHARARRAY", new StringToCharArray() },
         { "TABLE_APPEND", new TableAppend() },
+        { "ANY_CLEAR", new Clear() },
     };
 
     private readonly DefaultClasses.Stack<IVariable[]> _returnVariables = new();

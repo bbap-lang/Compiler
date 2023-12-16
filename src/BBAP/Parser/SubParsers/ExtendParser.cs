@@ -22,7 +22,7 @@ public class ExtendParser {
             if (!staticResult.IsSuccess) state.Revert();
 
             bool isStatic = staticResult.IsSuccess;
-
+            
             Result<FunctionToken> functionTokenResult = state.Next<FunctionToken>();
             if (!functionTokenResult.TryGetValue(out FunctionToken? functionToken))
                 return functionTokenResult.ToErrorResult();
@@ -33,7 +33,7 @@ public class ExtendParser {
             if (functionExpression is not FunctionExpression function) throw new UnreachableException();
 
             if (isStatic)
-                function = new StaticFunctionExpression(function.Line, function.Name, function.Parameters,
+                function = new StaticFunctionExpression(function.Line, function.Name, function.IsReadOnly, function.Parameters,
                                                         function.OutputTypes, function.BlockContent);
 
             functions.Add(function);

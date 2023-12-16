@@ -20,15 +20,20 @@ public static class FunctionPreTranspiler {
         var attributes = FunctionAttributes.None;
         if (extendForType is not null) attributes |= FunctionAttributes.Method;
         if (functionExpression is StaticFunctionExpression) attributes |= FunctionAttributes.Static;
+        if (functionExpression.IsReadOnly) attributes |= FunctionAttributes.ReadOnly;
 
+        MutabilityType parameterMutability = attributes.Is(FunctionAttributes.ReadOnly)
+            ? MutabilityType.Immutable
+            : MutabilityType.Mutable;
+        
         if (attributes.Is(FunctionAttributes.Method) && !attributes.Is(FunctionAttributes.Static)) {
             Result<string> firstParameterVariableResult
-                = state.CreateVar(Keywords.This, extendForType, MutabilityType.Mutable, functionExpression.Line);
+                = state.CreateVar(Keywords.This, extendForType, parameterMutability, functionExpression.Line);
             if (!firstParameterVariableResult.TryGetValue(out string? firstParameterVariable))
                 return firstParameterVariableResult.ToErrorResult();
 
             var firstParameter
-                = new VariableExpression(functionExpression.Line, new Variable(extendForType, firstParameterVariable, MutabilityType.Mutable));
+                = new VariableExpression(functionExpression.Line, new Variable(extendForType, firstParameterVariable, parameterMutability));
             parameters.Add(firstParameter);
         }
 
@@ -36,11 +41,11 @@ public static class FunctionPreTranspiler {
             Result<IType> typeResult = state.Types.Get(parameter.Line, parameter.Type);
             if (!typeResult.TryGetValue(out IType? type)) return typeResult.ToErrorResult();
 
-            Result<string> variableNameResult = state.CreateVar(parameter.Name, type, MutabilityType.Mutable, parameter.Line);
+            Result<string> variableNameResult = state.CreateVar(parameter.Name, type, parameterMutability, parameter.Line);
 
             if (!variableNameResult.TryGetValue(out string? variableName)) return variableNameResult.ToErrorResult();
 
-            var variable = new Variable(type, variableName, MutabilityType.Mutable);
+            var variable = new Variable(type, variableName, parameterMutability);
             var variableExpression = new VariableExpression(parameter.Line, variable);
 
             parameters.Add(variableExpression);

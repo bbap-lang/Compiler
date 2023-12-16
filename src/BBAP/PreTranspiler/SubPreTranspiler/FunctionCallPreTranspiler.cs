@@ -27,6 +27,10 @@ public static class FunctionCallPreTranspiler {
             if (!thisParameterResult.TryGetValue(out VariableExpression? thisParameter))
                 return thisParameterResult.ToErrorResult();
 
+            
+            if(!function.IsReadOnly && thisParameter.Variable.MutabilityType != MutabilityType.Mutable)
+                return Error(functionCallExpression.Line, $"The method '{function.Name}' is not readonly but the variable '{thisParameter.Variable.Name}' is immutable. Try declaring the method as readonly or the variable as mutable or the function call as readonly.");
+            
             var typeExpression = new TypeExpression(thisParameter.Line, thisParameter.Variable.Type);
 
             var parameterExpression

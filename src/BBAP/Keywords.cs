@@ -21,6 +21,7 @@ public static class Keywords {
     public const string Switch = "SWITCH";
     public const string Case = "CASE";
     public const string Default = "DEFAULT";
+    public const string ReadOnly = "READONLY";
     
     public const string Break = "BREAK";
     public const string Continue = "CONTINUE";

@@ -37,10 +37,11 @@ extend TestType{
     }
 }
 
-let testvar: TestType;
 
 
 TestType::staticTestFunc();
+
+let testvar: TestType;
 
 testVar = new TestType{
     field1 = 1,
@@ -175,3 +176,15 @@ let testVariable123 = testConst2;
 let testTable: TABLE<int>;
 
 testTable.Append(1);
+
+testTable.Clear();
+
+extend int{
+    func readonly testFunc(){
+        printLine("Test");
+    }
+}
+
+const testConst3 = 1;
+
+testConst.testFunc();

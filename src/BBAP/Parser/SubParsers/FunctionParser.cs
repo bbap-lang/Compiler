@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using BBAP.Lexer.Tokens;
 using BBAP.Lexer.Tokens.Grouping;
+using BBAP.Lexer.Tokens.Keywords;
 using BBAP.Lexer.Tokens.Others;
 using BBAP.Lexer.Tokens.Values;
 using BBAP.Parser.Expressions;
@@ -13,6 +14,12 @@ namespace BBAP.Parser.SubParsers;
 
 public static class FunctionParser {
     public static Result<IExpression> Run(ParserState state, int line) {
+        Result<ReadOnlyToken> readOnlyResult = state.Next<ReadOnlyToken>();
+        if (!readOnlyResult.IsSuccess) state.Revert();
+
+        bool isReadOnly = readOnlyResult.IsSuccess;
+
+        
         Result<UnknownWordToken> nameResult = state.Next<UnknownWordToken>();
         if (!nameResult.TryGetValue(out UnknownWordToken? nameToken)) return nameResult.ToErrorResult();
 
@@ -41,7 +48,7 @@ public static class FunctionParser {
 
         if (!blockResult.TryGetValue(out ImmutableArray<IExpression> block)) return blockResult.ToErrorResult();
 
-        return Ok<IExpression>(new FunctionExpression(line, nameToken.Value, parameters, returnTypes, block));
+        return Ok<IExpression>(new FunctionExpression(line, nameToken.Value, isReadOnly, parameters, returnTypes, block));
     }
 
     private static Result<ImmutableArray<TypeExpression>> GetReturnTypes(ParserState state) {
