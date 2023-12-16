@@ -19,7 +19,6 @@ public static class FunctionParser {
 
         bool isReadOnly = readOnlyResult.IsSuccess;
 
-        
         Result<UnknownWordToken> nameResult = state.Next<UnknownWordToken>();
         if (!nameResult.TryGetValue(out UnknownWordToken? nameToken)) return nameResult.ToErrorResult();
 
@@ -39,9 +38,6 @@ public static class FunctionParser {
         if (blockStartOrReturnTypeToken is ColonToken) {
             Result<ImmutableArray<TypeExpression>> returnTypesResult = GetReturnTypes(state);
             if (!returnTypesResult.TryGetValue(out returnTypes)) return returnTypesResult.ToErrorResult();
-
-            Result<OpeningCurlyBracketToken> openingCurlyBracketResult = state.Next<OpeningCurlyBracketToken>();
-            if (!openingCurlyBracketResult.TryGetValue(out _)) return openingCurlyBracketResult.ToErrorResult();
         }
 
         Result<ImmutableArray<IExpression>> blockResult = Parser.ParseBlock(state, false);
@@ -55,8 +51,12 @@ public static class FunctionParser {
         var types = new List<TypeExpression>();
 
         Result<OpeningGenericBracketToken> openingBracketResult = state.Next<OpeningGenericBracketToken>();
-        if (!openingBracketResult.TryGetValue(out _)) return openingBracketResult.ToErrorResult();
+        bool usedBracket = openingBracketResult.IsSuccess;
 
+        if (!usedBracket) {
+            state.Revert();
+        }
+        
         while (true) {
             Result<IToken> typeResult = state.Next(typeof(UnknownWordToken), typeof(ClosingGenericBracketToken));
             if (!typeResult.TryGetValue(out IToken? startToken)) return typeResult.ToErrorResult();
@@ -72,11 +72,23 @@ public static class FunctionParser {
             var typeEx = new TypeExpression(typeToken.Line, new OnlyNameType(typeToken.Value));
             types.Add(typeEx);
 
-            Result<IToken> endOfParameterResult = state.Next(typeof(CommaToken), typeof(ClosingGenericBracketToken));
+            Result<IToken> endOfParameterResult = state.Next(typeof(CommaToken), typeof(ClosingGenericBracketToken), typeof(OpeningCurlyBracketToken));
             if (!endOfParameterResult.TryGetValue(out IToken? endOfParameterToken))
                 return endOfParameterResult.ToErrorResult();
 
-            if (endOfParameterToken is ClosingGenericBracketToken) return Ok(types.ToImmutableArray());
+            if(endOfParameterToken is ClosingGenericBracketToken && !usedBracket) return Error(endOfParameterToken.Line, "Unexpected ')', expected '{'.");
+            if(endOfParameterToken is OpeningCurlyBracketToken && usedBracket) return Error(endOfParameterToken.Line, "Unexpected '{', expected ')'.");
+            if (endOfParameterToken is CommaToken && !usedBracket) return Error(endOfParameterToken.Line, "Unexpected ',', expected '{'.");
+
+            if (endOfParameterToken is ClosingGenericBracketToken) {
+                Result<OpeningCurlyBracketToken> openingCurlyBracketResult = state.Next<OpeningCurlyBracketToken>();
+                if (!openingCurlyBracketResult.IsSuccess) return openingCurlyBracketResult.ToErrorResult();
+                return Ok(types.ToImmutableArray());
+            }
+            
+            if (endOfParameterToken is OpeningCurlyBracketToken) {
+                return Ok(types.ToImmutableArray());
+            }
         }
     }
 

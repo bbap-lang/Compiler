@@ -180,8 +180,8 @@ testTable.Append(1);
 testTable.Clear();
 
 extend int{
-    func readonly testFunc(){
-        printLine("Test");
+    func readonly testFunc(): int{
+        return this * 2;
     }
 }
 
