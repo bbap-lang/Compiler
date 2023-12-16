@@ -84,8 +84,8 @@ public class Transpiler {
             StructTranspiler.Run(structExpression, state);
         }
 
-        IEnumerable<DeclareExpression> constDeclarations = declarations.Where(x => x.Variable.Variable.MutabilityType == MutabilityType.Const);
-        IEnumerable<DeclareExpression> notConstDeclarations = declarations.Where(x => x.Variable.Variable.MutabilityType != MutabilityType.Const);
+        DeclareExpression[] constDeclarations = declarations.Where(x => x.Variable.Variable.MutabilityType == MutabilityType.Const).ToArray();
+        DeclareExpression[] notConstDeclarations = declarations.Where(x => x.Variable.Variable.MutabilityType != MutabilityType.Const).ToArray();
         
         state.Builder.AppendLine();
         WriteDeclarations(state, notConstDeclarations, constDeclarations);
@@ -95,35 +95,39 @@ public class Transpiler {
     }
 
     private static void WriteDeclarations(TranspilerState state,
-        IEnumerable<DeclareExpression> notConstDeclarations,
-        IEnumerable<DeclareExpression> constDeclarations) {
-        state.Builder.Append("DATA:\t");
-        state.Builder.AddIntend();
-        foreach (DeclareExpression declaration in notConstDeclarations) {
-            state.Builder.Append(declaration.Variable.Variable.Name);
-            state.Builder.Append(' ');
-            TypeTranspiler.Run(declaration.Type, state.Builder);
-            state.Builder.AppendLine();
+        DeclareExpression[] notConstDeclarations,
+        DeclareExpression[] constDeclarations) {
+
+        if (notConstDeclarations.Length > 0) {
+            state.Builder.Append("DATA:\t");
+            state.Builder.AddIntend();
+            foreach (DeclareExpression declaration in notConstDeclarations) {
+                state.Builder.Append(declaration.Variable.Variable.Name);
+                state.Builder.Append(' ');
+                TypeTranspiler.Run(declaration.Type, state.Builder);
+                state.Builder.AppendLine();
+            }
+
+            state.Builder.RemoveIntend();
+
+            state.Builder.AppendLine(".");
         }
 
-        state.Builder.RemoveIntend();
-
-        state.Builder.AppendLine(".");
-        
-        
-        state.Builder.AppendLine();
-        state.Builder.Append("CONSTANTS:\t");
-        state.Builder.AddIntend();
-        foreach (DeclareExpression declaration in constDeclarations) {
-            state.Builder.Append(declaration.Variable.Variable.Name);
-            state.Builder.Append(' ');
-            TypeTranspiler.Run(declaration.Type, state.Builder);
+        if (constDeclarations.Length > 0) {
             state.Builder.AppendLine();
+            state.Builder.Append("CONSTANTS:\t");
+            state.Builder.AddIntend();
+            foreach (DeclareExpression declaration in constDeclarations) {
+                state.Builder.Append(declaration.Variable.Variable.Name);
+                state.Builder.Append(' ');
+                TypeTranspiler.Run(declaration.Type, state.Builder);
+                state.Builder.AppendLine();
+            }
+
+            state.Builder.RemoveIntend();
+
+            state.Builder.AppendLine(".");
         }
-
-        state.Builder.RemoveIntend();
-
-        state.Builder.AppendLine(".");
     }
 
 
