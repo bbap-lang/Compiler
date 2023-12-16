@@ -1,11 +1,17 @@
 ﻿using System.Diagnostics;
 
-namespace BBAP.Types.Types.ParserTypes;
+namespace BBAP.Types.Types.FullTypes;
 
-public record OnlyNameGenericType(string Name, OnlyNameType GenericType) : IType {
+public class AnyTableType : IType{
+    public AnyTableType(IType? inheritsFrom) {
+        InheritsFrom = inheritsFrom;
+    }
+
+    public string Name => "TABLE";
+
     public string AbapName => throw new UnreachableException();
 
-    public IType? InheritsFrom => null;
+    public IType? InheritsFrom { get; }
 
     public SupportedOperator SupportedOperators => SupportedOperator.None;
 

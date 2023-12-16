@@ -8,6 +8,6 @@ public record StructType(string Name, ImmutableArray<Variable> Fields) : IType {
 
     public string DeclareKeyWord => "TYPE";
 
-    public IType? InheritsFrom => null;
+    public IType? InheritsFrom => TypeCollection.AnyType;
     public string AbapName => Name;
 }

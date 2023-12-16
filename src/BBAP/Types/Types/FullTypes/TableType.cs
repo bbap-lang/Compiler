@@ -5,7 +5,7 @@ namespace BBAP.Types.Types.FullTypes;
 public record TableType(IType ContentType, TableTypes Type) : IType {
     public string Name => $"{Type}<{ContentType.Name}>";
     public string AbapName => ContentType.Name;
-    public IType? InheritsFrom => null;
+    public IType? InheritsFrom => TypeCollection.AnyTableType;
     public SupportedOperator SupportedOperators => SupportedOperator.None;
 
     public string DeclareKeyWord => Type switch {

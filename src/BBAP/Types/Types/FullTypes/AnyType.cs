@@ -1,13 +1,15 @@
 ﻿using System.Diagnostics;
 
-namespace BBAP.Types.Types.ParserTypes;
+namespace BBAP.Types.Types.FullTypes;
 
-public record OnlyNameType(string Name) : IType {
+public class AnyType : IType {
+    public string Name => "ANY";
+
     public string AbapName => throw new UnreachableException();
 
     public IType? InheritsFrom => null;
 
-    public SupportedOperator SupportedOperators => throw new UnreachableException();
+    public SupportedOperator SupportedOperators => SupportedOperator.None;
 
     public string DeclareKeyWord => throw new UnreachableException();
 }
