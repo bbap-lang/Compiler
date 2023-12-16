@@ -6,6 +6,7 @@ using BBAP.Functions.AbapFunctions;
 using BBAP.Functions.BbapFunctions;
 using BBAP.Parser.Expressions.Values;
 using BBAP.PreTranspiler.Expressions;
+using BBAP.PreTranspiler.SubPreTranspiler;
 using BBAP.PreTranspiler.Variables;
 using BBAP.Results;
 using BBAP.Types;

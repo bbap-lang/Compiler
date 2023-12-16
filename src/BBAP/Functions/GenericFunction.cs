@@ -5,6 +5,7 @@ using BBAP.Results;
 using BBAP.Transpiler;
 using BBAP.Transpiler.SubTranspiler;
 using BBAP.Types;
+using BBAP.Types.Types.FullTypes;
 using BBAP.Types.Types.ParserTypes;
 
 namespace BBAP.Functions;
@@ -20,34 +21,34 @@ public record GenericFunction(
     public void Render(AbapBuilder builder,
         IEnumerable<VariableExpression> inputs,
         IEnumerable<VariableExpression> outputs) {
-        bool hasMutThis = Attributes.Is(FunctionAttributes.Method) && !Attributes.Is(FunctionAttributes.Static) && !Attributes.Is(FunctionAttributes.ReadOnly);
-        
+        bool hasMutThis = Attributes.Is(FunctionAttributes.Method)
+                       && !Attributes.Is(FunctionAttributes.Static)
+                       && !Attributes.Is(FunctionAttributes.ReadOnly);
+
         builder.Append("PERFORM ");
         builder.AppendLine(Name);
 
-        if (Parameters.Length > (hasMutThis ? 1 : 0)) {
+        VariableExpression[] inputArray = inputs.Skip(hasMutThis ? 1 : 0).ToArray();
+        
+        if (hasMutThis) {
+            outputs = outputs.Append(inputs.First());
+        }
+        VariableExpression[] outputArray = outputs.ToArray();
+        
+        if (inputArray.Length > 0) {
             builder.Append("\tUSING ");
-            foreach ((VariableExpression input, IVariable parameter) in inputs.Select((x, i) => (x, Parameters[i])).Skip(hasMutThis ? 1 : 0)) {
-                // builder.Append(parameter.Name);
-                // builder.Append( " = ");
+            foreach ((VariableExpression input, IVariable parameter) in inputArray.Select((x, i) => (x, Parameters[i]))) {
                 VariableTranspiler.Run(input, builder);
                 builder.Append(' ');
             }
         }
 
-        if (ReturnTypes.Length > 0 || hasMutThis) {
+        if (outputArray.Length > 0) {
             builder.AppendLine();
             builder.Append("\tCHANGING ");
 
-            if (hasMutThis) {
-                builder.Append(inputs.First().Variable.Name);
-                builder.Append(' ');
-            }
-
             foreach ((VariableExpression output, IVariable returnVar) in
-                     outputs.Select((x, i) => (x, ReturnTypes[i]))) {
-                // builder.Append(returnVar.Name);
-                // builder.Append( " = ");
+                     outputArray.Select((x, i) => (x, ReturnTypes[i]))) {
                 VariableTranspiler.Run(output, builder);
                 builder.Append(' ');
             }

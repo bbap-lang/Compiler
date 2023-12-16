@@ -111,11 +111,11 @@ public static class FunctionParser {
             Result<ColonToken> colonResult = state.Next<ColonToken>();
             if (!colonResult.TryGetValue(out _)) return colonResult.ToErrorResult();
 
+            Result<TypeExpression> typeResult = TypeParser.Run(state);
 
-            Result<UnknownWordToken> typeResult = state.Next<UnknownWordToken>();
-            if (!typeResult.TryGetValue(out UnknownWordToken? typeToken)) return typeResult.ToErrorResult();
+            if (!typeResult.TryGetValue(out TypeExpression? parameterType)) return typeResult.ToErrorResult();
 
-            var parameterExpression = new ParameterExpression(nameToken.Line, nameToken.Value, typeToken.Value);
+            var parameterExpression = new ParameterExpression(nameToken.Line, nameToken.Value, parameterType);
             parameters.Add(parameterExpression);
 
 

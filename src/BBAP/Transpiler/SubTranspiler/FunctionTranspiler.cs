@@ -1,6 +1,7 @@
 ﻿using BBAP.Functions;
 using BBAP.Parser.Expressions.Values;
 using BBAP.PreTranspiler.Expressions;
+using BBAP.Types.Types.FullTypes;
 
 namespace BBAP.Transpiler.SubTranspiler;
 
@@ -16,30 +17,35 @@ public static class FunctionTranspiler {
                        && !functionExpression.Attributes.Is(FunctionAttributes.Static)
                        && !functionExpression.Attributes.Is(FunctionAttributes.ReadOnly);
 
-        if (functionExpression.Parameters.Length > (hasMutThis ? 1 : 0)) {
+        
+        VariableExpression[] inputArray = functionExpression.Parameters.Skip(hasMutThis ? 1 : 0).ToArray();
+
+        VariableExpression[] outputArray;
+        if (hasMutThis) {
+            outputArray = functionExpression.ReturnVariables.Append(functionExpression.Parameters.First()).ToArray();
+        } else {
+            outputArray = functionExpression.ReturnVariables.ToArray();
+        }
+        
+        if (inputArray.Length > 0) {
             builder.AppendLine();
             builder.Append("\tUSING ");
-            foreach (VariableExpression variable in functionExpression.Parameters.Skip(hasMutThis ? 1 : 0)) {
+            foreach (VariableExpression variable in inputArray.Skip(hasMutThis ? 1 : 0)) {
                 VariableTranspiler.Run(variable, state.Builder);
-                builder.Append(" TYPE ");
-                builder.Append(variable.Variable.Type.AbapName);
+                builder.Append(' ');
+                TypeTranspiler.Run(variable.Variable.Type, builder);
                 builder.Append(' ');
             }
         }
 
-        if (functionExpression.ReturnVariables.Length > 0 || hasMutThis) {
+        if (outputArray.Length > 0) {
             builder.AppendLine();
             builder.Append("\tCHANGING ");
-            if (hasMutThis) {
-                builder.Append(" TYPE ");
-                builder.Append(functionExpression.Parameters.First().Variable.Type.AbapName);
-                builder.Append(' ');
-            }
 
-            foreach (VariableExpression returnVariable in functionExpression.ReturnVariables) {
+            foreach (VariableExpression returnVariable in outputArray) {
                 VariableTranspiler.Run(returnVariable, state.Builder);
-                builder.Append(" TYPE ");
-                builder.Append(returnVariable.Variable.Type.AbapName);
+                builder.Append(' ');
+                TypeTranspiler.Run(returnVariable.Variable.Type, builder);
                 builder.Append(' ');
             }
         }

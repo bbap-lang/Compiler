@@ -38,7 +38,7 @@ public static class FunctionPreTranspiler {
         }
 
         foreach (ParameterExpression parameter in functionExpression.Parameters) {
-            Result<IType> typeResult = state.Types.Get(parameter.Line, parameter.Type);
+            Result<IType> typeResult = TypePreTranspiler.Run(parameter.Type.Type, state, parameter.Line);
             if (!typeResult.TryGetValue(out IType? type)) return typeResult.ToErrorResult();
 
             Result<string> variableNameResult = state.CreateVar(parameter.Name, type, MutabilityType.Mutable, parameter.Line);

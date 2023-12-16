@@ -185,6 +185,10 @@ extend int{
     }
 }
 
+func testOnTable(table: TABLE<int>){
+    table.Append(1);
+}
+
 const testConst3 = 1;
 
 testConst.testFunc();

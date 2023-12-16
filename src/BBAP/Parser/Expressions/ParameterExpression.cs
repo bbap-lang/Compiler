@@ -1,3 +1,3 @@
 ﻿namespace BBAP.Parser.Expressions;
 
-public record ParameterExpression(int Line, string Name, string Type) : IExpression;
+public record ParameterExpression(int Line, string Name, TypeExpression Type) : IExpression;
