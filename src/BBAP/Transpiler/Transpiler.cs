@@ -39,6 +39,9 @@ public class Transpiler {
                 case WhileExpression whileExpression:
                     WhileTranspiler.Run(whileExpression, state);
                     break;
+                case ForeachExpression foreachExpression:
+                    ForeachTranspiler.Run(foreachExpression, state);
+                    break;
                 case IfExpression ifExpression:
                     IfTranspiler.Run(ifExpression, state);
                     break;
@@ -168,6 +171,14 @@ public class Transpiler {
 
                 case IfExpression ifExpression: {
                     foreach (T p in AddElseDeclarations<T>(ifExpression)) {
+                        yield return p;
+                    }
+
+                    break;
+                }
+                
+                case ForeachExpression foreachExpression: {
+                    foreach (T p in GetAllOfType<T>(foreachExpression.BlockContent)) {
                         yield return p;
                     }
 

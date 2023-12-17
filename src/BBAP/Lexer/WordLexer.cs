@@ -31,6 +31,7 @@ public static class WordLexer {
         IToken token = word switch {
             Keywords.Do => new DoToken(state.Line),
             Keywords.For => new ForToken(state.Line),
+            Keywords.Foreach => new ForeachToken(state.Line),
             Keywords.If => new IfToken(state.Line),
             Keywords.Else => new ElseToken(state.Line),
             Keywords.Let => new LetToken(state.Line),

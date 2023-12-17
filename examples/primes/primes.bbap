@@ -173,9 +173,9 @@ const testConst2 = 1 + 2;
 
 let testVariable123 = testConst2;
 
-let testTable: TABLE<int>;
+let testTable: TABLE<TestType>;
 
-testTable.Append(1);
+testTable.Append(testvar);
 
 testTable.Clear();
 
@@ -193,6 +193,10 @@ const testConst3 = 1;
 
 testConst.testFunc();
 
-let fieldSymbol: FieldSymbol<int>;
+// let fieldSymbol: FieldSymbol<int>;
 
-fieldSymbol = testTable.ToFieldSymbol();
+let fieldSymbol = testTable.ToFieldSymbol();
+
+foreach(let i on testTable){
+    printLine(i.field1);
+}

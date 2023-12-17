@@ -71,6 +71,7 @@ public class PreTranspilerState {
         IVariable lastVariable = topVariable;
         foreach (IVariable currentVariable in variableTree.Skip(1)) {
             IType currentType = lastVariable.Type;
+            if(currentType is FieldSymbolType fieldSymbolType) currentType = fieldSymbolType.ContentType;
             if (currentType is AliasType aliasType) currentType = aliasType.GetRealType();
 
             if (currentType is not StructType structType)

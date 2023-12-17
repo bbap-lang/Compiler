@@ -45,7 +45,9 @@ public class Parser {
                                                 typeof(DoToken), typeof(LetToken), typeof(FunctionToken),
                                                 typeof(ReturnToken), typeof(OpeningGenericBracketToken),
                                                 typeof(AliasToken), typeof(StructToken), typeof(ExtendToken),
-                                                typeof(PublicToken), typeof(EnumToken), typeof(BreakToken), typeof(ContinueToken), typeof(SwitchToken), typeof(ConstToken));
+                                                typeof(PublicToken), typeof(EnumToken), typeof(BreakToken),
+                                                typeof(ContinueToken), typeof(SwitchToken), typeof(ConstToken),
+                                                typeof(ForeachToken));
 
         if (!tokenResult.TryGetValue(out IToken? token)) return tokenResult.ToErrorResult();
 
@@ -53,6 +55,7 @@ public class Parser {
             UnknownWordToken unknownWordToken => UnknownWordParser.RunRoot(state, unknownWordToken),
             IfToken => IfParser.Run(state, token.Line),
             ForToken => ForParser.Run(state),
+            ForeachToken => ForeachParser.Run(state, token.Line),
             WhileToken => WhileParser.Run(state, token.Line),
             DoToken => DoParser.Run(state),
             FunctionToken => FunctionParser.Run(state, token.Line),
@@ -64,7 +67,7 @@ public class Parser {
             AliasToken => AliasParser.Run(state, false),
             StructToken => StructParser.Run(state, token.Line),
             ExtendToken => ExtendParser.Run(state, token.Line),
-            
+
             BreakToken => LoopAdditionExpression.RunBreak(state, token.Line),
             ContinueToken => LoopAdditionExpression.RunContinue(state, token.Line),
 
@@ -76,20 +79,20 @@ public class Parser {
 
         if (result is not null) {
             if (result.Value.TryGetValue(out var value)) {
-                return Ok(new[] {value});
+                return Ok(new[] { value });
             }
 
             if (result.Value.Error is NoMoreDataError) {
                 return Error(result.Value.Error.Line, "Unexpected end of file.");
             }
-            
+
             return result.Value.ToErrorResult();
         }
-        
+
         Result<IExpression[]> arrayResult = token switch {
             _ => throw new UnreachableException()
         };
-        
+
         return arrayResult;
     }
 

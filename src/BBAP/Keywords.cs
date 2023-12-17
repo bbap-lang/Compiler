@@ -12,6 +12,7 @@ public static class Keywords {
 
     public const string Do = "DO";
     public const string For = "FOR";
+    public const string Foreach = "FOREACH";
     public const string If = "IF";
     public const string Else = "ELSE";
     public const string Let = "LET";

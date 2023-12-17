@@ -97,6 +97,7 @@ public class PreTranspiler {
 
             IfExpression ifExpression => IfPreTranspiler.Run(ifExpression, state),
             ForExpression forExpression => ForPreTranspiler.Run(forExpression, state),
+            ForeachExpression foreachExpression => ForeachPreTranspiler.Run(foreachExpression, state),
             WhileExpression whileExpression => WhilePreTranspiler.Run(whileExpression, state),
             SwitchExpression switchExpression => SwitchPreTranspiler.Run(switchExpression, state),
             
