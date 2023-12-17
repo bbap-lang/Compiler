@@ -27,7 +27,7 @@ public class StringToCharArray : IFunction {
 
     public string Name => "STRING_TOCHARARRAY";
 
-    public IType SingleType => TypeCollection.BaseCharType;
+    public IType GetSingleType(IType[] inputs) => TypeCollection.BaseCharType;
 
     public bool IsSingleTypeOutput => true;
 

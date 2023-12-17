@@ -6,6 +6,7 @@ using BBAP.PreTranspiler.Expressions.Sql;
 using BBAP.PreTranspiler.Variables;
 using BBAP.Results;
 using BBAP.Transpiler.SubTranspiler;
+using BBAP.Types.Types.FullTypes;
 
 namespace BBAP.Transpiler;
 
@@ -84,11 +85,13 @@ public class Transpiler {
             StructTranspiler.Run(structExpression, state);
         }
 
-        DeclareExpression[] constDeclarations = declarations.Where(x => x.Variable.Variable.MutabilityType == MutabilityType.Const).ToArray();
-        DeclareExpression[] notConstDeclarations = declarations.Where(x => x.Variable.Variable.MutabilityType != MutabilityType.Const).ToArray();
+        DeclareExpression[] constDeclarations = declarations.Where(x => x.Variable.Variable.MutabilityType == MutabilityType.Const).Where(x => x.Variable.Variable.Type is not FieldSymbolType).ToArray();
+        DeclareExpression[] notConstDeclarations = declarations.Where(x => x.Variable.Variable.MutabilityType != MutabilityType.Const).Where(x => x.Variable.Variable.Type is not FieldSymbolType).ToArray();
+        DeclareExpression[] fieldSymbols = declarations.Where(x => x.Variable.Variable.Type is FieldSymbolType).ToArray();
+        
         
         state.Builder.AppendLine();
-        WriteDeclarations(state, notConstDeclarations, constDeclarations);
+        WriteDeclarations(state, notConstDeclarations, constDeclarations, fieldSymbols);
 
         state.Builder.AppendLine();
         state.Builder.AppendLine();
@@ -96,13 +99,14 @@ public class Transpiler {
 
     private static void WriteDeclarations(TranspilerState state,
         DeclareExpression[] notConstDeclarations,
-        DeclareExpression[] constDeclarations) {
-
+        DeclareExpression[] constDeclarations,
+        DeclareExpression[] fieldSymbols) {
+        
         if (notConstDeclarations.Length > 0) {
             state.Builder.Append("DATA:\t");
             state.Builder.AddIntend();
             foreach (DeclareExpression declaration in notConstDeclarations) {
-                state.Builder.Append(declaration.Variable.Variable.Name);
+                VariableTranspiler.Run(declaration.Variable, state.Builder);
                 state.Builder.Append(' ');
                 TypeTranspiler.Run(declaration.Type, state.Builder);
                 state.Builder.AppendLine();
@@ -118,7 +122,23 @@ public class Transpiler {
             state.Builder.Append("CONSTANTS:\t");
             state.Builder.AddIntend();
             foreach (DeclareExpression declaration in constDeclarations) {
-                state.Builder.Append(declaration.Variable.Variable.Name);
+                VariableTranspiler.Run(declaration.Variable, state.Builder);
+                state.Builder.Append(' ');
+                TypeTranspiler.Run(declaration.Type, state.Builder);
+                state.Builder.AppendLine();
+            }
+
+            state.Builder.RemoveIntend();
+
+            state.Builder.AppendLine(".");
+        }
+
+        if (fieldSymbols.Length > 0) {
+            state.Builder.AppendLine();
+            state.Builder.Append("FIELD-SYMBOLS:\t");
+            state.Builder.AddIntend();
+            foreach (DeclareExpression declaration in fieldSymbols) {
+                VariableTranspiler.Run(declaration.Variable, state.Builder);
                 state.Builder.Append(' ');
                 TypeTranspiler.Run(declaration.Type, state.Builder);
                 state.Builder.AppendLine();

@@ -12,7 +12,7 @@ public class Clear : IFunction{
     
     public string Name => "ANY_CLEAR";
 
-    public IType SingleType => throw new UnreachableException();
+    public IType GetSingleType(IType[] inputs) => throw new UnreachableException();
 
     public bool IsSingleTypeOutput => false;
 

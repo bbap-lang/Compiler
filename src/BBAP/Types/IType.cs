@@ -12,11 +12,11 @@ public interface IType {
 
 public static class ITypeExtensions {
     public static bool IsCastableTo(this IType baseType, IType targetType) {
-        if (targetType is AliasType aliasType) targetType = aliasType.SourceType;
+        if (targetType is AliasType aliasType) targetType = aliasType.GetRealType();
 
         if (baseType is CharType or BaseCharType && targetType is CharType or BaseCharType) return true;
 
-        while (baseType != targetType) {
+        while (!baseType.Equals(targetType)) {
             if (baseType.InheritsFrom is null) return false;
 
             baseType = baseType.InheritsFrom;

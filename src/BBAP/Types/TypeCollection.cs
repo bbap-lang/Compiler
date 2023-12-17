@@ -41,15 +41,20 @@ public partial class TypeCollection {
         };
     }
 
-    public Result<IType> GetTableType(int line, string tableName, string genericTypeName) {
+    public Result<IType> GetGenericType(int line, string typeName, string genericTypeName) {
         Result<IType> genericTypeResult = Get(line, genericTypeName);
         if (!genericTypeResult.TryGetValue(out IType? genericType)) return genericTypeResult;
 
-        Result<TableTypes> tableTypeResult = tableName switch {
+        if (typeName == "FIELDSYMBOL") {
+
+            return Ok<IType>(new FieldSymbolType(genericType));
+        }
+        
+        Result<TableTypes> tableTypeResult = typeName switch {
             "TABLE" or "STANDARDTABLE" => Ok(TableTypes.StandardTable),
             "HASHEDTABLE" => Ok(TableTypes.HashedTable),
             "SORTEDTABLE" => Ok(TableTypes.SortedTable),
-            _ => Error(line, $"Unknown table type {tableName}")
+            _ => Error(line, $"Unknown table type {typeName}")
         };
 
         if (!tableTypeResult.TryGetValue(out TableTypes tableType)) return tableTypeResult.ToErrorResult();
@@ -63,7 +68,7 @@ public partial class TypeCollection {
             string genericTypeName = splittedName[1].TrimEnd('>').ToUpper();
             string tableName = splittedName[0].ToUpper();
             
-            return GetTableType(line, tableName, genericTypeName);
+            return GetGenericType(line, tableName, genericTypeName);
         }
         
         if (_types.TryGetValue(name, out IType? type)) return Ok(type);

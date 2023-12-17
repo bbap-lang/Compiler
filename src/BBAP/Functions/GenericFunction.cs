@@ -16,7 +16,7 @@ public record GenericFunction(
     ImmutableArray<IVariable> ReturnTypes,
     FunctionAttributes Attributes) : IFunction {
     public bool IsSingleTypeOutput => ReturnTypes.Length == 1;
-    public IType SingleType => ReturnTypes.FirstOrDefault()?.Type ?? new UnknownType();
+    public IType GetSingleType(IType[] inputs) => ReturnTypes.FirstOrDefault()?.Type ?? new UnknownType();
 
     public void Render(AbapBuilder builder,
         IEnumerable<VariableExpression> inputs,

@@ -11,7 +11,7 @@ namespace BBAP.Functions.AbapFunctions;
 public class TableAppend : IFunction{
     public string Name => "TABLE_APPEND";
 
-    public IType SingleType => throw new UnreachableException();
+    public IType GetSingleType(IType[] inputs) => throw new UnreachableException();
 
     public bool IsSingleTypeOutput => false;
 
@@ -36,24 +36,13 @@ public class TableAppend : IFunction{
     }
 
     public void Render(AbapBuilder builder, IEnumerable<VariableExpression> inputs, IEnumerable<VariableExpression> outputs) {
-        (VariableExpression table, VariableExpression value) = GetFirstAndSecond(inputs);
+        (VariableExpression table, VariableExpression value) = inputs.GetFirstAndSecond();
         
         builder.Append("APPEND ");
         VariableTranspiler.Run(value, builder);
         builder.Append(" TO ");
         VariableTranspiler.Run(table, builder);
         builder.AppendLine(".");
-    }
-
-    private (T first, T second) GetFirstAndSecond<T>(IEnumerable<T> inputs) {
-        using IEnumerator<T> enumerator = inputs.GetEnumerator();
-
-        enumerator.MoveNext();
-        T first = enumerator.Current;
-        enumerator.MoveNext();
-        T second = enumerator.Current;
-        
-        return (first, second);
     }
 
     public Result<IType[]> GetReturnTypes(int length, int line) {

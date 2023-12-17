@@ -9,7 +9,7 @@ namespace BBAP.Functions.AbapFunctions;
 
 public class PrintLine : IFunction {
     public IType? ReturnType => null;
-    public IType SingleType => throw new UnreachableException();
+    public IType GetSingleType(IType[] inputs) => throw new UnreachableException();
     public bool IsSingleTypeOutput => false;
 
     public FunctionAttributes Attributes => FunctionAttributes.None;

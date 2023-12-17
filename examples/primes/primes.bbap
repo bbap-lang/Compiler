@@ -192,3 +192,7 @@ func testOnTable(table: TABLE<int>){
 const testConst3 = 1;
 
 testConst.testFunc();
+
+let fieldSymbol: FieldSymbol<int>;
+
+fieldSymbol = testTable.ToFieldSymbol();

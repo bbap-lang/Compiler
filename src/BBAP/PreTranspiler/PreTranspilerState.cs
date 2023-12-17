@@ -25,6 +25,7 @@ public class PreTranspilerState {
         { "CONCATENATE", new Concatenate() },
         { "STRING_TOCHARARRAY", new StringToCharArray() },
         { "TABLE_APPEND", new TableAppend() },
+        { "TABLE_TOFIELDSYMBOL", new ToFieldSymbol() },
         { "ANY_CLEAR", new Clear() },
     };
 

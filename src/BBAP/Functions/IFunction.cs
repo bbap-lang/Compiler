@@ -9,7 +9,7 @@ namespace BBAP.Functions;
 
 public interface IFunction {
     public string Name { get; }
-    public IType SingleType { get; }
+    public IType GetSingleType(IType[] inputs);
     public bool IsSingleTypeOutput { get; }
     public FunctionAttributes Attributes { get; }
 

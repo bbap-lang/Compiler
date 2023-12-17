@@ -30,7 +30,7 @@ public class Concatenate : IFunction {
 
     public string Name => "CONCATENATE";
 
-    public IType SingleType => TypeCollection.StringType;
+    public IType GetSingleType(IType[] inputs) => TypeCollection.StringType;
 
     public bool IsSingleTypeOutput => true;
 

@@ -10,5 +10,5 @@ public record SecondStageFunctionCallExpression(int Line,
     IFunction Function,
     ImmutableArray<SecondStageParameterExpression> Parameters,
     ImmutableArray<VariableExpression> Outputs) : ISecondStageValue {
-    public TypeExpression Type => new(Line, Function.SingleType);
+    public TypeExpression Type => new(Line, Function.GetSingleType(Parameters.Select(x => x.Type.Type).ToArray()));
 }

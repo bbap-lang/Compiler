@@ -9,7 +9,7 @@ public class TypePreTranspiler {
     public static Result<IType> Run(IType rawType, PreTranspilerState state, int line) {
         return rawType switch {
             OnlyNameType onlyNameType => state.Types.Get(line, onlyNameType.Name),
-            OnlyNameGenericType onlyNameGenericType => state.Types.GetTableType(line, onlyNameGenericType.Name,
+            OnlyNameGenericType onlyNameGenericType => state.Types.GetGenericType(line, onlyNameGenericType.Name,
                                                                                 onlyNameGenericType.GenericType.Name),
             OnlyNameLengthType typeWithLength => state.Types.GetLengthType(line, typeWithLength.Name,
                                                                            typeWithLength.Length),

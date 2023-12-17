@@ -11,4 +11,15 @@ public static class EnumerableExtensionMethods {
             if (!e.Equals(element)) yield return e;
         }
     }
+    
+    public static (T first, T second) GetFirstAndSecond<T>(this IEnumerable<T> inputs) {
+        using IEnumerator<T> enumerator = inputs.GetEnumerator();
+
+        enumerator.MoveNext();
+        T first = enumerator.Current;
+        enumerator.MoveNext();
+        T second = enumerator.Current;
+        
+        return (first, second);
+    }
 }

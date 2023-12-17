@@ -1,5 +1,6 @@
 ﻿using BBAP.Parser.Expressions.Values;
 using BBAP.PreTranspiler.Variables;
+using BBAP.Types.Types.FullTypes;
 
 namespace BBAP.Transpiler.SubTranspiler;
 
@@ -22,7 +23,14 @@ public class VariableTranspiler {
             else
                 builder.Append('-');
 
+            if (variable.Type is FieldSymbolType) {
+                builder.Append('<');
+            }
             builder.Append(variable.Name);
+            
+            if (variable.Type is FieldSymbolType) {
+                builder.Append('>');
+            }
         }
     }
 }

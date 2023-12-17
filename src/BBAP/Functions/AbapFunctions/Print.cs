@@ -12,7 +12,7 @@ public class Print : IFunction {
     public IType? ReturnType => null;
 
     public string Name => "PRINT";
-    public IType SingleType => throw new UnreachableException();
+    public IType GetSingleType(IType[] inputs) => throw new UnreachableException();
     public bool IsSingleTypeOutput => false;
 
     public FunctionAttributes Attributes => FunctionAttributes.None;
