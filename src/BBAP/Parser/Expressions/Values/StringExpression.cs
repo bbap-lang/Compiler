@@ -1,3 +1,5 @@
-﻿namespace BBAP.Parser.Expressions.Values;
+﻿using BBAP.Lexer.Tokens.Values;
 
-public record StringExpression(int Line, string Value) : IExpression;
+namespace BBAP.Parser.Expressions.Values;
+
+public record StringExpression(int Line, string Value, QuotationMark QuotationMark) : IExpression;

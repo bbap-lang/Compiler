@@ -30,7 +30,7 @@ public class ValueParser {
             IntValueToken intToken => Ok<IExpression>(new IntExpression(nextToken.Line, intToken.Value)),
             FloatValueToken floatToken => Ok<IExpression>(new FloatExpression(nextToken.Line, floatToken.Value)),
             StringValueToken stringToken => Ok<IExpression>(new StringExpression(nextToken.Line,
-                                                             stringToken.Value)),
+                                                             stringToken.Value, stringToken.QuotationMark)),
             BooleanValueToken booleanValueToken => Ok<IExpression>(new BooleanValueExpression(nextToken.Line,
                                                                     booleanValueToken.Value)),
 

@@ -7,24 +7,24 @@ using BBAP.Results;
 namespace BBAP.Lexer;
 
 public static class StringLexer {
-    public static Result<IToken> Run(LexerState state, char quotationMark) {
+    public static Result<IToken> Run(LexerState state, char quotationMarkChar) {
         var wordBuilder = new StringBuilder();
 
         while (state.TryNext(out char nextChar)) {
             switch (nextChar) {
                 case '\\':
-                    Result<char> escapeResult = GetEscapeChar(state, quotationMark);
+                    Result<char> escapeResult = GetEscapeChar(state, quotationMarkChar);
                     if (!escapeResult.TryGetValue(out char escapedChar)) return escapeResult.ToErrorResult();
 
                     wordBuilder.Append(escapedChar);
                     break;
                 case '\'':
-                    if (quotationMark == '\'') goto EndStringRead;
+                    if (quotationMarkChar == '\'') goto EndStringRead;
 
                     wordBuilder.Append(nextChar);
                     break;
                 case '"':
-                    if (quotationMark == '"') goto EndStringRead;
+                    if (quotationMarkChar == '"') goto EndStringRead;
 
                     wordBuilder.Append(nextChar);
                     break;
@@ -39,11 +39,12 @@ public static class StringLexer {
             }
         }
 
-        if (state.AtEnd) return Error(state.Line, $"Invalid end of file, expected: ' {quotationMark} '");
+        if (state.AtEnd) return Error(state.Line, $"Invalid end of file, expected: ' {quotationMarkChar} '");
 
         EndStringRead:
 
-        return Ok<IToken>(new StringValueToken(wordBuilder.ToString(), state.Line));
+        QuotationMark quotationMark = QuotationMarks.FromChar(quotationMarkChar);
+        return Ok<IToken>(new StringValueToken(wordBuilder.ToString(), state.Line, quotationMark));
     }
 
     private static Result<char> GetEscapeChar(LexerState state, char quotationMark) {

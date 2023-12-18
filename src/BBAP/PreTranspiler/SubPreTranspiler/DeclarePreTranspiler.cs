@@ -1,11 +1,13 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics;
+using BBAP.Lexer.Tokens.Values;
 using BBAP.Parser.Expressions;
 using BBAP.Parser.Expressions.Values;
 using BBAP.PreTranspiler.Expressions;
 using BBAP.PreTranspiler.Variables;
 using BBAP.Results;
 using BBAP.Types;
+using BBAP.Types.Types.FullTypes;
 using BBAP.Types.Types.ParserTypes;
 using Error = BBAP.Results.Error;
 
@@ -125,7 +127,7 @@ public static class DeclarePreTranspiler {
         ISecondStageValue value,
         PreTranspilerState state) {
         if (declareExpression.Type.Type is UnknownType) {
-            return Ok(value.Type.Type);
+            return GetTypeOnlyFromValue(value);
         }
 
         Result<IType> typeResult
@@ -134,8 +136,23 @@ public static class DeclarePreTranspiler {
         if (!typeResult.TryGetValue(out IType? declaredType)) return typeResult.ToErrorResult();
         Result<int> typeCheckResult = SetPreTranspiler.CheckTypes(false, value, declaredType);
         if (!typeCheckResult.IsSuccess) return typeCheckResult.ToErrorResult();
-
+        
+        
+        
         return Ok(declaredType);
+    }
+
+    private static Result<IType> GetTypeOnlyFromValue(ISecondStageValue value) {
+        if (value is SecondStageValueExpression valueExpression
+         && valueExpression.Value is StringExpression stringExpression) {
+            if(stringExpression.QuotationMark == QuotationMark.Double) {
+                return Ok(TypeCollection.StringType);
+            }
+
+            return Ok<IType>(new CharType(TypeCollection.StringType, stringExpression.Value.Length));
+        }
+            
+        return Ok(value.Type.Type);
     }
 
     public static IExpression[] RemoveDeclarations(IExpression[] expressions) {

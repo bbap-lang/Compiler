@@ -1,12 +1,18 @@
 ﻿namespace BBAP.Lexer.Tokens.Values;
 
-public class StringValueToken : IToken {
-    public StringValueToken(string value, int line) {
-        Line = line;
-        Value = value;
+public record StringValueToken(string Value, int Line, QuotationMark QuotationMark) : IToken;
+
+public enum QuotationMark {
+    Single,
+    Double
+}
+
+public static class QuotationMarks {
+    public static QuotationMark FromChar(char c) {
+        return c switch {
+            '\'' => QuotationMark.Single,
+            '"' => QuotationMark.Double,
+            _ => throw new ArgumentOutOfRangeException(nameof(c), c, null)
+        };
     }
-
-    public string Value { get; init; }
-
-    public int Line { get; }
 }
